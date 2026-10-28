@@ -60,22 +60,12 @@ describe('Card', () => {
     expect(title.className).toContain('text-h3');
   });
 
-  it('renders a lazy image with alt text', () => {
-    render(<CardImage src="/cover.png" alt="Cover" />);
-    const image = screen.getByRole('img', { name: 'Cover' });
-
-    expect(image).toHaveAttribute('src', '/cover.png');
-    expect(image).toHaveAttribute('loading', 'lazy');
-  });
-
-  it('renders nothing for a missing image', () => {
-    const { container } = render(<CardImage src={null} alt="Cover" />);
-
-    expect(container).toBeEmptyDOMElement();
-  });
-
   it('accepts a custom aspect ratio', () => {
-    render(<CardImage src="/cover.png" alt="Cover" aspect="aspect-square" />);
+    render(
+      <CardImage aspect="aspect-square">
+        <img />
+      </CardImage>,
+    );
 
     expect(screen.getByRole('img').parentElement?.className).toContain('aspect-square');
   });

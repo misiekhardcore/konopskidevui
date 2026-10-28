@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { cn } from 'cn';
 import { Slot } from 'radix-ui';
+import * as React from 'react';
 
 type CardProps = React.ComponentProps<'div'> & {
   /** Adds a subtle hover affordance for cards that behave as links. */
@@ -84,11 +84,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-interface CardImageProps extends Omit<React.ComponentProps<'img'>, 'src'> {
-  src?: string | null;
-  alt: string;
-  /** Tailwind aspect ratio utility for the media box. */
+interface CardImageProps {
   aspect?: string;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 /**
@@ -96,37 +95,16 @@ interface CardImageProps extends Omit<React.ComponentProps<'img'>, 'src'> {
  * this package never imports a framework-specific image component, so the same
  * card works in Vite, Astro, Next or a plain HTML page.
  */
-function CardImage({ className, src, alt, aspect = 'aspect-[16/9]', imageComponent: Cmp, ...props }: CardImageProps & { imageComponent?: React.ComponentType<React.ComponentProps<'img'> & { fill?: boolean }> }) {
-  if (!src) return null;
-
+function CardImage({ className, aspect = 'aspect-video', children }: CardImageProps) {
   return (
     <div
       data-slot="card-image"
       className={cn('relative overflow-hidden rounded-t-sm', aspect, className)}
     >
-      {Cmp ? (
-        <Cmp
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          className={cn('h-full w-full object-cover', className)}
-          {...props}
-        />
-      ) : (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          className={cn('h-full w-full object-cover', className)}
-          {...props}
-        />
-      )}
+      {children}
     </div>
   );
 }
-
 export {
   Card,
   CardHeader,
@@ -138,10 +116,4 @@ export {
   CardImage,
   type CardProps,
   type CardImageProps,
-}
-
-interface CardImageCompProps extends React.ComponentProps<'img'> {
-  /** A framework-specific image component (e.g. next/image). When provided, it renders instead of the default <img>. */
-  imageComponent?: React.ComponentType<React.ComponentProps<'img'> & { fill?: boolean }>;
-}
-;
+};

@@ -146,7 +146,6 @@
     "radix-ui": "^1.8.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
-
     "react-day-picker": "^10.0.2",
     "react-resizable-panels": "^4.15.0",
     "recharts": "3.8.0",
