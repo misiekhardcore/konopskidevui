@@ -30,7 +30,7 @@ const meta: Meta = {
     },
     disabled: { control: 'boolean', table: { category: 'State' } },
   },
-  args: { collapsible: true, disabled: false },
+  args: { collapsible: 'true', disabled: false },
   render: (args) => (
     <Accordion {...args} type="single" defaultValue="shipping" className="w-96">
       <AccordionItem value="shipping">
