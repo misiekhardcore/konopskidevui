@@ -46,6 +46,10 @@ jobs:
       - name: Install pnpm and Node.js
         uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v2.0.0
         with:
+          # Pinned here rather than in package.json: pnpm 12 rewrites
+          # pnpm-lock.yaml to embed its own binaries when `packageManager` is
+          # set, which would land in every release commit.
+          version: 12.11.2
           runtime: node@24
           cache: true
 
