@@ -43,6 +43,16 @@ jobs:
           # shallow clone would silently produce an empty one.
           fetch-depth: 0
 
+      # The dispatch form lets the branch be chosen; releasing from anything but
+      # the default branch would tag and publish a commit that main never saw.
+      # Dry runs stay allowed everywhere, so the workflow can be exercised from
+      # a pull request branch.
+      - name: Only release from the default branch
+        if: ${{ !inputs.dry_run && github.ref_name != github.event.repository.default_branch }}
+        run: |
+          echo "::error::Dispatch this release from ${{ github.event.repository.default_branch }}, not ${{ github.ref_name }}."
+          exit 1
+
       - name: Install pnpm and Node.js
         uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v2.0.0
         with:
