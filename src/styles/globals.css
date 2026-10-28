@@ -1,0 +1,33 @@
+/*
+ * @konopskidev/ui — stylesheet entry
+ * ==================================
+ *
+ * This file is the package's `"./styles.css"` export. A consuming app imports
+ * it *after* Tailwind, and registers this package as a source so the classes
+ * used by the components are generated:
+ *
+ *   @import 'tailwindcss';
+ *   @import '@konopskidev/ui/styles.css';
+ *   @source '../node_modules/@konopskidev/ui/dist';
+ *
+ * It deliberately does not import `tailwindcss` itself: the app owns that
+ * import order, and importing it here would make the app's own `@source` and
+ * `@theme` blocks fight this file's.
+ */
+
+/* Every animate-in / fade-in / slide-in-* utility the overlay components use. */
+@import 'tw-animate-css';
+
+/*
+ * The data-* variants (data-open, data-checked, …) and the scroll-fade /
+ * shimmer / no-scrollbar utilities that current shadcn components rely on.
+ * Vendored from shadcn@4: variants and utilities only, no colour tokens, so it
+ * composes with the konopskidev palette instead of competing with it.
+ */
+@import './variants.css';
+
+@import './tokens.css';
+@import './theme.css';
+@import './utilities.css';
+@import './base.css';
+@import './prose.css';
