@@ -1,0 +1,57 @@
+/*
+ * konopskidev primitives
+ * ======================
+ *
+ * Single-purpose, variant-composable utilities. These are the vocabulary the
+ * site is written in, so they ship with the components rather than being
+ * re-invented per app.
+ */
+
+@utility container-page {
+  @apply mx-auto w-full max-w-page px-6;
+}
+
+@utility container-prose {
+  @apply w-full max-w-article;
+}
+
+@utility stack {
+  @apply flex flex-col gap-4;
+}
+
+@utility stack-tight {
+  @apply flex flex-col gap-2;
+}
+
+@utility stack-loose {
+  @apply flex flex-col gap-8;
+}
+
+@utility eyebrow {
+  @apply font-sans text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase;
+}
+
+/* Page and section headings are the h1 / h2 steps of the scale, set bolder. */
+@utility page-title {
+  @apply font-display text-h1 font-bold;
+}
+
+@utility section-title {
+  @apply font-display text-h2 font-semibold;
+}
+
+@utility card {
+  @apply rounded-sm border border-border bg-card text-card-foreground;
+}
+
+/*
+ * The house focus treatment: an outline, not a ring. It sits outside the box,
+ * never shifts layout, and is visible on every surface the tokens allow.
+ */
+@utility focus-ring {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+}
+
+@utility container-grid {
+  @apply grid gap-6 md:grid-cols-2;
+}

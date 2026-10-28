@@ -1,0 +1,129 @@
+/*
+ * konopskidev tokens
+ * ==================
+ *
+ * Every value here is copied verbatim from konopskidev's
+ * `src/app/(website)/index.css`, so a component rendered from this package looks
+ * exactly like the same component on the site.
+ *
+ * Rules, inherited from the source file and worth keeping:
+ *
+ * 1. Values live unlayered so `.dark` can override them. Wrapping them in a
+ *    layer would make the override lose against `@theme inline` utilities.
+ * 2. Tokens are referenced, never redefined, by `theme.css`. A colour is
+ *    declared exactly once, here.
+ * 3. Dark mode is the `.dark` class on an ancestor (usually `<html>`), set by
+ *    the consuming app.
+ */
+
+:root {
+  --radius: 0.5rem;
+
+  --background: #fbfbfa;
+  --foreground: #1d2329;
+
+  --card: #ffffff;
+  --card-foreground: #1d2329;
+  --popover: #ffffff;
+  --popover-foreground: #1d2329;
+
+  --primary: #1f4fa3;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f3f4;
+  --secondary-foreground: #1d2329;
+  --muted: #f2f3f4;
+  --muted-foreground: #5d6670;
+  --accent: #f2f3f4;
+  --accent-foreground: #1d2329;
+  --destructive: #b4362f;
+  --destructive-foreground: #ffffff;
+
+  --border: #e1e4e7;
+  --input: #d8dce0;
+  --ring: #1f4fa3;
+
+  --code: #f4f5f6;
+  --tok-fg: #1d2329;
+  --tok-comment: #666e77;
+  --tok-punct: #5d6670;
+  --tok-keyword: #1f4fa3;
+  --tok-string: #1f7a4d;
+  --tok-number: #a25d09;
+  --tok-function: #7a3fb0;
+  --tok-type: #0b6e99;
+
+  /*
+   * The site never charted anything, so the chart palette is derived from the
+   * syntax palette above: a chart, a code block and a diff then share one
+   * categorical colour language instead of introducing a second one.
+   */
+  --chart-1: var(--tok-keyword);
+  --chart-2: var(--tok-string);
+  --chart-3: var(--tok-number);
+  --chart-4: var(--tok-function);
+  --chart-5: var(--tok-type);
+
+  /*
+   * Sidebar surfaces. Defined by reference so they follow the theme for free;
+   * `var()` inside a custom property resolves where it is used, not here.
+   */
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  /*
+   * Stacking scale. konopskidev's Dialog referenced `--z-index-modal` without
+   * it ever being defined, which silently disabled its z-index; the scale is
+   * declared here so every floating surface has somewhere to sit.
+   */
+  --z-index-dropdown: 40;
+  --z-index-overlay: 50;
+  --z-index-modal: 50;
+  --z-index-popover: 60;
+  --z-index-toast: 70;
+  --z-index-tooltip: 80;
+
+  color-scheme: light;
+}
+
+.dark {
+  --background: #14181c;
+  --foreground: #e6e9ec;
+
+  --card: #171c21;
+  --card-foreground: #e6e9ec;
+  --popover: #171c21;
+  --popover-foreground: #e6e9ec;
+
+  --primary: #7aa7ee;
+  --primary-foreground: #14181c;
+  --secondary: #1c2227;
+  --secondary-foreground: #e6e9ec;
+  --muted: #1c2227;
+  --muted-foreground: #98a2ac;
+  --accent: #232a31;
+  --accent-foreground: #e6e9ec;
+  --destructive: #e07b73;
+  --destructive-foreground: #14181c;
+
+  --border: #2b333a;
+  --input: #333c44;
+  --ring: #7aa7ee;
+
+  --code: #1b2126;
+  --tok-fg: #e6e9ec;
+  --tok-comment: #848e97;
+  --tok-punct: #98a2ac;
+  --tok-keyword: #7aa7ee;
+  --tok-string: #7fd1a6;
+  --tok-number: #e0a04a;
+  --tok-function: #c4a1f0;
+  --tok-type: #6fc3e0;
+
+  color-scheme: dark;
+}

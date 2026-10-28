@@ -1,0 +1,22 @@
+/*
+ * Storybook builds this file as a complete Tailwind graph — exactly the way a
+ * consuming app would — so the package stylesheet is compiled in the same
+ * context it is designed for.
+ */
+@import 'tailwindcss';
+@import '../src/styles/globals.css';
+
+/*
+ * Storybook is the app shell for the preview iframe and the docs pages: it has
+ * to supply the `<body>` treatment the library deliberately leaves to apps.
+ */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.docs-story {
+  background: var(--background);
+}

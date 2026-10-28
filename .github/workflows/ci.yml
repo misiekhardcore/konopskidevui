@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm tsc
+
+      - name: Unit tests
+        run: pnpm test:coverage
+
+      - name: Install the Storybook browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Storybook tests (render, play functions, axe)
+        run: pnpm test:stories
+
+      - name: Build the library
+        run: pnpm build
+
+      - name: Check the published package
+        run: pnpm verify:package
+
+      - name: Build Storybook
+        run: pnpm build:storybook
