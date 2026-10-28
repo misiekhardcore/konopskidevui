@@ -2,7 +2,24 @@
   "name": "@konopskidev/ui",
   "version": "0.1.0",
   "description": "The konopskidev design system: shadcn/ui components styled with the konopskidev tokens on Tailwind CSS v4.",
+  "keywords": [
+    "shadcn",
+    "radix-ui",
+    "tailwindcss",
+    "react",
+    "design-system",
+    "components",
+    "ui"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/misiekhardcore/konopskidevui.git"
+  },
+  "homepage": "https://github.com/misiekhardcore/konopskidevui#readme",
+  "bugs": {
+    "url": "https://github.com/misiekhardcore/konopskidevui/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "publishConfig": {

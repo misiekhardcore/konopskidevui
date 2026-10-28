@@ -137,6 +137,47 @@ pnpm format
 Then write `src/components/ui/<component>.stories.tsx` and `<component>.test.tsx`, export it from
 `src/components/ui/<component>.tsx` and regenerate the barrel with `pnpm barrel`.
 
+## Releasing
+
+Releases run from **Actions → Release → Run workflow**. The only choice is the bump — `patch`,
+`minor` or `major` — applied to the version in `package.json`. There is no free-text version field,
+so a release is always the next version in sequence.
+
+In order, the workflow:
+
+1. `pnpm version <bump> --no-git-tag-version` — rewrites `package.json` only, since the root version
+   is not recorded in `pnpm-lock.yaml`.
+2. `git-cliff --tag vX.Y.Z -o CHANGELOG.md` — regenerates the whole changelog from the tag history,
+   labelling everything merged since the previous tag with the new version. This runs before the
+   release commit exists, so a release never lists itself.
+3. Commits `package.json` and `CHANGELOG.md`, tags `vX.Y.Z`, and pushes both to `main`.
+4. `pnpm build` and `pnpm verify:package` — publint and attw gate the tarball before it can reach the
+   registry.
+5. `pnpm publish` with npm provenance, authenticated by trusted publishing (OIDC).
+6. Creates the GitHub release from the generated notes — last, so a failed publish never leaves a
+   release pointing at a version that is not on npm.
+
+Ticking `dry_run` exercises steps 1–4 and prints the changelog plus the exact file list `npm pack`
+would upload, without committing, tagging or publishing anything.
+
+### One-time setup
+
+`@konopskidev/ui` needs an npm organisation named `konopskidev`, and npm only exposes the trusted
+publisher settings for a package that already exists. So the first publish is one of:
+
+- create the organisation, publish `0.1.0` by hand, then add a trusted publisher on npmjs.com
+  pointing at `misiekhardcore/konopskidevui` and the workflow file `release.yml`; or
+- add a granular `NPM_TOKEN` repository secret and let the workflow do the first publish.
+
+Every release after that needs no secrets. Provenance and trusted-publisher matching both key off
+the `repository` field in `package.json`, which is why it is pinned to this repo.
+
+### When a publish fails
+
+npm versions are immutable, but the run has already pushed the tag. To retry the same version,
+delete the tag, revert the `chore: release vX.Y.Z` commit on `main`, and dispatch the same bump
+again. Otherwise accept the gap and dispatch the next bump.
+
 ## Licence
 
 MIT.

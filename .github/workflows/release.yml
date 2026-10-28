@@ -1,0 +1,161 @@
+name: Release
+
+# Cut a release from the Actions tab. The version is never typed in: it is the
+# bump selected below, applied to the version in package.json.
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: 'Build, verify and preview the changelog without tagging or publishing'
+        required: false
+        type: boolean
+        default: false
+
+# The repository default is a read-only token. Releasing needs to push the bump
+# commit and the tag, and to mint the OIDC token npm trusted publishing uses.
+permissions:
+  contents: write
+  id-token: write
+
+# Two releases must never interleave: the second would bump an already bumped
+# version and push a tag that the first is still creating.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the branch and every tag
+        uses: actions/checkout@v4
+        with:
+          # git-cliff renders the whole changelog from the tag history, so a
+          # shallow clone would silently produce an empty one.
+          fetch-depth: 0
+
+      # The dispatch form lets the branch be chosen; releasing from anything but
+      # the default branch would tag and publish a commit that main never saw.
+      # Dry runs stay allowed everywhere, so the workflow can be exercised from
+      # a pull request branch.
+      - name: Only release from the default branch
+        if: ${{ !inputs.dry_run && github.ref_name != github.event.repository.default_branch }}
+        run: |
+          echo "::error::Dispatch this release from ${{ github.event.repository.default_branch }}, not ${{ github.ref_name }}."
+          exit 1
+
+      - name: Install pnpm and Node.js
+        uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v2.0.0
+        with:
+          # Pinned here rather than in package.json: pnpm 12 rewrites
+          # pnpm-lock.yaml to embed its own binaries when `packageManager` is
+          # set, which would land in every release commit.
+          version: 12.11.2
+          runtime: node@24
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm ci --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # `pnpm version --no-git-tag-version` rewrites package.json only: the root
+      # version is not recorded in pnpm-lock.yaml, so there is no lockfile churn
+      # to commit. The commit and the tag are created further down, once the
+      # changelog for this version exists.
+      - name: Bump the version
+        id: version
+        if: ${{ !inputs.dry_run }}
+        run: |
+          pnpm version "${{ inputs.version_bump }}" --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$VERSION"
+
+      # Generated before the tag exists and before the release commit is made:
+      # `--tag` labels everything after the previous tag with the new version,
+      # so the notes never list their own "chore: release" commit. Regenerating
+      # the file in full keeps older releases instead of overwriting them.
+      - name: Generate the changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose --tag "v${{ steps.version.outputs.version || '0.0.0-preview' }}"
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Render the release notes
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --tag "v${{ steps.version.outputs.version || '0.0.0-preview' }}" --unreleased --strip header
+        env:
+          OUTPUT: .release-notes.md
+
+      - name: Commit the release
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          git tag "v${{ steps.version.outputs.version }}"
+
+      - name: Push the commit and the tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      # Nothing irreversible happens above this line: a broken build should
+      # cost a run, not a version number.
+      - name: Build the library
+        run: pnpm build
+
+      - name: Check the published package
+        run: pnpm verify:package
+
+      - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
+        run: |
+          # Trusted publishing (OIDC) is the default and needs no secret. A
+          # granular NPM_TOKEN is the fallback for the first publish, before a
+          # trusted publisher for this workflow exists on npmjs.com.
+          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> "$HOME/.npmrc"
+          fi
+          pnpm publish --access public --provenance --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Last, so a failed publish never leaves a release pointing at a version
+      # that is not on the registry.
+      - name: Create the GitHub release
+        if: ${{ !inputs.dry_run }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          body_path: .release-notes.md
+          draft: false
+          prerelease: false
+
+      - name: Summarise the dry run
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run: nothing was committed, tagged, published or released."
+          echo
+          echo "--- release notes ---"
+          cat .release-notes.md
+          echo
+          echo "--- files that would be published ---"
+          npm pack --dry-run
