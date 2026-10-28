@@ -1,0 +1,27 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# build output
+/dist
+/storybook-static
+/coverage
+
+# test artifacts
+/test-results
+/playwright-report
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+pnpm-debug.log*
+pnpm-error.log*
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo

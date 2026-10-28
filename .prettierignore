@@ -1,0 +1,3 @@
+pnpm-lock.yaml
+# vendored verbatim from shadcn@4 — keep byte-identical
+src/styles/variants.css
