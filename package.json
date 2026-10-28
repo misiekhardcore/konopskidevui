@@ -73,10 +73,14 @@
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.0.0",
+    "lucide-react": ">=0.4 <2"
   },
   "peerDependenciesMeta": {
     "tailwindcss": {
+      "optional": true
+    },
+    "lucide-react": {
       "optional": true
     }
   },
@@ -139,8 +143,10 @@
     "date-fns": "^4.4.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.5.0",
-    "lucide-react": "^1.62.0",
     "radix-ui": "^1.8.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-dialog": "^1.1.1",
+
     "react-day-picker": "^10.0.2",
     "react-resizable-panels": "^4.15.0",
     "recharts": "3.8.0",
