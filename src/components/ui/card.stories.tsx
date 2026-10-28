@@ -77,10 +77,12 @@ export const WithImage: Story = {
   parameters: { controls: { include: ['interactive'] } },
   render: (args) => (
     <Card {...args} className="w-96 overflow-hidden p-0">
-      <CardImage
-        src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=800&h=450&fit=crop"
-        alt="A desk with a notebook and a laptop"
-      />
+      <CardImage>
+        <img
+          src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=800&h=450&fit=crop"
+          alt="A desk with a notebook and a laptop"
+        />
+      </CardImage>
       <CardHeader>
         <CardTitle>Reading performance budgets</CardTitle>
         <CardDescription>Why the slowest page is the one nobody measured.</CardDescription>
