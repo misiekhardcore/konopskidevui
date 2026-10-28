@@ -1,5 +1,6 @@
-import { cn } from 'cn';
 import * as React from 'react';
+import { cn } from 'cn';
+import { Slot } from 'radix-ui';
 
 type CardProps = React.ComponentProps<'div'> & {
   /** Adds a subtle hover affordance for cards that behave as links. */
@@ -26,9 +27,16 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+interface CardTitleProps extends React.ComponentProps<'div'> {
+  /** Render as a different element (e.g. h2, h3) while preserving styling. */
+  asChild?: boolean;
+}
+
+function CardTitle({ className, asChild = false, ...props }: CardTitleProps) {
+  const Comp = asChild ? Slot.Root : 'div';
+
   return (
-    <div
+    <Comp
       data-slot="card-title"
       className={cn('font-display text-h3 font-semibold tracking-tight', className)}
       {...props}
@@ -87,8 +95,7 @@ interface CardImageProps extends Omit<React.ComponentProps<'img'>, 'src'> {
  * A bleeding card image, sized by aspect ratio. Framework-agnostic on purpose:
  * this package never imports a framework-specific image component, so the same
  * card works in Vite, Astro, Next or a plain HTML page.
- */
-function CardImage({ className, src, alt, aspect = 'aspect-[16/9]', ...props }: CardImageProps) {
+ */function CardImage({ className, src, alt, aspect = 'aspect-[16/9]', imageComponent: Cmp, ...props }: CardImageProps & { imageComponent?: React.ComponentType<React.ComponentProps<'img'> & { fill?: boolean }> }) {
   if (!src) return null;
 
   return (
@@ -96,18 +103,28 @@ function CardImage({ className, src, alt, aspect = 'aspect-[16/9]', ...props }: 
       data-slot="card-image"
       className={cn('relative overflow-hidden rounded-t-sm', aspect, className)}
     >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className="h-full w-full object-cover"
-        {...props}
-      />
+      {Cmp ? (
+        <Cmp
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className={cn('h-full w-full object-cover', className)}
+          {...props}
+        />
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className={cn('h-full w-full object-cover', className)}
+          {...props}
+        />
+      )}
     </div>
   );
 }
-
 export {
   Card,
   CardHeader,
@@ -119,4 +136,10 @@ export {
   CardImage,
   type CardProps,
   type CardImageProps,
-};
+}
+
+interface CardImageCompProps extends React.ComponentProps<'img'> {
+  /** A framework-specific image component (e.g. next/image). When provided, it renders instead of the default <img>. */
+  imageComponent?: React.ComponentType<React.ComponentProps<'img'> & { fill?: boolean }>;
+}
+;
