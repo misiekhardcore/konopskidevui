@@ -1,5 +1,5 @@
 import { cn } from 'cn';
-import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
+import { MoreHorizontalIcon } from 'lucide-react';
 import { Slot } from 'radix-ui';
 import * as React from 'react';
 
@@ -69,10 +69,10 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
       data-slot="breadcrumb-separator"
       role="presentation"
       aria-hidden="true"
-      className={cn('[&>svg]:size-3.5', className)}
+      className={className}
       {...props}
     >
-      {children ?? <ChevronRightIcon />}
+      {children ?? '/'}
     </li>
   );
 }
