@@ -1,3 +1,5 @@
+'use client';
+
 import { Combobox as ComboboxPrimitive } from '@base-ui/react';
 import { cn } from 'cn';
 import { ChevronDownIcon, XIcon, CheckIcon } from 'lucide-react';

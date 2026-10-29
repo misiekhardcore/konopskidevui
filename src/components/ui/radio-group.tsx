@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from 'cn';
 import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
 import * as React from 'react';

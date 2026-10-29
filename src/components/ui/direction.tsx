@@ -24,4 +24,4 @@ function DirectionProvider({ dir, direction, children }: DirectionProviderProps)
 
 const useDirection = Direction.useDirection;
 
-export { DirectionProvider, useDirection };
+export { DirectionProvider, useDirection, type DirectionProviderProps, type DirectionValue };
