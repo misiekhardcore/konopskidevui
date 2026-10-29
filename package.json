@@ -1,6 +1,6 @@
 {
   "name": "@konopskidev/ui",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "The konopskidev design system: shadcn/ui components styled with the konopskidev tokens on Tailwind CSS v4.",
   "keywords": [
     "shadcn",
