@@ -69,4 +69,14 @@ describe('Card', () => {
 
     expect(screen.getByRole('img').parentElement?.className).toContain('aspect-square');
   });
+
+  it('refuses to render a frame with nothing in it', () => {
+    // `children` is required: an empty aspect box is never the intent, so the
+    // guard belongs on the type instead of in every card. This line fails
+    // `pnpm tsc` if the prop ever becomes optional again.
+    // @ts-expect-error `children` is required
+    const empty = <CardImage />;
+
+    expect(empty).toBeTruthy();
+  });
 });

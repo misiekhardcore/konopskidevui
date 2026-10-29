@@ -106,6 +106,7 @@ export {
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
+  type PaginationLinkProps,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,

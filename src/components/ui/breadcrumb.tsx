@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from 'cn';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { Slot } from 'radix-ui';

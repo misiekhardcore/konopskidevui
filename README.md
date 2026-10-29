@@ -6,6 +6,10 @@ visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 an
 - **63 components** — the full `radix-nova` registry, plus the hand-written house primitives.
 - **One style source** — tokens, theme, base layers and prose live in [`src/styles`](src/styles), so
   every app imports the same stylesheet instead of re-deriving the palette.
+- **ESM and CommonJS** — both formats ship, with declarations for each, so `import`, `require` and a
+  Jest suite all resolve the package without a transform.
+- **Only what you install loads** — a component built on a heavy library (`recharts`, `shiki`,
+  `vaul`, …) asks for it as an optional peer, and is never re-exported from the root barrel.
 - **Documented in Storybook 10** with real controls for every prop, and every story runs as a test
   in a real browser (render + play function + axe accessibility checks).
 - **Tested with Vitest** — behaviour in jsdom, markup and a11y in Chromium.
@@ -16,7 +20,36 @@ visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 an
 pnpm add @konopskidev/ui
 ```
 
-Peer dependencies: `react@^19`, `react-dom@^19`, `tailwindcss@^4`.
+Peer dependencies: `react@^19`, `react-dom@^19`, `tailwindcss@^4`, and `lucide-react` (optional).
+
+Some components are built on a heavy library. Those are **optional peers**: they are not installed
+with the package, and you add the one a component needs — the manual half of what `shadcn add` does
+for a copied component.
+
+| Component                                       | Install alongside                 |
+| ----------------------------------------------- | --------------------------------- |
+| `chart`                                         | `pnpm add recharts`               |
+| `carousel`                                      | `pnpm add embla-carousel-react`   |
+| `drawer`                                        | `pnpm add vaul`                   |
+| `calendar`                                      | `pnpm add react-day-picker`       |
+| `resizable`                                     | `pnpm add react-resizable-panels` |
+| `command`                                       | `pnpm add cmdk`                   |
+| `sonner`                                        | `pnpm add sonner`                 |
+| `input-otp`                                     | `pnpm add input-otp`              |
+| `combobox`                                      | `pnpm add @base-ui/react`         |
+| `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`          |
+| `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)       |
+
+Those eleven components are **not** in the root barrel, because a barrel that re-exported them would
+make every consumer resolve `recharts` on `import { Button } from '@konopskidev/ui'`. Import them
+from their subpath:
+
+```tsx
+import { ChartContainer } from '@konopskidev/ui/components/chart';
+```
+
+> **Just released?** pnpm quarantines packages published in the last 24 hours. While you are the one
+> publishing, add the package to `minimumReleaseAgeExclude` in `pnpm-workspace.yaml`.
 
 ## Wire up the styles
 
@@ -27,10 +60,12 @@ The package does **not** import `tailwindcss` itself — the app owns that, so i
 /* app.css */
 @import 'tailwindcss';
 @import '@konopskidev/ui/styles.css';
-
-/* Let Tailwind see the classes the components use. */
-@source '../node_modules/@konopskidev/ui/dist';
 ```
+
+No `@source` line is needed. Tailwind does not scan `node_modules`, so the published stylesheet
+registers the package's own modules with `@source` — the path is relative to that file, so it cannot
+drift from your install. Before that existed, a wrong consumer-side path failed silently: every
+component rendered unstyled with no error in the build or the console.
 
 Dark mode is the `.dark` class on any ancestor. The `--font-*` variables come from the app
 (konopskidev sets them with `next/font`); every style has a sensible fallback.
@@ -56,15 +91,23 @@ export function PublishCard() {
 }
 ```
 
-Deep imports keep a page from pulling in the whole library:
+Deep imports keep a page from pulling in the whole library, and they are the only way in for the
+components in the peer table above:
 
 ```tsx
 import { Button } from '@konopskidev/ui/components/button';
 import { cn } from '@konopskidev/ui/lib/utils';
 ```
 
-Components that use hooks or state carry `'use client'`, so they render inside a React Server
-Component tree.
+Every module that renders a Radix primitive or calls a hook carries `'use client'`, so it renders
+inside a React Server Component tree. Purely presentational modules stay unmarked on purpose —
+`Table`, `Skeleton`, `Kbd`, `Empty`, `Spinner` and the prose primitives can be imported and used from
+a server component without pulling their subtree into the client bundle. A test enforces the rule, so
+a new component cannot silently regress it:
+
+```bash
+pnpm test src/client-directive.test.ts
+```
 
 ## The style contract
 
@@ -89,6 +132,13 @@ Conventions that are behaviour, not class strings:
 - **Slider names live on the thumbs**, where focus goes; pass `thumbLabels` for ranges.
 - **`Item` rows are list items** inside `ItemGroup`; with `asChild` the consumer's element keeps its
   own role.
+- **`CardImage` requires content.** The aspect box exists to frame media, so `children` is required
+  rather than every call site guarding an empty frame.
+- **`DialogContent` composes.** `variant="bare"` gives a full-viewport layer with no card chrome and
+  no entrance animation (image viewers, canvases); `overlayClassName` reaches the backdrop,
+  `showOverlay={false}` removes it, and `closeButton` takes `false` or your own element when the
+  default ghost button would be unreadable. `DialogContentPrimitive` is exported for layouts the
+  props cannot express.
 
 ## Storybook
 
@@ -106,10 +156,21 @@ get wrong.
 ```bash
 pnpm test           # jsdom behaviour tests
 pnpm test:stories   # every story rendered in Chromium, play functions + axe
+pnpm test:package   # packs the tarball and consumes it, both formats + Tailwind
 pnpm test:coverage
 ```
 
 `pnpm test:stories` needs a browser: `pnpm exec playwright install chromium`.
+
+`pnpm test:package` is the check the metadata validators cannot make: it `npm pack`s the package,
+installs it into a scratch consumer with only React and Tailwind, then `import`s and `require`s it,
+asserts the barrel resolves without any optional peer, and runs a Tailwind build to prove the shipped
+stylesheet styles the components with no consumer configuration.
+
+**Jest.** Because the package ships CommonJS alongside ESM, `require` resolves it directly: no
+`moduleNameMapper`, no transform for the package, no `transformIgnorePatterns` exception. One
+`moduleNameMapper` per export family (`components/*`, `lib/*`, `hooks/*`) is enough if you need to
+point at the files explicitly.
 
 Coverage thresholds are a ratchet — the floor sits where the suite is today (65 % overall, 90 % for
 hooks, 70 % for lib), so a new component without tests fails the run instead of sliding past.
@@ -117,14 +178,22 @@ hooks, 70 % for lib), so a new component without tests fails the run instead of 
 ## Quality gates
 
 ```bash
-pnpm verify         # lint → tsc → tests → build → publint + attw
+pnpm verify         # lint → tsc → tests → build → package smoke test → publint + attw
 ```
 
-The build emits one ES module per source module (no barrel bundling), keeps `'use client'`, writes
-per-module declaration files, and rewrites relative declaration specifiers to `.js` so
-`moduleResolution: node16` consumers resolve them
-([`scripts/fix-declarations.mjs`](scripts/fix-declarations.mjs)). `attw` runs with `--profile esm-only`
-and skips `./styles.css`, which publint validates as a plain asset.
+The build is [`scripts/build.mjs`](scripts/build.mjs): every publishable source module is a Rollup
+entry ([`scripts/entries.mjs`](scripts/entries.mjs)), so one file is emitted per module and nothing
+that a wildcard export can reach is left out. Vite runs twice — ESM, then CommonJS — `tsc` writes the
+declarations, and the post-steps copy `src/styles` into `dist/styles`, add the CommonJS `.d.cts`
+declarations, and normalise relative specifiers so `moduleResolution: node16` consumers resolve them
+([`scripts/fix-declarations.mjs`](scripts/fix-declarations.mjs)).
+
+[`scripts/check-build.mjs`](scripts/check-build.mjs) then fails the build on any of the ways this
+package has broken before: a module with declarations but no JavaScript, a `'use client'` that is
+missing or duplicated, an `exports` target that does not exist, or a stylesheet that is not in `dist`.
+`attw` runs with `--profile node16`, so both the `import` and `require` branches are validated;
+`./styles.css` and the two ESM-only modules are excluded, and publint validates the stylesheet as a
+plain asset.
 
 ## Adding a component
 
@@ -136,6 +205,16 @@ pnpm format
 
 Then write `src/components/ui/<component>.stories.tsx` and `<component>.test.tsx`, export it from
 `src/components/ui/<component>.tsx` and regenerate the barrel with `pnpm barrel`.
+
+Two rules are enforced by tests rather than convention:
+
+- **Client or server?** A module that renders a Radix primitive or calls a hook needs `'use client'`
+  as its first line; `pnpm test` fails without it, and the build fails if the directive is emitted
+  twice or not at all.
+- **Heavy peer?** If the component needs a library the core does not already have, add it to
+  `peerDependencies` + `peerDependenciesMeta` (optional) + `devDependencies` and to
+  `OPTIONAL_PEER_COMPONENTS` in [`scripts/generate-barrel.mjs`](scripts/generate-barrel.mjs), so it
+  stays out of the root barrel. Add the row to the install table above.
 
 ## Releasing
 

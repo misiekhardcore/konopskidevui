@@ -10,9 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  type DialogContentProps,
 } from './dialog';
 
-function renderDialog(props: { showCloseButton?: boolean } = {}) {
+function renderDialog(props: DialogContentProps = {}) {
   return render(
     <Dialog>
       <DialogTrigger>Open dialog</DialogTrigger>
@@ -103,5 +104,58 @@ describe('Dialog', () => {
     const title = await screen.findByText('Rename article');
     expect(title.className).toContain('font-display');
     expect(title.className).toContain('text-h3');
+  });
+
+  it('lets the backdrop be restyled, so it can follow the theme', async () => {
+    renderDialog({ overlayClassName: 'bg-foreground/50' });
+    await userEvent.click(screen.getByText('Open dialog'));
+
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]');
+    expect(overlay?.className).toContain('bg-foreground/50');
+    // Same class group, so tailwind-merge drops the default veil instead of
+    // leaving the result to stylesheet order.
+    expect(overlay?.className).not.toContain('bg-black/80');
+  });
+
+  it('can drop the backdrop entirely', async () => {
+    renderDialog({ showOverlay: false });
+    await userEvent.click(screen.getByText('Open dialog'));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).toBeNull();
+  });
+
+  it('replaces the corner affordance with a consumer node', async () => {
+    renderDialog({ closeButton: <button type="button">Dismiss</button> });
+    await userEvent.click(screen.getByText('Open dialog'));
+
+    expect(screen.queryByRole('button', { name: 'Close modal' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('still understands the deprecated boolean', async () => {
+    renderDialog({ closeButton: false });
+    await userEvent.click(screen.getByText('Open dialog'));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close modal' })).not.toBeInTheDocument();
+  });
+
+  it('renders a full-bleed layer in the bare variant, with no card chrome', async () => {
+    renderDialog({ variant: 'bare' });
+    await userEvent.click(screen.getByText('Open dialog'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.className).toContain('inset-0');
+
+    // Everything the card adds, and that a viewer had to cancel by hand.
+    for (const cancelled of ['bg-background', 'rounded-sm', 'shadow-lg', 'max-w-lg', 'p-6']) {
+      expect(dialog.className).not.toContain(cancelled);
+    }
+
+    expect(dialog.className).not.toContain('animate-in');
+    expect(dialog.className).not.toContain('zoom-in-95');
   });
 });

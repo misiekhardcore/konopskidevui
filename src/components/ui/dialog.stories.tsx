@@ -1,3 +1,4 @@
+import { XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
@@ -100,6 +101,39 @@ export const WithoutCloseButton: Story = {
           <DialogDescription>Dismiss with Escape or the button below.</DialogDescription>
         </DialogHeader>
         <DialogFooter showCloseButton />
+      </DialogContent>
+    </Dialog>
+  ),
+};
+
+export const FullBleed: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">View image</Button>
+      </DialogTrigger>
+      {/*
+       * The composition an image viewer needs: a theme-aware veil, no card, no
+       * animation, and a close button the consumer colours. Before `variant`,
+       * every one of these was a class string cancelling the card's defaults.
+       */}
+      <DialogContent
+        variant="bare"
+        overlayClassName="bg-foreground/50"
+        closeButton={
+          <Button variant="outline" size="icon-sm" className="absolute top-4 right-4">
+            <XIcon className="size-5" />
+            <span className="sr-only">Close preview</span>
+          </Button>
+        }
+        aria-describedby={undefined}
+        className="flex items-center justify-center p-4"
+      >
+        <DialogTitle className="sr-only">Image preview</DialogTitle>
+        <div className="flex h-64 w-full max-w-2xl items-center justify-center border border-border bg-muted">
+          <span className="text-sm text-muted-foreground">Full-bleed layer</span>
+        </div>
       </DialogContent>
     </Dialog>
   ),

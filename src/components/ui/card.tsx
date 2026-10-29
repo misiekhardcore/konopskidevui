@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from 'cn';
 import { Slot } from 'radix-ui';
 import * as React from 'react';
@@ -87,7 +89,12 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
 interface CardImageProps {
   aspect?: string;
   className?: string;
-  children?: React.ReactNode;
+  /**
+   * The media itself. Required on purpose: an aspect box with nothing in it is
+   * never the intended result, and making it optional pushed every call site
+   * into guarding the frame with its own conditional.
+   */
+  children: React.ReactNode;
 }
 
 /**
@@ -115,5 +122,6 @@ export {
   CardContent,
   CardImage,
   type CardProps,
+  type CardTitleProps,
   type CardImageProps,
 };

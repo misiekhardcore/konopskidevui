@@ -46,6 +46,11 @@ jobs:
       - name: Build the library
         run: pnpm build
 
+      # Packs the tarball and consumes it as an app would: import, require, and a
+      # Tailwind build with no consumer configuration.
+      - name: Use the packed package
+        run: pnpm test:package
+
       - name: Check the published package
         run: pnpm verify:package
 
