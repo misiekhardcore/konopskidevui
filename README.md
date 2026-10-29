@@ -99,11 +99,20 @@ import { Button } from '@konopskidev/ui/components/button';
 import { cn } from '@konopskidev/ui/lib/utils';
 ```
 
-Every module that renders a Radix primitive or calls a hook carries `'use client'`, so it renders
-inside a React Server Component tree. Purely presentational modules stay unmarked on purpose —
-`Table`, `Skeleton`, `Kbd`, `Empty`, `Spinner` and the prose primitives can be imported and used from
-a server component without pulling their subtree into the client bundle. A test enforces the rule, so
-a new component cannot silently regress it:
+Every module that calls a hook, or wraps a primitive with no client boundary of its own, carries
+`'use client'`, so it renders inside a React Server Component tree. Two kinds of module stay
+unmarked on purpose:
+
+- **`Slot`-only presentational components** — `Button`, `Card`, `Badge`, `Item`, `Breadcrumb` and the
+  prose primitives. `Slot` is `asChild` plumbing with no behaviour, and Radix leaves it unmarked for
+  the same reason. Because the directive is file-level, marking `button.tsx` would also make
+  `buttonVariants` a client reference, and `buttonVariants()` from a server component would throw.
+- **Thin wrappers over a dependency that declares the boundary itself** — `cmdk`, `sonner`,
+  `react-resizable-panels`, `@shadcn/react`. The client graph already starts inside the dependency,
+  so marking the wrapper only moves its own few lines into the client bundle.
+
+A test enforces both directions and re-checks that every package in the second group still ships the
+directive, so a new component cannot silently regress the rule:
 
 ```bash
 pnpm test src/client-directive.test.ts
@@ -208,9 +217,10 @@ Then write `src/components/ui/<component>.stories.tsx` and `<component>.test.tsx
 
 Two rules are enforced by tests rather than convention:
 
-- **Client or server?** A module that renders a Radix primitive or calls a hook needs `'use client'`
-  as its first line; `pnpm test` fails without it, and the build fails if the directive is emitted
-  twice or not at all.
+- **Client or server?** A module that calls a hook, or wraps a primitive that does not declare its
+  own client boundary, needs `'use client'` as its first line; `pnpm test` fails both when it is
+  missing and when it is unnecessary, and the build fails if the directive is emitted twice or not at
+  all. `Slot`-only modules stay unmarked — see the client/server section above.
 - **Heavy peer?** If the component needs a library the core does not already have, add it to
   `peerDependencies` + `peerDependenciesMeta` (optional) + `devDependencies` and to
   `OPTIONAL_PEER_COMPONENTS` in [`scripts/generate-barrel.mjs`](scripts/generate-barrel.mjs), so it
