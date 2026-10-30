@@ -18,7 +18,6 @@ const meta = {
   argTypes: {
     size: {
       control: 'inline-radio',
-      options: ['sm', 'default'],
       description: 'Track size.',
       table: { category: 'Appearance' },
     },
