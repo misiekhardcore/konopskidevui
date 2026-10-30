@@ -23,6 +23,7 @@ describe('Badge', () => {
       'destructive',
       'outline',
       'ghost',
+      'tag',
       'link',
     ] as const) {
       const { unmount } = render(<Badge variant={value}>Badge</Badge>);

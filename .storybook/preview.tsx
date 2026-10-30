@@ -14,7 +14,51 @@ import '@fontsource/jetbrains-mono/400.css';
 
 import './preview.css';
 
+const isEmptyMember = (value: unknown) => value === null || value === undefined;
+
+// `VariantProps` from class-variance-authority types every variant as
+// `… | null`, and `shouldRemoveUndefinedFromOptional` only drops the
+// `undefined`. Docgen therefore reports a `null` union member, which surfaces
+// as an empty choice in each control and as `null` in the type column of the
+// props table. Strip it before `inferControls` builds `options` from
+// `type.value`, so the component's type stays the single source of truth.
+const withoutEmptyEnumValues: NonNullable<Preview['argTypesEnhancers']>[number] = ({
+  argTypes,
+}) => {
+  const next = { ...argTypes };
+
+  for (const [name, argType] of Object.entries(argTypes)) {
+    if (argType?.type?.name !== 'enum') continue;
+
+    const summary = argType.table?.type?.summary;
+
+    next[name] = {
+      ...argType,
+      type: {
+        ...argType.type,
+        value: argType.type.value?.filter((value) => !isEmptyMember(value)),
+      },
+      // The docs table renders this precomputed union instead of `type.value`.
+      ...(typeof summary === 'string' && {
+        table: {
+          ...argType.table,
+          type: {
+            ...argType.table?.type,
+            summary: summary
+              .split(' | ')
+              .filter((member) => member !== 'null' && member !== 'undefined')
+              .join(' | '),
+          },
+        },
+      }),
+    };
+  }
+
+  return next;
+};
+
 const preview: Preview = {
+  argTypesEnhancers: [withoutEmptyEnumValues],
   decorators: [
     // `@custom-variant dark (&:is(.dark *))` needs the class on an ancestor, so
     // it goes on <html> exactly as next-themes would put it in a real app.

@@ -18,12 +18,10 @@ const meta: Meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'outline'],
       table: { category: 'Appearance' },
     },
     size: {
       control: 'select',
-      options: ['sm', 'default', 'lg'],
       table: { category: 'Appearance' },
     },
     spacing: {
@@ -36,6 +34,13 @@ const meta: Meta = {
       options: ['horizontal', 'vertical'],
       table: { category: 'Layout' },
     },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
+    value: {
+      control: 'text',
+      description: 'Controlled pressed value: a string for `single`, an array for `multiple`.',
+      table: { category: 'State' },
+    },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
   },
   args: {

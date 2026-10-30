@@ -17,11 +17,17 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to drive it from the trigger.',
+      table: { category: 'State' },
+    },
     defaultOpen: {
       control: 'boolean',
       description: 'Open on first render.',
       table: { category: 'State' },
     },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
     className: { control: false, table: { category: 'Styling' } },
   },

@@ -20,23 +20,11 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: [
-        'default',
-        'primary',
-        'secondary',
-        'destructive',
-        'outline',
-        'ghost',
-        'ghost-primary',
-        'ghost-destructive',
-        'link',
-      ],
       description: 'Visual weight of the action.',
       table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     size: {
       control: 'select',
-      options: ['default', 'xs', 'sm', 'lg', 'icon-xs', 'icon-sm', 'icon', 'icon-lg'],
       description: 'Padding scale. `default` lines up with a 40px `Input`.',
       table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },

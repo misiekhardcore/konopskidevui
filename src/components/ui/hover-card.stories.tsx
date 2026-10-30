@@ -17,6 +17,11 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to open on hover or focus.',
+      table: { category: 'State' },
+    },
     openDelay: {
       control: { type: 'number', min: 0, max: 1000, step: 50 },
       description: 'Milliseconds before the card appears.',
@@ -28,6 +33,7 @@ const meta = {
       table: { category: 'Behaviour' },
     },
     defaultOpen: { control: 'boolean', table: { category: 'State' } },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
   },
   args: {
     openDelay: 200,

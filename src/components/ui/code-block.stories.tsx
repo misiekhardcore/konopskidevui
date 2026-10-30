@@ -35,13 +35,11 @@ const meta = {
   argTypes: {
     variant: {
       control: 'inline-radio',
-      options: ['default', 'destructive'],
       description: 'Default or error framing.',
       table: { category: 'Appearance' },
     },
     size: {
       control: 'inline-radio',
-      options: ['default', 'sm'],
       table: { category: 'Appearance' },
     },
     className: { control: false, table: { category: 'Styling' } },

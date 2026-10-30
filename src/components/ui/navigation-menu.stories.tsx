@@ -38,6 +38,23 @@ const meta = {
       description: 'Render panels in a shared viewport element.',
       table: { category: 'Behaviour' },
     },
+    value: {
+      control: 'text',
+      description: 'Controlled open item, by its `value`.',
+      table: { category: 'State' },
+    },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
+    orientation: {
+      control: 'inline-radio',
+      options: ['horizontal', 'vertical'],
+      table: { category: 'Layout' },
+    },
+    delayDuration: {
+      control: { type: 'number', min: 0, max: 1000, step: 50 },
+      description: 'Milliseconds a pointer must rest before a panel opens.',
+      table: { category: 'Behaviour' },
+    },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {

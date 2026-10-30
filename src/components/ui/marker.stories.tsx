@@ -18,7 +18,6 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'border', 'separator'],
       table: { category: 'Appearance' },
     },
     asChild: { control: 'boolean', table: { category: 'Composition' } },

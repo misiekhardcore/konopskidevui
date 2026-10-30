@@ -18,7 +18,6 @@ const meta = {
   argTypes: {
     orientation: {
       control: 'inline-radio',
-      options: ['horizontal', 'vertical'],
       description: 'Split axis.',
       table: { category: 'Layout' },
     },

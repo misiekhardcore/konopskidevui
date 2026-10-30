@@ -47,11 +47,18 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to open on right click.',
+      table: { category: 'State' },
+    },
     modal: {
       control: 'boolean',
       description: 'Keep the page inert while the menu is open.',
       table: { category: 'Behaviour' },
     },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
   },
   args: {
     modal: true,

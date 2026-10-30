@@ -17,11 +17,20 @@ const meta = {
     },
   },
   argTypes: {
+    value: {
+      control: 'text',
+      description:
+        'Controlled selected value. Leave it unset and use `defaultValue` for uncontrolled use.',
+      table: { category: 'State' },
+    },
     defaultValue: {
       control: 'text',
       description: 'The selected value.',
       table: { category: 'State' },
     },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
+    name: { control: 'text', description: 'Form field name.', table: { category: 'Form' } },
+    required: { control: 'boolean', table: { category: 'Validation' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
     orientation: {
       control: 'inline-radio',

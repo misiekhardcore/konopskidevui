@@ -39,6 +39,11 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to drive the dialog from its trigger.',
+      table: { category: 'State' },
+    },
     defaultOpen: {
       control: 'boolean',
       description: 'Open on first render. The rest of the page is inert while it is open.',

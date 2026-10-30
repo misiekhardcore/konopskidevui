@@ -24,7 +24,6 @@ const meta = {
   argTypes: {
     orientation: {
       control: 'inline-radio',
-      options: ['horizontal', 'vertical'],
       description: 'Scroll axis.',
       table: { category: 'Layout' },
     },

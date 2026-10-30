@@ -25,7 +25,6 @@ const meta = {
   argTypes: {
     size: {
       control: 'select',
-      options: ['sm', 'default', 'lg'],
       description: 'Diameter of the avatar.',
       table: { category: 'Appearance' },
     },

@@ -18,7 +18,6 @@ const meta = {
   argTypes: {
     dir: {
       control: 'inline-radio',
-      options: ['ltr', 'rtl'],
       description: 'Reading direction for every primitive inside.',
       table: { category: 'Accessibility' },
     },

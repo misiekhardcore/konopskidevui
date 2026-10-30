@@ -23,7 +23,7 @@ const meta = {
     },
   },
   argTypes: {
-    align: { control: 'inline-radio', options: ['start', 'end'], table: { category: 'Layout' } },
+    align: { control: 'inline-radio', table: { category: 'Layout' } },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {

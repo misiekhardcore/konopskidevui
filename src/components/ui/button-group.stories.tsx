@@ -19,7 +19,6 @@ const meta = {
   argTypes: {
     orientation: {
       control: 'select',
-      options: ['horizontal', 'vertical'],
       description: 'Layout direction of the group.',
       table: { category: 'Layout' },
     },

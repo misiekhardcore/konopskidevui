@@ -37,18 +37,15 @@ const meta = {
   argTypes: {
     state: {
       control: 'select',
-      options: ['idle', 'uploading', 'processing', 'error', 'done'],
       description: 'Upload lifecycle. `uploading` and `processing` shimmer the title.',
       table: { category: 'State' },
     },
     size: {
       control: 'inline-radio',
-      options: ['xs', 'sm', 'default'],
       table: { category: 'Appearance' },
     },
     orientation: {
       control: 'inline-radio',
-      options: ['horizontal', 'vertical'],
       table: { category: 'Layout' },
     },
     className: { control: false, table: { category: 'Styling' } },

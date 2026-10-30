@@ -15,6 +15,11 @@ const meta = {
     },
   },
   argTypes: {
+    value: {
+      control: 'object',
+      description: 'Controlled value. Same array shape as `defaultValue`.',
+      table: { category: 'State' },
+    },
     defaultValue: {
       control: 'object',
       description: 'Always an array: `[40]`, or `[20, 80]` for a range.',
@@ -24,6 +29,7 @@ const meta = {
     max: { control: { type: 'number' }, table: { category: 'Range' } },
     step: { control: { type: 'number', min: 1, max: 20 }, table: { category: 'Range' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
     orientation: {
       control: 'inline-radio',
       options: ['horizontal', 'vertical'],

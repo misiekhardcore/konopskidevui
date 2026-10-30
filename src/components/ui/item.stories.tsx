@@ -40,13 +40,11 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'outline', 'muted'],
       description: 'Surface treatment of the row.',
       table: { category: 'Appearance' },
     },
     size: {
       control: 'select',
-      options: ['default', 'sm'],
       description: 'Row density.',
       table: { category: 'Appearance' },
     },

@@ -18,13 +18,11 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'muted', 'tinted', 'secondary', 'outline', 'ghost', 'destructive'],
       description: 'Bubble surface.',
       table: { category: 'Appearance' },
     },
     align: {
       control: 'inline-radio',
-      options: ['start', 'end'],
       description: 'Which side of the thread the bubble sits on.',
       table: { category: 'Layout' },
     },
