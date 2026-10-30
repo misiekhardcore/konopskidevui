@@ -20,7 +20,6 @@ const meta = {
   argTypes: {
     theme: {
       control: 'inline-radio',
-      options: ['light', 'dark', 'system'],
       description: 'Token set used for the toast surface.',
       table: { category: 'Appearance', defaultValue: { summary: 'system' } },
     },

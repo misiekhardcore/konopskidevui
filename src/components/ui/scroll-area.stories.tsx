@@ -16,6 +16,13 @@ const meta = {
     },
   },
   argTypes: {
+    type: {
+      control: 'inline-radio',
+      options: ['hover', 'scroll', 'auto', 'always'],
+      description: 'When the scrollbars are visible.',
+      table: { category: 'Appearance' },
+    },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {},

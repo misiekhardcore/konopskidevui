@@ -48,19 +48,16 @@ const meta = {
   argTypes: {
     side: {
       control: 'inline-radio',
-      options: ['left', 'right'],
       description: 'Which edge the rail is attached to.',
       table: { category: 'Layout', defaultValue: { summary: 'left' } },
     },
     variant: {
       control: 'inline-radio',
-      options: ['sidebar', 'floating', 'inset'],
       description: 'Surface treatment of the rail.',
       table: { category: 'Appearance', defaultValue: { summary: 'sidebar' } },
     },
     collapsible: {
       control: 'select',
-      options: ['offcanvas', 'icon', 'none'],
       description: 'How it collapses: slide away, shrink to icons, or not at all.',
       table: { category: 'Behaviour', defaultValue: { summary: 'offcanvas' } },
     },

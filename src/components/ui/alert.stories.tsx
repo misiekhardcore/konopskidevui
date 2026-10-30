@@ -18,7 +18,6 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'destructive'],
       description: '`destructive` marks a failure or a dangerous action.',
       table: { category: 'Appearance' },
     },

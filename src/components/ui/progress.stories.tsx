@@ -20,6 +20,11 @@ const meta = {
       description: 'Completion between 0 and 100. Pass `null` for indeterminate.',
       table: { category: 'State' },
     },
+    max: {
+      control: { type: 'number', min: 1 },
+      description: 'Upper bound `value` is measured against.',
+      table: { category: 'Range', defaultValue: { summary: '100' } },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {

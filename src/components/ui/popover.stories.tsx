@@ -34,12 +34,18 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to drive the popover from its trigger.',
+      table: { category: 'State' },
+    },
     defaultOpen: { control: 'boolean', table: { category: 'State' } },
     modal: {
       control: 'boolean',
       description: 'Keep the rest of the page inert while the popover is open.',
       table: { category: 'Behaviour' },
     },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
   },
   args: {
     defaultOpen: false,

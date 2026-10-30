@@ -49,6 +49,13 @@ const meta = {
     },
   },
   argTypes: {
+    value: {
+      control: 'text',
+      description: 'Controlled open menu, by its `value`.',
+      table: { category: 'State' },
+    },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {},

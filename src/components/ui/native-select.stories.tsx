@@ -19,7 +19,6 @@ const meta = {
   argTypes: {
     size: {
       control: 'select',
-      options: ['sm', 'default'],
       description: 'Control height.',
       table: { category: 'Appearance' },
     },

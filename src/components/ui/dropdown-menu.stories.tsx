@@ -45,6 +45,11 @@ const meta = {
     },
   },
   argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to drive the menu from its trigger.',
+      table: { category: 'State' },
+    },
     defaultOpen: { control: 'boolean', table: { category: 'State' } },
     modal: {
       control: 'boolean',
@@ -52,6 +57,7 @@ const meta = {
       table: { category: 'Behaviour', defaultValue: { summary: 'true' } },
     },
     dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
   },
   args: { defaultOpen: false, modal: true, dir: 'ltr' },
 } satisfies Meta<typeof DropdownMenu>;

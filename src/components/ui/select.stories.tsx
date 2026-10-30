@@ -43,6 +43,13 @@ const meta = {
     disabled: { control: 'boolean', table: { category: 'State' } },
     required: { control: 'boolean', table: { category: 'Validation' } },
     name: { control: 'text', description: 'Form field name.', table: { category: 'Form' } },
+    open: {
+      control: 'boolean',
+      description: 'Controlled open state. Leave it unset to drive the list from the trigger.',
+      table: { category: 'State' },
+    },
+    onOpenChange: { action: 'open changed', table: { category: 'Events' } },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
   },
   args: { defaultValue: 'newest', disabled: false, required: false },
   decorators: [

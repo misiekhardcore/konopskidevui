@@ -17,17 +17,17 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'outline'],
       description: 'Visual weight.',
       table: { category: 'Appearance' },
     },
     size: {
       control: 'select',
-      options: ['sm', 'default', 'lg'],
       description: 'Control size.',
       table: { category: 'Appearance' },
     },
+    pressed: { control: 'boolean', table: { category: 'State' } },
     defaultPressed: { control: 'boolean', table: { category: 'State' } },
+    onPressedChange: { action: 'pressed changed', table: { category: 'Events' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
     className: { control: false, table: { category: 'Styling' } },
   },

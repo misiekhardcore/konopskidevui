@@ -28,6 +28,18 @@ const meta: Meta = {
       description: 'Only with `type="single"`: allow closing the open section.',
       table: { category: 'Behaviour', defaultValue: { summary: 'false' } },
     },
+    value: {
+      control: 'text',
+      description: 'Controlled open section(s): a string for `single`, an array for `multiple`.',
+      table: { category: 'State' },
+    },
+    onValueChange: { action: 'value changed', table: { category: 'Events' } },
+    orientation: {
+      control: 'inline-radio',
+      options: ['vertical', 'horizontal'],
+      table: { category: 'Layout' },
+    },
+    dir: { control: 'inline-radio', options: ['ltr', 'rtl'], table: { category: 'Accessibility' } },
     disabled: { control: 'boolean', table: { category: 'State' } },
   },
   args: { collapsible: 'true', disabled: false },

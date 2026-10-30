@@ -17,7 +17,6 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link'],
       description: 'Semantic colour of the badge.',
       table: { category: 'Appearance' },
     },
@@ -47,6 +46,7 @@ export const Default: Story = {
         <Badge variant="secondary">Draft</Badge>
         <Badge variant="outline">Archived</Badge>
         <Badge variant="destructive">Failed</Badge>
+        <Badge variant="tag">TypeScript</Badge>
       </div>
     </>
   ),

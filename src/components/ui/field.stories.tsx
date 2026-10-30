@@ -40,7 +40,6 @@ const meta = {
   argTypes: {
     orientation: {
       control: 'inline-radio',
-      options: ['vertical', 'horizontal', 'responsive'],
       description: 'Stacked label above the control, or beside it.',
       table: { category: 'Layout' },
     },

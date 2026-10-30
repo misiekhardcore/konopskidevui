@@ -18,6 +18,12 @@ const meta = {
     },
   },
   argTypes: {
+    checked: {
+      control: 'boolean',
+      description:
+        'Controlled checked state. Leave it unset and use `defaultChecked` for uncontrolled use.',
+      table: { category: 'State' },
+    },
     defaultChecked: {
       control: 'boolean',
       description: 'Checked on first render.',
