@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="diagram.css" />
+    <style>
+      body {
+        width: 1200px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .card {
+        padding: 22px 22px 20px;
+      }
+      .file {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 16px;
+      }
+      .file span {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        font-weight: 400;
+      }
+      .index {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background: var(--primary);
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+      }
+      h2 {
+        margin: 0 0 6px;
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .role {
+        margin: 0 0 16px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        color: var(--muted-foreground);
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      li {
+        position: relative;
+        padding-left: 16px;
+        margin-top: 9px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--primary);
+      }
+      .rule {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--muted-foreground);
+      }
+      .rule .big {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        color: var(--foreground);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fig" id="fig">
+      <div class="eyebrow">The unit of work</div>
+      <h1>One component, three files</h1>
+      <p class="lede">
+        A component is not done when it renders. Each of the 63 lives beside the two files that
+        prove it: one that documents the API from its types, one that pins its behaviour.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <div class="file"><span class="index">1</span><span>button.tsx</span></div>
+          <h2>The component</h2>
+          <p class="role">The public API, and nothing that belongs to a consumer.</p>
+          <ul>
+            <li>Typed props, CVA variants, <span class="mono">asChild</span></li>
+            <li>A <span class="mono">data-slot</span> on every part</li>
+            <li><span class="mono">cn(…, className)</span> always last</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="file"><span class="index">2</span><span>button.stories.tsx</span></div>
+          <h2>The documentation</h2>
+          <p class="role">
+            Written once, rendered in both themes, correct because docgen reads types.
+          </p>
+          <ul>
+            <li>Every prop grouped by category</li>
+            <li>A <span class="mono">play</span> function for the hard interactions</li>
+            <li>axe runs against every story</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="file"><span class="index">3</span><span>button.test.tsx</span></div>
+          <h2>The behaviour</h2>
+          <p class="role">What the component promises, asserted through roles and names.</p>
+          <ul>
+            <li>Roles, labels, focus, keyboard</li>
+            <li><span class="mono">data-slot</span> beats a class selector</li>
+            <li>No assertion on a Tailwind class</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rule">
+        <span><strong>63 components</strong> · 63 stories · 63 tests</span>
+        <span class="big">189 files under src/components/ui</span>
+      </div>
+    </div>
+  </body>
+</html>

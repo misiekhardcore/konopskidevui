@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="diagram.css" />
+    <style>
+      body {
+        width: 1080px;
+      }
+      .timeline {
+        position: relative;
+        margin-top: 4px;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 30px 220px 1fr;
+        gap: 14px;
+        align-items: baseline;
+        padding: 11px 0;
+      }
+      .rail {
+        position: relative;
+        align-self: stretch;
+      }
+      .dot {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--card);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10.5px;
+        color: var(--muted-foreground);
+      }
+      .step.done .dot {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+      }
+      .what {
+        font-size: 13px;
+        color: var(--muted-foreground);
+        line-height: 1.45;
+      }
+      .boundary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 6px 0 6px 0;
+        color: var(--muted-foreground);
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .boundary::before,
+      .boundary::after {
+        content: '';
+        height: 1px;
+        background: var(--border);
+        flex: 1;
+      }
+      .boundary::before {
+        background: repeating-linear-gradient(to right, var(--border) 0 5px, transparent 5px 10px);
+      }
+      .note {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--muted-foreground);
+      }
+      .note .mono {
+        color: var(--foreground);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fig" id="fig">
+      <div class="eyebrow">Actions → Release → Run workflow</div>
+      <h1>Release, in the order that makes failure cheap</h1>
+      <p class="lede">
+        The only input is the bump: patch, minor or major. Everything below is derived from it, and
+        the changelog is generated before the commit that carries it exists — so the notes never
+        list their own release.
+      </p>
+
+      <div class="timeline">
+        <div class="step">
+          <div class="rail"><span class="dot">1</span></div>
+          <div class="meta">dispatch</div>
+          <div class="what">
+            Choose <span class="mono">patch</span> / <span class="mono">minor</span> /
+            <span class="mono">major</span>. There is no free-text version field.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="rail"><span class="dot">2</span></div>
+          <div class="meta">pnpm version &lt;bump&gt;</div>
+          <div class="what">
+            Rewrites <span class="mono">package.json</span> only — the root version is not in
+            <span class="mono">pnpm-lock.yaml</span>, so no lockfile churn.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="rail"><span class="dot">3</span></div>
+          <div class="meta">git-cliff --tag vX.Y.Z</div>
+          <div class="what">
+            Regenerates the whole changelog before the release commit exists, so the notes never
+            list themselves.
+          </div>
+        </div>
+
+        <div class="boundary">nothing irreversible above this line</div>
+
+        <div class="step done">
+          <div class="rail"><span class="dot">4</span></div>
+          <div class="meta">commit · tag · push</div>
+          <div class="what">
+            <span class="mono">chore: release vX.Y.Z</span> and the tag, pushed to
+            <span class="mono">main</span> together.
+          </div>
+        </div>
+
+        <div class="step done">
+          <div class="rail"><span class="dot">5</span></div>
+          <div class="meta">pnpm build &amp;&amp; verify</div>
+          <div class="what">
+            The tarball is built and checked with publint + attw again, from the tag that was just
+            pushed.
+          </div>
+        </div>
+
+        <div class="step done">
+          <div class="rail"><span class="dot">6</span></div>
+          <div class="meta">pnpm publish --provenance</div>
+          <div class="what">
+            Trusted publishing over OIDC: no token in the repository after the first release.
+          </div>
+        </div>
+
+        <div class="step done">
+          <div class="rail"><span class="dot">7</span></div>
+          <div class="meta">GitHub release</div>
+          <div class="what">
+            Last, from the generated notes — so a failed publish never leaves a release pointing at
+            a version that is not on npm.
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        If the publish fails: delete the tag, revert
+        <span class="mono">chore: release vX.Y.Z</span> on <span class="mono">main</span>, dispatch
+        the same bump again. Ticking <span class="mono">dry_run</span> generates the changelog,
+        builds and verifies the package, then prints the notes and the exact file list
+        <span class="mono">npm pack</span> would upload.
+      </div>
+    </div>
+  </body>
+</html>
