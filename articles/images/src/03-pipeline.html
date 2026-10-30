@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="diagram.css" />
+    <style>
+      body {
+        width: 1180px;
+      }
+      .steps {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 34px 250px 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .step:last-child {
+        border-bottom: 0;
+      }
+      .num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background: var(--muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--muted-foreground);
+      }
+      .name {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .name .mono {
+        font-weight: 400;
+        font-size: 13px;
+      }
+      .what {
+        font-size: 13px;
+        color: var(--muted-foreground);
+      }
+      .out {
+        justify-self: end;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--foreground);
+        background: var(--muted);
+        border-radius: 6px;
+        padding: 4px 9px;
+        white-space: nowrap;
+      }
+      .check {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+      .step.gate .num {
+        background: var(--primary);
+        color: #fff;
+      }
+      .step.gate .name {
+        color: var(--primary);
+      }
+      .aside {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--muted-foreground);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fig" id="fig">
+      <div class="eyebrow">pnpm build</div>
+      <h1>The pipeline, in dependency order</h1>
+      <p class="lede">
+        Two formats share one <span class="mono">dist</span>, so every step has to agree on the file
+        layout. The order lives in <span class="mono">scripts/build.mjs</span> instead of a shell
+        chain, and the last step refuses to finish quietly.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <span class="num">1</span>
+          <span class="name mono">src/**</span>
+          <span class="what">Every publishable module is its own Rollup entry</span>
+          <span class="out">63 components + lib + hooks</span>
+        </div>
+
+        <div class="step">
+          <span class="num">2</span>
+          <span class="name">Vite <span class="mono">mode=es</span></span>
+          <span class="what">Clears <span class="mono">dist</span> first; one file per module</span>
+          <span class="out">dist/**/*.js</span>
+        </div>
+
+        <div class="step">
+          <span class="num">3</span>
+          <span class="name">Vite <span class="mono">mode=cjs</span></span>
+          <span class="what">Adds to the first pass; skips the two ESM-only modules</span>
+          <span class="out">dist/**/*.cjs</span>
+        </div>
+
+        <div class="step">
+          <span class="num">4</span>
+          <span class="name mono">tsc --emitDeclarationOnly</span>
+          <span class="what">One declaration per module, source maps included</span>
+          <span class="out">*.d.ts</span>
+        </div>
+
+        <div class="step">
+          <span class="num">5</span>
+          <span class="name mono">fix-declarations</span>
+          <span class="what"
+            >Relative specifiers get the <span class="mono">.js</span> the runtime loads</span
+          >
+          <span class="out">node16-safe .d.ts</span>
+        </div>
+
+        <div class="step">
+          <span class="num">6</span>
+          <span class="name mono">dts</span>
+          <span class="what">Copies each declaration into the CommonJS context</span>
+          <span class="out">*.d.cts</span>
+        </div>
+
+        <div class="step">
+          <span class="num">7</span>
+          <span class="name mono">copy-styles</span>
+          <span class="what"
+            >Publishes the whole stylesheet directory, adds <span class="mono">@source</span></span
+          >
+          <span class="out">dist/styles/*.css</span>
+        </div>
+
+        <div class="step gate">
+          <span class="num">8</span>
+          <span class="name mono">check-build</span>
+          <span class="what">Parity · directive count · exports resolve · no stray output</span>
+          <span class="out check">fails the build</span>
+        </div>
+      </div>
+
+      <p class="aside">
+        The order lives in one file — and the last step knows every way this package has broken
+        before.
+      </p>
+    </div>
+  </body>
+</html>
