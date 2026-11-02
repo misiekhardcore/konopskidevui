@@ -35,13 +35,25 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <div className="flex flex-col gap-2">
-        <Label {...args} htmlFor="title">
-          Article title
-        </Label>
-        <Input id="title" placeholder="On design systems" />
-      </div>
-    </>
+    <div className="flex flex-col gap-2">
+      <Label {...args}>{args.children}</Label>
+      <Input id="title" placeholder="On design systems" />
+    </div>
+  ),
+};
+
+/** A required field says so in the label; the asterisk is decoration, `required` is the contract. */
+export const Required: Story = {
+  args: { children: 'Article title', htmlFor: 'title-required' },
+  render: (args) => (
+    <div className="flex flex-col gap-2">
+      <Label {...args}>
+        {args.children}
+        <span aria-hidden="true" className="text-destructive">
+          *
+        </span>
+      </Label>
+      <Input id="title-required" placeholder="On design systems" required />
+    </div>
   ),
 };

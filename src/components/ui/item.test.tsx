@@ -1,62 +1,65 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription } from './item';
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from './item';
 
 describe('Item', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Item>
-        <ItemMedia variant="default">📘</ItemMedia>
-        <ItemContent>
-          <ItemTitle>Design systems in practice</ItemTitle>
-          <ItemDescription>18 min read</ItemDescription>
-        </ItemContent>
-      </Item>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Item>
-        <ItemMedia variant="default">📘</ItemMedia>
-        <ItemContent>
-          <ItemTitle>Design systems in practice</ItemTitle>
-          <ItemDescription>18 min read</ItemDescription>
-        </ItemContent>
-      </Item>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of ['default', 'outline', 'muted'] as const) {
-      const { unmount } = render(
-        <Item variant={value}>
+  it('is a list item inside a list group', () => {
+    render(
+      <ItemGroup>
+        <Item>
           <ItemContent>
-            <ItemTitle>Row</ItemTitle>
+            <ItemTitle>Design systems in practice</ItemTitle>
           </ItemContent>
-        </Item>,
-      );
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
+        </Item>
+      </ItemGroup>,
+    );
+
+    expect(screen.getByRole('list')).toBeInTheDocument();
+    expect(screen.getByRole('listitem')).toContainElement(
+      screen.getByText('Design systems in practice'),
+    );
   });
 
-  it('renders as a link when asChild is set', async () => {
+  it('publishes the variant and density the stylesheet switches on', () => {
+    const { container } = render(
+      <Item variant="outline" size="sm">
+        <ItemContent>
+          <ItemTitle>Row</ItemTitle>
+        </ItemContent>
+      </Item>,
+    );
+
+    const row = container.querySelector('[data-slot="item"]');
+    expect(row).toHaveAttribute('data-variant', 'outline');
+    expect(row).toHaveAttribute('data-size', 'sm');
+  });
+
+  it('lets the row be the link itself with asChild', () => {
     render(
       <Item asChild>
-        <a href="/articles/one">
+        <a href="#article">
           <ItemContent>
-            <ItemTitle>One</ItemTitle>
+            <ItemTitle>Design systems in practice</ItemTitle>
+            <ItemDescription>18 min read</ItemDescription>
           </ItemContent>
         </a>
       </Item>,
     );
 
-    expect(screen.getByRole('link', { name: 'One' })).toHaveAttribute('href', '/articles/one');
+    const link = screen.getByRole('link', { name: /Design systems in practice/ });
+    expect(link.tagName).toBe('A');
+    // With `asChild` the consumer's element keeps its own role, which is why the
+    // group around it must not claim `role="list"` (see the AsLink story).
+    expect(link).not.toHaveAttribute('role');
+  });
+
+  it('frames the media it is given', () => {
+    const { container } = render(<ItemMedia variant="icon">📘</ItemMedia>);
+
+    expect(container.querySelector('[data-slot="item-media"]')).toHaveAttribute(
+      'data-variant',
+      'icon',
+    );
   });
 });

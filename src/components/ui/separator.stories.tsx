@@ -39,12 +39,30 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <div className="w-80">
-        <p className="text-sm">Account</p>
-        <Separator {...args} className="my-4" />
-        <p className="text-sm">Billing</p>
-      </div>
-    </>
+    <div className="w-80">
+      <p className="text-sm">Account</p>
+      <Separator {...args} className="my-4" />
+      <p className="text-sm">Billing</p>
+    </div>
   ),
+};
+
+/** Vertical rules separate items in a row; the parent has to give them height. */
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => (
+    <div className="flex h-6 items-center gap-4 text-sm">
+      <span>Draft</span>
+      <Separator {...args} />
+      <span>Published</span>
+      <Separator {...args} />
+      <span>Archived</span>
+    </div>
+  ),
+};
+
+/** `decorative` removes the role, so it is skipped by the accessibility tree. */
+export const Decorative: Story = {
+  args: { decorative: true },
+  render: Default.render,
 };

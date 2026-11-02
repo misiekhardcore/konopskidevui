@@ -2,43 +2,56 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible';
+
+function renderCollapsible(props: React.ComponentProps<typeof Collapsible> = {}) {
+  return render(
+    <Collapsible {...props}>
+      <CollapsibleTrigger>Toggle details</CollapsibleTrigger>
+      <CollapsibleContent>The build takes about four minutes.</CollapsibleContent>
+    </Collapsible>,
+  );
+}
 
 describe('Collapsible', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Collapsible defaultOpen>
-        <CollapsibleTrigger>Toggle</CollapsibleTrigger>
-        <CollapsibleContent>Hidden content</CollapsibleContent>
-      </Collapsible>,
-    );
+  it('starts closed and says so on the trigger', () => {
+    renderCollapsible();
 
-    expect(container.firstElementChild).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Toggle details' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(screen.queryByText('The build takes about four minutes.')).not.toBeInTheDocument();
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Collapsible defaultOpen>
-        <CollapsibleTrigger>Toggle</CollapsibleTrigger>
-        <CollapsibleContent>Hidden content</CollapsibleContent>
-      </Collapsible>,
-    );
+  it('opens on click and marks the content as the trigger’s region', async () => {
+    renderCollapsible();
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    const trigger = screen.getByRole('button', { name: 'Toggle details' });
+    await userEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const content = screen.getByText('The build takes about four minutes.');
+    expect(trigger).toHaveAttribute('aria-controls', content.id);
   });
 
-  it('reveals and hides its content', async () => {
-    render(
-      <Collapsible>
-        <CollapsibleTrigger>Details</CollapsibleTrigger>
-        <CollapsibleContent>Hidden</CollapsibleContent>
-      </Collapsible>,
-    );
+  it('closes again on the second click', async () => {
+    renderCollapsible({ defaultOpen: true });
 
-    expect(screen.queryByText('Hidden')).not.toBeInTheDocument();
+    const trigger = screen.getByRole('button', { name: 'Toggle details' });
+    expect(screen.getByText('The build takes about four minutes.')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByText('Details'));
-    expect(screen.getByText('Hidden')).toBeVisible();
-    expect(screen.getByText('Details')).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('does not change while disabled', async () => {
+    renderCollapsible({ disabled: true });
+
+    const trigger = screen.getByRole('button', { name: 'Toggle details' });
+    await userEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 });

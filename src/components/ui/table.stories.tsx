@@ -98,3 +98,50 @@ export const SelectedRow: Story = {
     </Table>
   ),
 };
+
+/** Without a footer the body is the last group; the caption stays below the table. */
+export const WithoutFooter: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Table className="w-[36rem]">
+      <TableCaption>Three of twelve articles.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Title</TableHead>
+          <TableHead className="text-right">Reads</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {articles.map((article) => (
+          <TableRow key={article.title}>
+            <TableCell className="font-medium">{article.title}</TableCell>
+            <TableCell className="text-right">{article.reads}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  ),
+};
+
+/** An empty result keeps its head, so the columns still make sense. */
+export const Empty: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Table className="w-[36rem]">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Title</TableHead>
+          <TableHead>Topic</TableHead>
+          <TableHead className="text-right">Reads</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
+            No articles match this filter.
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  ),
+};

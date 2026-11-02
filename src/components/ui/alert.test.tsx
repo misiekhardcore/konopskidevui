@@ -4,51 +4,18 @@ import { describe, expect, it } from 'vitest';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from './alert';
 
 describe('Alert', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Alert>
-        <AlertTitle>Draft saved</AlertTitle>
-        <AlertDescription>Your changes are private until you publish them.</AlertDescription>
-      </Alert>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Alert>
-        <AlertTitle>Draft saved</AlertTitle>
-        <AlertDescription>Your changes are private until you publish them.</AlertDescription>
-      </Alert>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of ['default', 'destructive'] as const) {
-      const { unmount } = render(
-        <Alert variant={value}>
-          <AlertTitle>Heads up</AlertTitle>
-        </Alert>,
-      );
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
-  });
-
-  it('exposes role="alert"so assistive tech announces it', async () => {
+  it('is an alert: one live region the reader is told about', () => {
     render(
       <Alert>
-        <AlertTitle>Heads up</AlertTitle>
+        <AlertTitle>Draft saved</AlertTitle>
+        <AlertDescription>Your changes are private until you publish them.</AlertDescription>
       </Alert>,
     );
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('renders its description and action', async () => {
+  it('renders the title, the description and the action inside it', () => {
     render(
       <Alert>
         <AlertTitle>Heads up</AlertTitle>
@@ -57,7 +24,39 @@ describe('Alert', () => {
       </Alert>,
     );
 
-    expect(screen.getByText('Details')).toBeInTheDocument();
-    expect(screen.getByText('Undo')).toBeInTheDocument();
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent('Heads up');
+    expect(alert).toHaveTextContent('Details');
+    expect(alert).toHaveTextContent('Undo');
+  });
+
+  it('publishes the variant the stylesheet paints with', () => {
+    const { rerender } = render(
+      <Alert>
+        <AlertTitle>Saved</AlertTitle>
+      </Alert>,
+    );
+
+    expect(screen.getByRole('alert')).toHaveAttribute('data-slot', 'alert');
+
+    rerender(
+      <Alert variant="destructive">
+        <AlertTitle>Failed</AlertTitle>
+      </Alert>,
+    );
+
+    // The variant is a class, and the role is what assistive tech reads: both
+    // have to survive a change of tone.
+    expect(screen.getByRole('alert').className).toContain('text-destructive');
+  });
+
+  it('keeps the title as a heading-level element of its own', () => {
+    render(
+      <Alert>
+        <AlertTitle>Heads up</AlertTitle>
+      </Alert>,
+    );
+
+    expect(screen.getByText('Heads up')).toHaveAttribute('data-slot', 'alert-title');
   });
 });

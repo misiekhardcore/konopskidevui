@@ -42,15 +42,25 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <Collapsible {...args} className="w-80" defaultOpen>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline">Toggle details</Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-3 text-sm text-muted-foreground">
-          The build runs on every push and takes about four minutes.
-        </CollapsibleContent>
-      </Collapsible>
-    </>
+    <Collapsible {...args} className="w-80">
+      <CollapsibleTrigger asChild>
+        <Button variant="outline">Toggle details</Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-3 text-sm text-muted-foreground">
+        The build runs on every push and takes about four minutes.
+      </CollapsibleContent>
+    </Collapsible>
   ),
+};
+
+/** Closed is the default state; the trigger carries `aria-expanded` for both. */
+export const Closed: Story = {
+  args: { defaultOpen: false },
+  render: Default.render,
+};
+
+/** A disabled collapsible keeps its trigger focusable but inert. */
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: Default.render,
 };

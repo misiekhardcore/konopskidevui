@@ -23,7 +23,12 @@ const meta = {
     },
   },
   argTypes: {
-    align: { control: 'inline-radio', table: { category: 'Layout' } },
+    align: {
+      control: 'inline-radio',
+      options: ['start', 'end'],
+      description: 'Which side of the thread the message sits on.',
+      table: { category: 'Layout', defaultValue: { summary: 'start' } },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {
@@ -36,20 +41,42 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <MessageGroup className="w-96">
-        <Message {...args} align="start">
-          <MessageAvatar>AL</MessageAvatar>
-          <MessageContent>
-            <MessageHeader>Ada · 09:41</MessageHeader>
-            The tokens are merged — the branch is ready for review.
-            <MessageFooter>Edited</MessageFooter>
-          </MessageContent>
-        </Message>
-        <Message align="end">
-          <MessageContent>On it.</MessageContent>
-        </Message>
-      </MessageGroup>
-    </>
+    <MessageGroup className="w-96">
+      <Message {...args}>
+        <MessageAvatar>AL</MessageAvatar>
+        <MessageContent>
+          <MessageHeader>Ada · 09:41</MessageHeader>
+          The tokens are merged — the branch is ready for review.
+          <MessageFooter>Edited</MessageFooter>
+        </MessageContent>
+      </Message>
+      <Message align={args.align === 'end' ? 'start' : 'end'}>
+        <MessageContent>On it.</MessageContent>
+      </Message>
+    </MessageGroup>
+  ),
+};
+
+/** Both sides at once, which is what makes the alignment readable. */
+export const Conversation: Story = {
+  parameters: { controls: { include: ['align'] } },
+  render: (args) => (
+    <MessageGroup className="w-96">
+      <Message {...args} align="start">
+        <MessageAvatar>AL</MessageAvatar>
+        <MessageContent>
+          <MessageHeader>Ada · 09:41</MessageHeader>
+          Can we move the release to Thursday?
+        </MessageContent>
+      </Message>
+      <Message align="end">
+        <MessageAvatar>MK</MessageAvatar>
+        <MessageContent>
+          <MessageHeader>Misiek · 09:42</MessageHeader>
+          Thursday works. I will update the changelog.
+          <MessageFooter>Sent</MessageFooter>
+        </MessageContent>
+      </Message>
+    </MessageGroup>
   ),
 };

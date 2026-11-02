@@ -1,45 +1,66 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Carousel, CarouselContent, CarouselItem } from './carousel';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from './carousel';
+
+function renderCarousel() {
+  return render(
+    <Carousel aria-label="Articles" className="w-80">
+      <CarouselContent>
+        {[1, 2, 3].map((index) => (
+          <CarouselItem key={index} className="basis-full">
+            Slide {index}
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>,
+  );
+}
 
 describe('Carousel', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Carousel className="w-64">
-        <CarouselContent>
-          <CarouselItem>One</CarouselItem>
-          <CarouselItem>Two</CarouselItem>
-        </CarouselContent>
-      </Carousel>,
-    );
+  it('is a carousel region with a label for screen readers', () => {
+    renderCarousel();
 
-    expect(container.firstElementChild).not.toBeNull();
+    const region = screen.getByRole('region', { name: 'Articles' });
+    expect(region).toHaveAttribute('aria-roledescription', 'carousel');
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Carousel className="w-64">
-        <CarouselContent>
-          <CarouselItem>One</CarouselItem>
-          <CarouselItem>Two</CarouselItem>
-        </CarouselContent>
-      </Carousel>,
-    );
+  it('keeps every slide mounted and announced as a slide', () => {
+    renderCarousel();
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    const slides = screen.getAllByRole('group');
+    expect(slides).toHaveLength(3);
+    expect(slides[0]).toHaveAttribute('aria-roledescription', 'slide');
+    expect(slides[0]).toHaveTextContent('Slide 1');
   });
 
-  it('renders one region per slide', async () => {
+  it('offers both arrows as named buttons', () => {
+    renderCarousel();
+
+    expect(screen.getByRole('button', { name: 'Previous slide' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next slide' })).toBeInTheDocument();
+  });
+
+  it('keeps the arrow buttons reachable even before Embla reports its state', () => {
     render(
-      <Carousel>
+      <Carousel orientation="vertical" aria-label="Articles">
         <CarouselContent>
-          <CarouselItem>One</CarouselItem>
-          <CarouselItem>Two</CarouselItem>
+          <CarouselItem className="basis-full">Slide</CarouselItem>
         </CarouselContent>
+        <CarouselNext />
       </Carousel>,
     );
 
-    expect(screen.getAllByRole('group')).toHaveLength(2);
+    const next = screen.getByRole('button', { name: 'Next slide' });
+    expect(next).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous slide' })).toBeNull();
   });
 });

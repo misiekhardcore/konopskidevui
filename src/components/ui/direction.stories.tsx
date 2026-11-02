@@ -32,13 +32,32 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <DirectionProvider {...args}>
-        <div className="flex flex-col gap-2">
-          <p className="text-sm">Reading direction: {args.dir}</p>
-          <Switch aria-label="Example control" />
-        </div>
-      </DirectionProvider>
-    </>
+    <DirectionProvider {...args}>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm">Reading direction: {args.dir}</p>
+        <Switch aria-label="Example control" />
+      </div>
+    </DirectionProvider>
+  ),
+};
+
+/**
+ * Primitives read the direction from the provider, so the same markup mirrors:
+ * the slider fills from the other edge and the menu opens to the other side.
+ */
+export const RightToLeft: Story = {
+  args: { dir: 'rtl' },
+  render: (args) => (
+    <DirectionProvider {...args}>
+      <div className="flex w-64 flex-col gap-4">
+        <p className="text-sm">Reading direction: rtl</p>
+        <input
+          type="range"
+          aria-label="Volume"
+          defaultValue={70}
+          className="w-full accent-primary"
+        />
+      </div>
+    </DirectionProvider>
   ),
 };

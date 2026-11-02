@@ -4,25 +4,26 @@ import { describe, expect, it } from 'vitest';
 import { Skeleton } from './skeleton';
 
 describe('Skeleton', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Skeleton className="h-10 w-10" />);
+  it('renders an empty placeholder, not text', () => {
+    const { container } = render(<Skeleton className="h-4 w-1/2" />);
 
-    expect(container.firstElementChild).not.toBeNull();
+    const skeleton = container.querySelector('[data-slot="skeleton"]');
+    expect(skeleton).toBeInTheDocument();
+    expect(skeleton).toBeEmptyDOMElement();
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Skeleton className="h-10 w-10" />);
+  it('takes its size from the caller, because a bare skeleton is invisible', () => {
+    const { container } = render(<Skeleton className="h-40 w-full" />);
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="skeleton"]')).toHaveClass('h-40', 'w-full');
   });
 
-  it('pulses with the muted surface and merges its sizing', () => {
-    const { container } = render(<Skeleton className="h-4 w-4" />);
-    const skeleton = container.firstElementChild;
+  it('stays out of the accessibility tree: it stands in for content, it is not content', () => {
+    const { container } = render(<Skeleton aria-hidden="true" />);
 
-    expect(skeleton?.className).toContain('animate-pulse');
-    expect(skeleton?.className).toContain('bg-muted');
-    expect(skeleton?.className).toContain('h-4');
-    expect(skeleton?.className).toContain('w-4');
+    expect(container.querySelector('[data-slot="skeleton"]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
   });
 });

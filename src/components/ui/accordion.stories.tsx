@@ -85,3 +85,53 @@ export const Multiple: Story = {
 export const Disabled: Story = {
   args: { disabled: true },
 };
+
+const itemMeta = { component: AccordionItem } as const satisfies Partial<
+  Meta<typeof AccordionItem>
+>;
+
+/** `disabled` on one item leaves the rest usable, which is how a locked section works. */
+export const DisabledItem: StoryObj<typeof itemMeta> = {
+  args: { value: 'billing', disabled: true },
+  argTypes: {
+    value: {
+      control: 'text',
+      description: 'Identifier the item is opened by.',
+      table: { category: 'State' },
+    },
+    disabled: {
+      control: 'boolean',
+      description: 'Keep this section closed while the others stay usable.',
+      table: { category: 'State', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ value, disabled }) => (
+    <Accordion type="single" defaultValue="shipping" className="w-96">
+      <AccordionItem value="shipping">
+        <AccordionTrigger>Shipping</AccordionTrigger>
+        <AccordionContent>Two to four working days.</AccordionContent>
+      </AccordionItem>
+      <AccordionItem value={value ?? 'billing'} disabled={disabled}>
+        <AccordionTrigger>Billing</AccordionTrigger>
+        <AccordionContent>Invoices are sent on the first of the month.</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ),
+};
+
+/** A trigger takes any content; the chevron rotates from the item's open state. */
+export const WithIcon: Story = {
+  parameters: { controls: { include: ['collapsible', 'disabled'] } },
+  render: (args) => (
+    <Accordion {...args} type="single" defaultValue="shipping" className="w-96">
+      <AccordionItem value="shipping">
+        <AccordionTrigger>
+          <span className="rounded-sm bg-muted px-1.5 py-0.5 text-xs">Shipping</span>
+          Two to four working days
+        </AccordionTrigger>
+        <AccordionContent>Within the EU. Outside it, five to ten.</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ),
+};

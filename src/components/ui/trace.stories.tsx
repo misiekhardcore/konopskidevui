@@ -41,6 +41,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const lineMeta = { component: TraceLine } as const satisfies Partial<Meta<typeof TraceLine>>;
+
 export const Default: Story = {
   render: (args) => (
     <>
@@ -63,5 +65,50 @@ export const Default: Story = {
         </TraceCollapsible>
       </Trace>
     </>
+  ),
+};
+
+/** The three statuses: running shimmers, error tints, pending fades. */
+export const Statuses: StoryObj<typeof lineMeta> = {
+  args: { status: 'running' },
+  argTypes: {
+    status: {
+      control: 'inline-radio',
+      options: ['running', 'pending', 'error'],
+      description: '`running` shimmers the title, `error` tints the line, `pending` fades it.',
+      table: { category: 'State' },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ status }) => (
+    <Trace className="w-96">
+      {(['running', 'pending', 'error'] as const).map((value) => (
+        <TraceLine key={value} status={value}>
+          <TraceIcon>{value === 'error' ? '✕' : '◌'}</TraceIcon>
+          <TraceTitle>{value}</TraceTitle>
+        </TraceLine>
+      ))}
+      <TraceLine status={status}>
+        <TraceIcon>◌</TraceIcon>
+        <TraceTitle>Controlled by the panel: {status}</TraceTitle>
+      </TraceLine>
+    </Trace>
+  ),
+};
+
+/** The collapsible is a real disclosure: the trigger carries the state and the detail follows. */
+export const Collapsible: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Trace className="w-96">
+      <TraceCollapsible defaultOpen>
+        <TraceCollapsibleTrigger>
+          <TraceTitle>Read 8 declarations</TraceTitle>
+        </TraceCollapsibleTrigger>
+        <TraceCollapsibleContent>
+          <TraceDescription>src/styles/tokens.css · 3 matches</TraceDescription>
+        </TraceCollapsibleContent>
+      </TraceCollapsible>
+    </Trace>
   ),
 };

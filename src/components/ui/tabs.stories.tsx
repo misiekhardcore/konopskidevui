@@ -58,11 +58,23 @@ export const Default: Story = {
   ),
 };
 
-export const Line: Story = {
-  parameters: { controls: { include: ['defaultValue', 'orientation'] } },
-  render: (args) => (
-    <Tabs {...args} className="w-96">
-      <TabsList variant="line">
+const listMeta = { component: TabsList } as const satisfies Partial<Meta<typeof TabsList>>;
+
+/** The list has two surfaces: the filled default and the underlined `line`. */
+export const ListVariant: StoryObj<typeof listMeta> = {
+  args: { variant: 'default' },
+  argTypes: {
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'line'],
+      description: 'Filled pill group or an underlined row.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ variant }) => (
+    <Tabs defaultValue="overview" className="w-96">
+      <TabsList variant={variant}>
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="activity">Activity</TabsTrigger>
       </TabsList>
@@ -74,4 +86,29 @@ export const Line: Story = {
       </TabsContent>
     </Tabs>
   ),
+};
+
+/** `vertical` turns the list into a column and the arrow keys into up/down. */
+export const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => (
+    <Tabs {...args} className="flex w-96 gap-4">
+      <TabsList className="flex-col">
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="activity">Activity</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview" className="text-sm">
+        A sidebar of panels, which is what vertical tabs are for.
+      </TabsContent>
+      <TabsContent value="activity" className="text-sm">
+        Activity panel.
+      </TabsContent>
+    </Tabs>
+  ),
+};
+
+/** `manual` activation moves focus with the arrows and waits for Enter to switch. */
+export const ManualActivation: Story = {
+  args: { activationMode: 'manual' },
+  render: Default.render,
 };

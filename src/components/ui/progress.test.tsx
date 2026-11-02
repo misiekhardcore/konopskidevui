@@ -4,22 +4,45 @@ import { describe, expect, it } from 'vitest';
 import { Progress } from './progress';
 
 describe('Progress', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Progress value={40} aria-label="Upload progress" />);
+  it('exposes the value on a progressbar', () => {
+    render(<Progress value={40} aria-label="Upload progress" />);
 
-    expect(container.firstElementChild).not.toBeNull();
+    const bar = screen.getByRole('progressbar', { name: 'Upload progress' });
+    expect(bar).toHaveAttribute('aria-valuenow', '40');
+    expect(bar).toHaveAttribute('aria-valuemin', '0');
+    expect(bar).toHaveAttribute('aria-valuemax', '100');
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Progress value={40} aria-label="Upload progress" />);
+  it('measures against max when it is not 100', () => {
+    render(<Progress value={3} max={12} aria-label="Onboarding steps" />);
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    expect(screen.getByRole('progressbar', { name: 'Onboarding steps' })).toHaveAttribute(
+      'aria-valuemax',
+      '12',
+    );
   });
 
-  it('exposes its value to assistive tech', async () => {
-    render(<Progress value={60} aria-label="Upload" />);
+  it('drops the fill and the value when indeterminate', () => {
+    const { container } = render(<Progress value={null} aria-label="Upload progress" />);
 
-    const bar = screen.getByRole('progressbar', { name: 'Upload' });
-    expect(bar).toHaveAttribute('aria-valuenow', '60');
+    const bar = screen.getByRole('progressbar', { name: 'Upload progress' });
+    expect(bar).not.toHaveAttribute('aria-valuenow');
+    expect(container.querySelector('[data-slot="progress-indicator"]')).toHaveStyle({
+      transform: 'translateX(-100%)',
+    });
+  });
+
+  it('moves the fill with the value', () => {
+    const { container, rerender } = render(<Progress value={25} aria-label="Upload progress" />);
+
+    expect(container.querySelector('[data-slot="progress-indicator"]')).toHaveStyle({
+      transform: 'translateX(-75%)',
+    });
+
+    rerender(<Progress value={75} aria-label="Upload progress" />);
+
+    expect(container.querySelector('[data-slot="progress-indicator"]')).toHaveStyle({
+      transform: 'translateX(-25%)',
+    });
   });
 });

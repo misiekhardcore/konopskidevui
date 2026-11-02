@@ -20,6 +20,7 @@ const meta = {
   argTypes: {
     theme: {
       control: 'inline-radio',
+      options: ['light', 'dark', 'system'],
       description: 'Token set used for the toast surface.',
       table: { category: 'Appearance', defaultValue: { summary: 'system' } },
     },
@@ -80,5 +81,17 @@ export const Default: Story = {
 
 export const WithCloseButton: Story = {
   args: { closeButton: true },
+  render: Default.render,
+};
+
+/** `theme` is a prop, not a `next-themes` lookup, so a dark app can force it. */
+export const DarkTheme: Story = {
+  args: { theme: 'dark' },
+  render: Default.render,
+};
+
+/** `richColors` tints success and error toasts instead of keeping them neutral. */
+export const RichColors: Story = {
+  args: { richColors: true },
   render: Default.render,
 };

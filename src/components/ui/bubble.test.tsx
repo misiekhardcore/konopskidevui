@@ -1,46 +1,77 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Bubble, BubbleContent } from './bubble';
+import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from './bubble';
 
 describe('Bubble', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Bubble align="start">
-        <BubbleContent>Hello</BubbleContent>
-      </Bubble>,
+  it('publishes the side of the thread it sits on', () => {
+    const { container, rerender } = render(<Bubble>Hello</Bubble>);
+
+    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute(
+      'data-align',
+      'start',
     );
 
-    expect(container.firstElementChild).not.toBeNull();
+    rerender(<Bubble align="end">Hello</Bubble>);
+
+    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute('data-align', 'end');
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Bubble align="start">
-        <BubbleContent>Hello</BubbleContent>
-      </Bubble>,
-    );
+  it('paints the variant', () => {
+    const { container, rerender } = render(<Bubble>Hello</Bubble>);
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of [
+    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute(
+      'data-variant',
       'default',
-      'muted',
-      'tinted',
-      'secondary',
-      'outline',
-      'ghost',
+    );
+
+    rerender(<Bubble variant="destructive">Hello</Bubble>);
+
+    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute(
+      'data-variant',
       'destructive',
-    ] as const) {
-      const { unmount } = render(
-        <Bubble variant={value}>
-          <BubbleContent>Hi</BubbleContent>
-        </Bubble>,
-      );
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
+    );
+  });
+
+  it('keeps the copy inside the bubble it belongs to', () => {
+    render(
+      <BubbleGroup>
+        <Bubble>
+          <BubbleContent>Did you get a chance to look at the PR?</BubbleContent>
+        </Bubble>
+      </BubbleGroup>,
+    );
+
+    expect(screen.getByText('Did you get a chance to look at the PR?')).toBeInTheDocument();
+  });
+
+  it('lets the content be the interactive element with asChild', () => {
+    render(
+      <Bubble>
+        <BubbleContent asChild>
+          <a href="#thread">Replying to Ada</a>
+        </BubbleContent>
+      </Bubble>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Replying to Ada' })).toHaveAttribute(
+      'href',
+      '#thread',
+    );
+  });
+
+  it('hangs reactions off the edge it is given', () => {
+    const { container } = render(
+      <Bubble>
+        <BubbleContent>Looks right.</BubbleContent>
+        <BubbleReactions side="top" align="start">
+          👍 2
+        </BubbleReactions>
+      </Bubble>,
+    );
+
+    const reactions = container.querySelector('[data-slot="bubble-reactions"]');
+    expect(reactions).toHaveAttribute('data-side', 'top');
+    expect(reactions).toHaveAttribute('data-align', 'start');
   });
 });

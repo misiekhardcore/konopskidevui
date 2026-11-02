@@ -17,8 +17,9 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
+      options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'tag', 'link'],
       description: 'Semantic colour of the badge.',
-      table: { category: 'Appearance' },
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     asChild: {
       control: 'boolean',
@@ -40,14 +41,39 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge {...args}>Published</Badge>
-        <Badge variant="secondary">Draft</Badge>
-        <Badge variant="outline">Archived</Badge>
-        <Badge variant="destructive">Failed</Badge>
-        <Badge variant="tag">TypeScript</Badge>
-      </div>
-    </>
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge {...args}>Published</Badge>
+      <Badge variant="secondary">Draft</Badge>
+      <Badge variant="outline">Archived</Badge>
+      <Badge variant="destructive">Failed</Badge>
+      <Badge variant="tag">TypeScript</Badge>
+    </div>
+  ),
+};
+
+/** Every variant, including `ghost` and `link`, which the row above leaves out. */
+export const Variants: Story = {
+  parameters: { controls: { include: ['asChild'] } },
+  render: (args) => (
+    <div className="flex flex-wrap items-center gap-2">
+      {(['default', 'secondary', 'destructive', 'outline', 'ghost', 'tag', 'link'] as const).map(
+        (variant) => (
+          <Badge key={variant} {...args} variant={variant}>
+            {variant}
+          </Badge>
+        ),
+      )}
+    </div>
+  ),
+};
+
+/** `asChild` lets the badge be the link itself, which is what a tag list needs. */
+export const AsLink: Story = {
+  args: { asChild: true, variant: 'tag' },
+  parameters: { controls: { include: ['variant', 'asChild'] } },
+  render: (args) => (
+    <Badge {...args}>
+      <a href="#typescript">TypeScript</a>
+    </Badge>
   ),
 };
