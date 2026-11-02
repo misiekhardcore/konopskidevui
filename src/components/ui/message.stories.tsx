@@ -80,3 +80,22 @@ export const Conversation: Story = {
     </MessageGroup>
   ),
 };
+
+/** A reply can be just the body: no avatar, no header, aligned to the other side. */
+export const BareReply: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <MessageGroup className="w-96">
+      <Message align="start">
+        <MessageAvatar>AL</MessageAvatar>
+        <MessageContent>
+          <MessageHeader>Ada · 09:41</MessageHeader>
+          Which token should the destructive action use?
+        </MessageContent>
+      </Message>
+      <Message align="end">
+        <MessageContent>destructive — the one we just merged.</MessageContent>
+      </Message>
+    </MessageGroup>
+  ),
+};

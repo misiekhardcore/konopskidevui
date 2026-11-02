@@ -23,7 +23,10 @@ const meta = {
       description: 'Control height: `sm` is 28px, `default` 32px, matching the other controls.',
       table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
-    disabled: { control: 'boolean', table: { category: 'State', defaultValue: { summary: 'false' } } },
+    disabled: {
+      control: 'boolean',
+      table: { category: 'State', defaultValue: { summary: 'false' } },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   args: {

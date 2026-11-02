@@ -75,3 +75,19 @@ export const Horizontal: StoryObj<typeof barMeta> = {
     </ScrollArea>
   ),
 };
+
+/** `always` keeps the rail visible, which is what a long inspector panel wants. */
+export const AlwaysVisible: Story = {
+  args: { type: 'always' },
+  render: (args) => (
+    <ScrollArea {...args} className="h-40 w-80 rounded-sm border border-border p-4">
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 12 }, (_, index) => (
+          <p key={index} className="text-sm">
+            Setting {index + 1}
+          </p>
+        ))}
+      </div>
+    </ScrollArea>
+  ),
+};

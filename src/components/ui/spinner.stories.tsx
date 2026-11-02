@@ -46,3 +46,18 @@ export const InButton: Story = {
     </button>
   ),
 };
+
+/** A panel with nothing in it yet: the live region is what a screen reader hears. */
+export const Centered: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex h-32 w-80 flex-col items-center justify-center gap-2 rounded-sm border border-border"
+    >
+      <Spinner className="size-5" />
+      <span className="text-sm text-muted-foreground">Loading tokens…</span>
+    </div>
+  ),
+};

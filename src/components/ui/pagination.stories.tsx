@@ -118,7 +118,10 @@ export const Link: StoryObj<typeof linkMeta> = {
 export const PreviousLabel: StoryObj<typeof previousMeta> = {
   args: { text: 'Previous' },
   argTypes: {
-    text: { control: 'text', table: { category: 'Content', defaultValue: { summary: 'Previous' } } },
+    text: {
+      control: 'text',
+      table: { category: 'Content', defaultValue: { summary: 'Previous' } },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   render: ({ text }) => (

@@ -7,10 +7,7 @@ describe('Bubble', () => {
   it('publishes the side of the thread it sits on', () => {
     const { container, rerender } = render(<Bubble>Hello</Bubble>);
 
-    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute(
-      'data-align',
-      'start',
-    );
+    expect(container.querySelector('[data-slot="bubble"]')).toHaveAttribute('data-align', 'start');
 
     rerender(<Bubble align="end">Hello</Bubble>);
 

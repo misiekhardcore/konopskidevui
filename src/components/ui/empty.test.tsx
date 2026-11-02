@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from './empty';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from './empty';
 
 describe('Empty', () => {
   it('says what is missing and offers the next step', () => {
@@ -24,9 +31,7 @@ describe('Empty', () => {
   });
 
   it('publishes the media variant so the tile can be drawn around it', () => {
-    const { container } = render(
-      <EmptyMedia variant="icon">📄</EmptyMedia>,
-    );
+    const { container } = render(<EmptyMedia variant="icon">📄</EmptyMedia>);
 
     expect(container.querySelector('[data-slot="empty-icon"]')).toHaveAttribute(
       'data-variant',

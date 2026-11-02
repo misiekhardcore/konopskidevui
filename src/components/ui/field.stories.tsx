@@ -110,7 +110,9 @@ export const Responsive: Story = {
         <Field {...args}>
           <FieldLabel htmlFor="field-responsive">Workspace slug</FieldLabel>
           <Input id="field-responsive" placeholder="konopskidev" />
-          <FieldDescription>Narrow the preview to see the label move above the control.</FieldDescription>
+          <FieldDescription>
+            Narrow the preview to see the label move above the control.
+          </FieldDescription>
         </Field>
       </FieldGroup>
     </FieldSet>

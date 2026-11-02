@@ -55,3 +55,16 @@ export const CardShape: Story = {
     </div>
   ),
 };
+
+/** A paragraph of text has a shape too: one taller title line, then shorter lines. */
+export const TextLines: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="w-80 space-y-2">
+      <Skeleton className="h-5 w-2/3" />
+      <Skeleton className="h-3.5 w-full" />
+      <Skeleton className="h-3.5 w-full" />
+      <Skeleton className="h-3.5 w-4/5" />
+    </div>
+  ),
+};

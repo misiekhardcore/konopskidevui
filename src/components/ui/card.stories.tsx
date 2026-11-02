@@ -141,7 +141,8 @@ export const ImageAspect: StoryObj<typeof imageMeta> = {
     aspect: {
       control: 'inline-radio',
       options: ['aspect-video', 'aspect-square', 'aspect-[4/3]', 'aspect-[21/9]'],
-      description: 'Any `aspect-*` utility. `children` is required, so an empty frame cannot exist.',
+      description:
+        'Any `aspect-*` utility. `children` is required, so an empty frame cannot exist.',
       table: { category: 'Layout', defaultValue: { summary: 'aspect-video' } },
     },
     className: { control: false, table: { category: 'Styling' } },

@@ -96,12 +96,24 @@ export const Statuses: StoryObj<typeof lineMeta> = {
   ),
 };
 
+const collapsibleMeta = { component: TraceCollapsible } as const satisfies Partial<
+  Meta<typeof TraceCollapsible>
+>;
+
 /** The collapsible is a real disclosure: the trigger carries the state and the detail follows. */
-export const Collapsible: Story = {
-  parameters: { controls: { disable: true } },
-  render: () => (
+export const Collapsible: StoryObj<typeof collapsibleMeta> = {
+  args: { defaultOpen: true },
+  argTypes: {
+    defaultOpen: {
+      control: 'boolean',
+      description: 'Start open, for a trace that should show its first detail immediately.',
+      table: { category: 'State', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
     <Trace className="w-96">
-      <TraceCollapsible defaultOpen>
+      <TraceCollapsible {...args}>
         <TraceCollapsibleTrigger>
           <TraceTitle>Read 8 declarations</TraceTitle>
         </TraceCollapsibleTrigger>

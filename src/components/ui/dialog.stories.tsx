@@ -140,17 +140,29 @@ export const ContentVariant: StoryObj<typeof contentMeta> = {
   ),
 };
 
+const footerMeta = { component: DialogFooter } as const satisfies Partial<
+  Meta<typeof DialogFooter>
+>;
+
 /** `DialogFooter` can carry its own close button, which is the destructive-action layout. */
-export const FooterClose: Story = {
-  parameters: { controls: { include: ['defaultOpen', 'modal'] } },
+export const FooterClose: StoryObj<typeof footerMeta> = {
+  args: { showCloseButton: true },
+  argTypes: {
+    showCloseButton: {
+      control: 'boolean',
+      description: 'Append a `Close` button, for a dialog whose corner close is turned off.',
+      table: { category: 'Composition', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
   render: (args) => (
-    <Dialog {...args} defaultOpen>
+    <Dialog defaultOpen>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Publish now?</DialogTitle>
           <DialogDescription>Subscribers get an email immediately.</DialogDescription>
         </DialogHeader>
-        <DialogFooter showCloseButton />
+        <DialogFooter {...args} />
       </DialogContent>
     </Dialog>
   ),

@@ -17,6 +17,7 @@ import {
 } from './dropdown-menu';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ReactNode } from 'react';
 
 const meta = {
   title: 'Components/Dropdown Menu',
@@ -186,4 +187,117 @@ export const OpenByDefault: Story = {
   args: { defaultOpen: true },
   render: Default.render,
   parameters: openMenuA11y,
+};
+
+const checkboxMeta = { component: DropdownMenuCheckboxItem } as const satisfies Partial<
+  Meta<typeof DropdownMenuCheckboxItem>
+>;
+const radioMeta = { component: DropdownMenuRadioItem } as const satisfies Partial<
+  Meta<typeof DropdownMenuRadioItem>
+>;
+const labelMeta = { component: DropdownMenuLabel } as const satisfies Partial<
+  Meta<typeof DropdownMenuLabel>
+>;
+const subTriggerMeta = { component: DropdownMenuSubTrigger } as const satisfies Partial<
+  Meta<typeof DropdownMenuSubTrigger>
+>;
+
+function OpenMenuFrame({ children }: { children: ReactNode }) {
+  return (
+    <DropdownMenu defaultOpen>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Open menu</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">{children}</DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** A checkbox row toggles in place and keeps the menu open. */
+export const CheckboxItem: StoryObj<typeof checkboxMeta> = {
+  args: { inset: false, defaultChecked: true, children: 'Show grid' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for rows under a label or an icon column.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <OpenMenuFrame>
+      <DropdownMenuCheckboxItem {...args}>{children}</DropdownMenuCheckboxItem>
+    </OpenMenuFrame>
+  ),
+};
+
+/** A radio row needs the group that owns the value. */
+export const RadioItem: StoryObj<typeof radioMeta> = {
+  args: { inset: false, value: 'weekly', children: 'Weekly' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for rows under a label or an icon column.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <OpenMenuFrame>
+      <DropdownMenuRadioGroup value="weekly">
+        <DropdownMenuRadioItem {...args}>{children}</DropdownMenuRadioItem>
+      </DropdownMenuRadioGroup>
+    </OpenMenuFrame>
+  ),
+};
+
+/** The label is a heading, not a disabled row: it takes `inset` and nothing else. */
+export const Label: StoryObj<typeof labelMeta> = {
+  args: { inset: false, children: 'Frequency' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Match the inset of the rows below it.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <OpenMenuFrame>
+      <DropdownMenuLabel {...args}>{children}</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem>Weekly</DropdownMenuItem>
+    </OpenMenuFrame>
+  ),
+};
+
+/** `inset` keeps a nested tree aligned with the rows above it. */
+export const SubTrigger: StoryObj<typeof subTriggerMeta> = {
+  args: { inset: false, children: 'Share' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Match the inset of the sibling rows.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <OpenMenuFrame>
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger {...args}>{children}</DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem>Copy link</DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+    </OpenMenuFrame>
+  ),
 };

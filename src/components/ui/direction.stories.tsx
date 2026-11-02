@@ -61,3 +61,21 @@ export const RightToLeft: Story = {
     </DirectionProvider>
   ),
 };
+
+/** Direction nests: an LTR island inside an RTL page keeps the islands' own order. */
+export const NestedFlip: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <DirectionProvider dir="rtl">
+      <div className="flex w-72 flex-col gap-3">
+        <p className="text-sm">The page reads right to left.</p>
+        <DirectionProvider dir="ltr">
+          <div className="flex items-center gap-2 rounded-sm border border-border p-3">
+            <Switch aria-label="Left-to-right island" />
+            <span className="text-sm">An LTR island keeps its order.</span>
+          </div>
+        </DirectionProvider>
+      </div>
+    </DirectionProvider>
+  ),
+};

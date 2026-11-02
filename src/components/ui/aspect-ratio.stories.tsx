@@ -63,3 +63,19 @@ export const CommonRatios: Story = {
     </div>
   ),
 };
+
+/** In a row of cards, the ratio is what keeps the row from jumping as each image lands. */
+export const InGrid: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="grid w-96 grid-cols-3 gap-3">
+      {['One', 'Two', 'Three'].map((label) => (
+        <AspectRatio key={label} ratio={4 / 3}>
+          <div className="flex h-full w-full items-center justify-center rounded-sm bg-muted text-xs text-muted-foreground">
+            {label}
+          </div>
+        </AspectRatio>
+      ))}
+    </div>
+  ),
+};

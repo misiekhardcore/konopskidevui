@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { CalendarDay, type DateRange } from 'react-day-picker';
 
 import { Calendar, CalendarDayButton } from './calendar';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { DateRange } from 'react-day-picker';
 
 const meta = {
   title: 'Components/Calendar',
@@ -55,7 +55,11 @@ const meta = {
       description: 'Variant the previous/next arrows borrow from `Button`.',
       table: { category: 'Appearance' },
     },
-    locale: { control: false, description: 'date-fns locale.', table: { category: 'Accessibility' } },
+    locale: {
+      control: false,
+      description: 'date-fns locale.',
+      table: { category: 'Accessibility' },
+    },
     formatters: {
       control: false,
       description: 'Overrides for the weekday and month names.',
@@ -82,9 +86,7 @@ type Story = StoryObj<typeof meta>;
 const september = new Date(2026, 8, 1);
 
 export const Default: Story = {
-  render: (args) => (
-    <Calendar {...args} defaultMonth={september} className="rounded-sm border" />
-  ),
+  render: (args) => <Calendar {...args} defaultMonth={september} className="rounded-sm border" />,
 };
 
 /**
@@ -168,5 +170,34 @@ export const DisabledDays: Story = {
       disabled={[{ dayOfWeek: [0, 6] }, { before: new Date(2026, 8, 8) }]}
       className="rounded-sm border"
     />
+  ),
+};
+
+const dayButtonMeta = { component: CalendarDayButton } as const satisfies Partial<
+  Meta<typeof CalendarDayButton>
+>;
+
+/**
+ * The cell the grid renders. `locale` only decides how the date is spelled in
+ * `data-day`; the calendar passes `day` and `modifiers` to it.
+ */
+export const DayButton: StoryObj<typeof dayButtonMeta> = {
+  args: {
+    day: new CalendarDay(new Date(2026, 10, 3), new Date(2026, 10, 1)),
+    modifiers: { selected: true },
+    locale: { code: 'de-DE' },
+  },
+  argTypes: {
+    locale: {
+      control: 'object',
+      description: 'Locale for the date in `data-day`: `{ code: "de-DE" }` renders 3.11.2026.',
+      table: { category: 'Accessibility' },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <div className="w-10">
+      <CalendarDayButton {...args}>{args.day.date.getDate()}</CalendarDayButton>
+    </div>
   ),
 };

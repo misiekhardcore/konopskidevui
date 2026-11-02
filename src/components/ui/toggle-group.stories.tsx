@@ -133,9 +133,13 @@ export const Vertical: Story = {
   render: Single.render,
 };
 
+const itemMeta = { component: ToggleGroupItem } as const satisfies Partial<
+  Meta<typeof ToggleGroupItem>
+>;
+
 /** An item inherits the group's variant and size unless it sets its own. */
-export const Item: StoryObj<{ variant: 'default' | 'outline'; size: 'sm' | 'default' | 'lg' }> = {
-  args: { variant: 'default', size: 'default' },
+export const Item: StoryObj<typeof itemMeta> = {
+  args: { variant: 'default', size: 'default', value: 'left' },
   argTypes: {
     variant: {
       control: 'inline-radio',
@@ -150,9 +154,9 @@ export const Item: StoryObj<{ variant: 'default' | 'outline'; size: 'sm' | 'defa
       table: { category: 'Appearance' },
     },
   },
-  render: ({ variant, size }) => (
+  render: ({ variant, size, value }) => (
     <ToggleGroup type="single" defaultValue="center" spacing={0} aria-label="Text alignment">
-      <ToggleGroupItem value="left" aria-label="Align left" variant={variant} size={size}>
+      <ToggleGroupItem value={value} aria-label="Align left" variant={variant} size={size}>
         L
       </ToggleGroupItem>
       <ToggleGroupItem value="center" aria-label="Align centre">

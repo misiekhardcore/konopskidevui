@@ -103,3 +103,19 @@ export const Placement: StoryObj<typeof contentMeta> = {
     </HoverCard>
   ),
 };
+
+/** `defaultOpen` pins the card for a screenshot or a docs page — no pointer needed. */
+export const Pinned: Story = {
+  args: { defaultOpen: true },
+  render: (args) => (
+    <HoverCard {...args}>
+      <HoverCardTrigger asChild>
+        <Button variant="link">@michal</Button>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-72">
+        <p className="text-sm font-semibold">Michał Konopski</p>
+        <p className="text-sm text-muted-foreground">Open without hovering.</p>
+      </HoverCardContent>
+    </HoverCard>
+  ),
+};

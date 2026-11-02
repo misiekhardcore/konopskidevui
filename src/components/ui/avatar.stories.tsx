@@ -42,25 +42,25 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: (args) => (
     <div className="flex items-center gap-4">
-        <Avatar {...args}>
-          <AvatarImage
-            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop"
-            alt="Ada Lovelace"
-          />
+      <Avatar {...args}>
+        <AvatarImage
+          src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop"
+          alt="Ada Lovelace"
+        />
+        <AvatarFallback>AL</AvatarFallback>
+      </Avatar>
+      <Avatar>
+        <AvatarFallback>MK</AvatarFallback>
+      </Avatar>
+      <AvatarGroup>
+        <Avatar>
           <AvatarFallback>AL</AvatarFallback>
         </Avatar>
         <Avatar>
           <AvatarFallback>MK</AvatarFallback>
         </Avatar>
-        <AvatarGroup>
-          <Avatar>
-            <AvatarFallback>AL</AvatarFallback>
-          </Avatar>
-          <Avatar>
-            <AvatarFallback>MK</AvatarFallback>
-          </Avatar>
-          <AvatarGroupCount>+4</AvatarGroupCount>
-        </AvatarGroup>
+        <AvatarGroupCount>+4</AvatarGroupCount>
+      </AvatarGroup>
     </div>
   ),
 };
@@ -68,7 +68,7 @@ export const Default: Story = {
 /** The three diameters, with and without an image. */
 export const Sizes: Story = {
   parameters: { controls: { include: ['size'] } },
-  render: (args) => (
+  render: () => (
     <div className="flex items-center gap-4">
       {(['sm', 'default', 'lg'] as const).map((size) => (
         <Avatar key={size} size={size}>

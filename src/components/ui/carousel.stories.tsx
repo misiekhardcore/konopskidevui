@@ -41,9 +41,7 @@ type Story = StoryObj<typeof meta>;
 const prevMeta = { component: CarouselPrevious } as const satisfies Partial<
   Meta<typeof CarouselPrevious>
 >;
-const nextMeta = { component: CarouselNext } as const satisfies Partial<
-  Meta<typeof CarouselNext>
->;
+const nextMeta = { component: CarouselNext } as const satisfies Partial<Meta<typeof CarouselNext>>;
 
 const slides = (count: number, basis: string) =>
   Array.from({ length: count }, (_, index) => (

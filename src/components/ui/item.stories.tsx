@@ -138,7 +138,8 @@ export const Media: StoryObj<typeof mediaMeta> = {
     variant: {
       control: 'inline-radio',
       options: ['default', 'icon', 'image'],
-      description: '`icon` centres a glyph in a muted tile; `image` drops the padding for a thumbnail.',
+      description:
+        '`icon` centres a glyph in a muted tile; `image` drops the padding for a thumbnail.',
       table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     className: { control: false, table: { category: 'Styling' } },

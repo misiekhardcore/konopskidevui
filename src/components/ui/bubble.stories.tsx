@@ -62,15 +62,7 @@ export const Variants: Story = {
   render: (args) => (
     <BubbleGroup className="w-96">
       {(
-        [
-          'default',
-          'secondary',
-          'muted',
-          'tinted',
-          'outline',
-          'ghost',
-          'destructive',
-        ] as const
+        ['default', 'secondary', 'muted', 'tinted', 'outline', 'ghost', 'destructive'] as const
       ).map((variant) => (
         <Bubble key={variant} {...args} variant={variant}>
           <BubbleContent>{variant}</BubbleContent>

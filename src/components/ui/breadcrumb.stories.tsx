@@ -121,7 +121,11 @@ export const LinkAsChild: StoryObj<typeof linkMeta> = {
 export const Separator: StoryObj<typeof separatorMeta> = {
   args: { children: '/' },
   argTypes: {
-    children: { control: 'text', description: 'Replaces the default chevron.', table: { category: 'Content' } },
+    children: {
+      control: 'text',
+      description: 'Replaces the default chevron.',
+      table: { category: 'Content' },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   render: ({ children }) => (

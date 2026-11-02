@@ -1,3 +1,5 @@
+import { expect, fireEvent, screen } from 'storybook/test';
+
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -16,9 +18,8 @@ import {
   ContextMenuRadioGroup,
 } from './context-menu';
 
-import { expect, fireEvent, screen } from 'storybook/test';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ReactNode } from 'react';
 
 const meta = {
   title: 'Components/ContextMenu',
@@ -175,5 +176,134 @@ export const SubTrigger: StoryObj<typeof subTriggerMeta> = {
   play: async ({ canvas }) => {
     fireEvent.contextMenu(canvas.getByText('Right click here'));
     await expect(await screen.findByRole('menuitem', { name: 'Share' })).toBeInTheDocument();
+  },
+};
+
+const contentMeta = { component: ContextMenuContent } as const satisfies Partial<
+  Meta<typeof ContextMenuContent>
+>;
+const checkboxMeta = { component: ContextMenuCheckboxItem } as const satisfies Partial<
+  Meta<typeof ContextMenuCheckboxItem>
+>;
+const radioMeta = { component: ContextMenuRadioItem } as const satisfies Partial<
+  Meta<typeof ContextMenuRadioItem>
+>;
+const labelMeta = { component: ContextMenuLabel } as const satisfies Partial<
+  Meta<typeof ContextMenuLabel>
+>;
+
+function RightClickFrame({ children }: { children: ReactNode }) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger className="flex h-32 w-80 items-center justify-center rounded-sm border border-dashed border-border text-sm">
+        Right click here
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">{children}</ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+/** Which side of the pointer the menu prefers. */
+export const Content: StoryObj<typeof contentMeta> = {
+  args: { side: 'bottom' },
+  parameters: openMenuA11y,
+  argTypes: {
+    side: {
+      control: 'inline-radio',
+      options: ['top', 'right', 'bottom', 'left'],
+      description: 'Preferred side of the pointer; it flips when the viewport runs out.',
+      table: { category: 'Layout', defaultValue: { summary: 'bottom' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <ContextMenu>
+      <ContextMenuTrigger className="flex h-32 w-80 items-center justify-center rounded-sm border border-dashed border-border text-sm">
+        Right click here
+      </ContextMenuTrigger>
+      <ContextMenuContent {...args} className="w-48">
+        <ContextMenuItem>Open</ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  ),
+  play: async ({ canvas }) => {
+    fireEvent.contextMenu(canvas.getByText('Right click here'));
+    await expect(await screen.findByRole('menu')).toBeInTheDocument();
+  },
+};
+
+/** A checkbox row toggles in place and keeps the menu open. */
+export const CheckboxItem: StoryObj<typeof checkboxMeta> = {
+  args: { inset: false, defaultChecked: true, children: 'Show grid' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for rows under a label or an icon column.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <RightClickFrame>
+      <ContextMenuCheckboxItem {...args}>{children}</ContextMenuCheckboxItem>
+    </RightClickFrame>
+  ),
+  play: async ({ canvas }) => {
+    fireEvent.contextMenu(canvas.getByText('Right click here'));
+    await expect(await screen.findByRole('menu')).toBeInTheDocument();
+  },
+};
+
+/** A radio row needs the group that owns the value. */
+export const RadioItem: StoryObj<typeof radioMeta> = {
+  args: { inset: false, value: 'grid', children: 'Grid' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for rows under a label or an icon column.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <RightClickFrame>
+      <ContextMenuRadioGroup value="grid">
+        <ContextMenuRadioItem {...args}>{children}</ContextMenuRadioItem>
+      </ContextMenuRadioGroup>
+    </RightClickFrame>
+  ),
+  play: async ({ canvas }) => {
+    fireEvent.contextMenu(canvas.getByText('Right click here'));
+    await expect(await screen.findByRole('menu')).toBeInTheDocument();
+  },
+};
+
+/** The label is a heading, not a disabled row: it takes `inset` and nothing else. */
+export const Label: StoryObj<typeof labelMeta> = {
+  args: { inset: false, children: 'Layout' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Match the inset of the rows below it.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <RightClickFrame>
+      <ContextMenuLabel {...args}>{children}</ContextMenuLabel>
+      <ContextMenuSeparator />
+      <ContextMenuItem>Grid</ContextMenuItem>
+    </RightClickFrame>
+  ),
+  play: async ({ canvas }) => {
+    fireEvent.contextMenu(canvas.getByText('Right click here'));
+    await expect(await screen.findByRole('menu')).toBeInTheDocument();
   },
 };

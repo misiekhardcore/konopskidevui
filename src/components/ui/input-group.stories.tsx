@@ -1,6 +1,13 @@
 import { AtSignIcon, SearchIcon } from 'lucide-react';
 
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupText, InputGroupInput, InputGroupTextarea } from './input-group';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupText,
+  InputGroupInput,
+  InputGroupTextarea,
+} from './input-group';
 import { Kbd } from './kbd';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -108,7 +115,8 @@ export const AddonButton: StoryObj<typeof buttonMeta> = {
   argTypes: {
     variant: {
       control: 'select',
-      description: 'Button weight. `ghost` is the default so the addon never competes with the field.',
+      description:
+        'Button weight. `ghost` is the default so the addon never competes with the field.',
       table: { category: 'Appearance', defaultValue: { summary: 'ghost' } },
     },
     size: {

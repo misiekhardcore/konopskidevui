@@ -1,3 +1,4 @@
+import { Checkbox } from './checkbox';
 import { Input } from './input';
 import { Label } from './label';
 
@@ -54,6 +55,18 @@ export const Required: Story = {
         </span>
       </Label>
       <Input id="title-required" placeholder="On design systems" required />
+    </div>
+  ),
+};
+
+/** Next to a checkbox the label is clickable, so the whole row toggles. */
+export const WithCheckbox: Story = {
+  parameters: { controls: { include: ['children'] } },
+  args: { children: 'Email me about releases', htmlFor: 'label-checkbox' },
+  render: (args) => (
+    <div className="flex items-center gap-2">
+      <Checkbox id="label-checkbox" />
+      <Label {...args}>{args.children}</Label>
     </div>
   ),
 };

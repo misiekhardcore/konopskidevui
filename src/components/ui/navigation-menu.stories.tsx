@@ -104,7 +104,7 @@ export const Default: Story = {
  */
 export const WithoutViewport: Story = {
   args: { viewport: false },
-  render: (args) => menu(false),
+  render: () => menu(false),
 };
 
 /** The trigger is a button with a disclosure chevron; the label is its only content. */

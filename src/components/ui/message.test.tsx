@@ -14,10 +14,7 @@ describe('Message', () => {
   it('publishes the side of the conversation it belongs to', () => {
     const { container, rerender } = render(<Message>On it.</Message>);
 
-    expect(container.querySelector('[data-slot="message"]')).toHaveAttribute(
-      'data-align',
-      'start',
-    );
+    expect(container.querySelector('[data-slot="message"]')).toHaveAttribute('data-align', 'start');
 
     rerender(<Message align="end">On it.</Message>);
 
