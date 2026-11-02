@@ -5,32 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
 describe('Tooltip', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>Hover me</TooltipTrigger>
-          <TooltipContent>Tooltip text</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>Hover me</TooltipTrigger>
-          <TooltipContent>Tooltip text</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('shows on focus and hides on Escape', async () => {
     render(
       <TooltipProvider delayDuration={0}>

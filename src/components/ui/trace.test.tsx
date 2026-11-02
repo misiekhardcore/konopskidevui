@@ -1,47 +1,25 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Trace, TraceLine, TraceIcon, TraceTitle } from './trace';
+import { Trace, TraceLine, TraceTitle } from './trace';
 
 describe('Trace', () => {
-  it('renders a composed instance', () => {
+  it('marks the status of every line', () => {
     const { container } = render(
       <Trace>
-        <TraceLine status="running">
-          <TraceIcon>◌</TraceIcon>
-          <TraceTitle>Working</TraceTitle>
-        </TraceLine>
-      </Trace>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Trace>
-        <TraceLine status="running">
-          <TraceIcon>◌</TraceIcon>
-          <TraceTitle>Working</TraceTitle>
-        </TraceLine>
-      </Trace>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of ['running', 'error', 'pending'] as const) {
-      const { unmount } = render(
-        <Trace>
-          <TraceLine status={value}>
-            <TraceTitle>Step</TraceTitle>
+        {(['running', 'error', 'pending'] as const).map((status) => (
+          <TraceLine key={status} status={status}>
+            <TraceTitle>{status}</TraceTitle>
           </TraceLine>
-        </Trace>,
-      );
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
+        ))}
+      </Trace>,
+    );
+
+    expect(
+      [...container.querySelectorAll('[data-slot="trace-line"]')].map((line) =>
+        line.getAttribute('data-status'),
+      ),
+    ).toEqual(['running', 'error', 'pending']);
   });
 
   it('exposes the status of each line', async () => {

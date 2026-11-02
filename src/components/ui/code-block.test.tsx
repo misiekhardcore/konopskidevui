@@ -2,41 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-  CodeBlock,
-  CodeBlockHeader,
-  CodeBlockTitle,
-  CodeBlockCopyButton,
-  CodeBlockContent,
-} from './code-block';
+import { CodeBlock, CodeBlockHeader, CodeBlockCopyButton, CodeBlockContent } from './code-block';
 
 describe('CodeBlock', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <CodeBlock>
-        <CodeBlockHeader>
-          <CodeBlockTitle>example.ts</CodeBlockTitle>
-        </CodeBlockHeader>
-        <CodeBlockContent>{`const answer = 42;`}</CodeBlockContent>
-      </CodeBlock>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <CodeBlock>
-        <CodeBlockHeader>
-          <CodeBlockTitle>example.ts</CodeBlockTitle>
-        </CodeBlockHeader>
-        <CodeBlockContent>{`const answer = 42;`}</CodeBlockContent>
-      </CodeBlock>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('renders the code it is given', async () => {
     render(
       <CodeBlock>
@@ -65,5 +33,18 @@ describe('CodeBlock', () => {
 
     await userEvent.click(screen.getByRole('button'));
     expect(writeText).toHaveBeenCalledWith('const answer = 42;');
+  });
+
+  it('numbers the lines when `lineNumbers` is set', () => {
+    const { container } = render(
+      <CodeBlock>
+        <CodeBlockContent lineNumbers>{`const a = 1;\nconst b = 2;`}</CodeBlockContent>
+      </CodeBlock>,
+    );
+
+    expect(container.querySelector('[data-slot="code-block-content"]')).toHaveAttribute(
+      'data-numbered',
+      'true',
+    );
   });
 });

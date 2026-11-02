@@ -5,18 +5,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { Calendar } from './calendar';
 
 describe('Calendar', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Calendar mode="single" />);
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Calendar mode="single" />);
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('renders a grid of days', async () => {
     render(<Calendar mode="single" defaultMonth={new Date(2026, 9, 1)} />);
 
@@ -31,5 +19,26 @@ describe('Calendar', () => {
     await userEvent.click(screen.getByText('15'));
 
     expect(onSelect).toHaveBeenCalled();
+  });
+
+  it('moves to the next month from the navigation button', async () => {
+    render(<Calendar mode="single" defaultMonth={new Date(2026, 9, 1)} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /next month/i }));
+
+    expect(screen.getByText('November 2026')).toBeInTheDocument();
+  });
+
+  it('disables the days the caller rules out', () => {
+    render(
+      <Calendar
+        mode="single"
+        defaultMonth={new Date(2026, 9, 1)}
+        disabled={{ dayOfWeek: [0, 6] }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Saturday, October 3rd, 2026' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Friday, October 2nd, 2026' })).toBeEnabled();
   });
 });

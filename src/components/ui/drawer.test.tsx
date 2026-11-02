@@ -1,49 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from './drawer';
+import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle, DrawerDescription } from './drawer';
 
 describe('Drawer', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Drawer defaultOpen>
-        <DrawerTrigger>Open</DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Drawer title</DrawerTitle>
-            <DrawerDescription>Drawer description</DrawerDescription>
-          </DrawerHeader>
-        </DrawerContent>
-      </Drawer>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Drawer defaultOpen>
-        <DrawerTrigger>Open</DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Drawer title</DrawerTitle>
-            <DrawerDescription>Drawer description</DrawerDescription>
-          </DrawerHeader>
-        </DrawerContent>
-      </Drawer>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('opens and exposes its title', async () => {
     render(
       <Drawer>
@@ -59,5 +20,20 @@ describe('Drawer', () => {
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Filters')).toBeInTheDocument();
+  });
+
+  it('reports the dismissal', async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Drawer defaultOpen onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerTitle>Filters</DrawerTitle>
+        </DrawerContent>
+      </Drawer>,
+    );
+
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 });
