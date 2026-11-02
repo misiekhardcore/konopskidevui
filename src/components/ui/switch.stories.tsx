@@ -18,8 +18,9 @@ const meta = {
   argTypes: {
     size: {
       control: 'inline-radio',
-      description: 'Track size.',
-      table: { category: 'Appearance' },
+      options: ['sm', 'default'],
+      description: 'Track size. `sm` sits on a dense settings row.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     checked: { control: 'boolean', table: { category: 'State' } },
     defaultChecked: { control: 'boolean', table: { category: 'State' } },
@@ -39,11 +40,29 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <div className="flex items-center gap-3">
-        <Switch {...args} id="dark-mode" />
-        <Label htmlFor="dark-mode">Dark mode</Label>
-      </div>
-    </>
+    <div className="flex items-center gap-3">
+      <Switch {...args} id="dark-mode" />
+      <Label htmlFor="dark-mode">Dark mode</Label>
+    </div>
   ),
+};
+
+/** Both track sizes on and off, against a 40px row. */
+export const Sizes: Story = {
+  parameters: { controls: { include: ['disabled'] } },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      {(['default', 'sm'] as const).map((size) => (
+        <div key={size} className="flex items-center gap-3">
+          <Switch {...args} id={`switch-${size}`} size={size} defaultChecked />
+          <Label htmlFor={`switch-${size}`}>{size}</Label>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: Default.render,
 };

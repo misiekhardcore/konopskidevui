@@ -101,22 +101,89 @@ export const Default: Story = {
   ),
 };
 
+/**
+ * Radix's modal layer marks the rest of the page `aria-hidden` while a menu is
+ * open, and the trigger inside it keeps its tabindex until focus returns. Radix
+ * restores both as the menu closes, so the open-by-default stories opt out.
+ */
+const openMenuA11y = {
+  a11y: { config: { rules: [{ id: 'aria-hidden-focus', enabled: false }] } },
+};
+
+const contentMeta = { component: DropdownMenuContent } as const satisfies Partial<
+  Meta<typeof DropdownMenuContent>
+>;
+const itemMeta = { component: DropdownMenuItem } as const satisfies Partial<
+  Meta<typeof DropdownMenuItem>
+>;
+
+/** Where the menu opens, and how far from its trigger. */
+export const Content: StoryObj<typeof contentMeta> = {
+  args: { align: 'start', sideOffset: 4 },
+  parameters: openMenuA11y,
+  argTypes: {
+    align: {
+      control: 'inline-radio',
+      options: ['start', 'center', 'end'],
+      description: 'Alignment against the trigger.',
+      table: { category: 'Layout', defaultValue: { summary: 'start' } },
+    },
+    sideOffset: {
+      control: 'number',
+      description: 'Gap in pixels.',
+      table: { category: 'Layout', defaultValue: { summary: '4' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <DropdownMenu defaultOpen>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Open menu</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent {...args} className="w-56">
+        <DropdownMenuLabel>Frequency</DropdownMenuLabel>
+        <DropdownMenuItem>Weekly</DropdownMenuItem>
+        <DropdownMenuItem>Monthly</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+};
+
+/** `inset` lines an item up with the labelled ones; `destructive` is the tinted treatment. */
+export const Item: StoryObj<typeof itemMeta> = {
+  args: { inset: true, variant: 'default', children: 'Archive' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for items under an icon column or a label.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'destructive'],
+      description: '`destructive` tints the row and its icon; it does not fill it.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <DropdownMenu defaultOpen>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Open menu</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuLabel>Article</DropdownMenuLabel>
+        <DropdownMenuItem inset>Duplicate</DropdownMenuItem>
+        <DropdownMenuItem {...args}>{children}</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+};
+
 export const OpenByDefault: Story = {
   args: { defaultOpen: true },
   render: Default.render,
-  parameters: {
-    a11y: {
-      config: {
-        rules: [
-          {
-            // Radix's modal layer marks the rest of the page `aria-hidden` while
-            // the menu is open, and the trigger inside it keeps its tabindex
-            // until focus returns. Radix restores both as the menu closes.
-            id: 'aria-hidden-focus',
-            enabled: false,
-          },
-        ],
-      },
-    },
-  },
+  parameters: openMenuA11y,
 };

@@ -52,17 +52,38 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <>
-      <RadioGroup {...args} className="flex flex-col gap-3" defaultValue="monthly">
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="monthly" id="monthly" />
-          <Label htmlFor="monthly">Monthly · €9</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="yearly" id="yearly" />
-          <Label htmlFor="yearly">Yearly · €90</Label>
-        </div>
-      </RadioGroup>
-    </>
+    <RadioGroup {...args} className="flex flex-col gap-3" defaultValue="monthly">
+      <div className="flex items-center gap-2">
+        <RadioGroupItem value="monthly" id="monthly" />
+        <Label htmlFor="monthly">Monthly · €9</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem value="yearly" id="yearly" />
+        <Label htmlFor="yearly">Yearly · €90</Label>
+      </div>
+    </RadioGroup>
   ),
+};
+
+/** The orientation is the arrow-key axis: horizontal groups move with ← and →. */
+export const Horizontal: Story = {
+  args: { orientation: 'horizontal', defaultValue: 'grid' },
+  render: (args) => (
+    <RadioGroup {...args} className="flex flex-row gap-6">
+      <div className="flex items-center gap-2">
+        <RadioGroupItem value="grid" id="grid" />
+        <Label htmlFor="grid">Grid</Label>
+      </div>
+      <div className="flex items-center gap-2">
+        <RadioGroupItem value="list" id="list" />
+        <Label htmlFor="list">List</Label>
+      </div>
+    </RadioGroup>
+  ),
+};
+
+/** A disabled group disables every item, which is what keeps it out of the tab order. */
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: Default.render,
 };

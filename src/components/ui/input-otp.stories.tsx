@@ -32,6 +32,7 @@ const meta: Meta = {
       description: 'Regex the value must match, e.g. `^[0-9]+$`.',
       table: { category: 'Validation' },
     },
+    containerClassName: { control: 'text', table: { category: 'Styling' } },
   },
   args: { maxLength: 6, disabled: false },
 };
@@ -46,6 +47,7 @@ export const Default: Story = {
       maxLength={Number(args.maxLength)}
       disabled={Boolean(args.disabled)}
       pattern={args.pattern}
+      containerClassName={args.containerClassName}
     >
       <InputOTPGroup>
         <InputOTPSlot index={0} />
@@ -63,6 +65,7 @@ export const Default: Story = {
 };
 
 export const FourDigits: Story = {
+  parameters: { controls: { disable: true } },
   render: () => (
     <InputOTP aria-label="Verification code" maxLength={4}>
       <InputOTPGroup>
@@ -72,6 +75,57 @@ export const FourDigits: Story = {
         <InputOTPSlot index={3} />
       </InputOTPGroup>
     </InputOTP>
+  ),
+};
+
+/** `InputOTPSeparator` is decorative; it takes no props, so it has no controls. */
+export const WithSeparator: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <InputOTP aria-label="Gift card code" maxLength={8}>
+      <InputOTPGroup>
+        <InputOTPSlot index={0} />
+        <InputOTPSlot index={1} />
+        <InputOTPSlot index={2} />
+        <InputOTPSlot index={3} />
+      </InputOTPGroup>
+      <InputOTPSeparator />
+      <InputOTPGroup>
+        <InputOTPSlot index={4} />
+        <InputOTPSlot index={5} />
+        <InputOTPSlot index={6} />
+        <InputOTPSlot index={7} />
+      </InputOTPGroup>
+    </InputOTP>
+  ),
+};
+
+/** A `pattern` is the only validation the field does itself; letters are rejected here. */
+export const Alphanumeric: Story = {
+  args: { pattern: '^[A-Z0-9]+$', maxLength: 6 },
+  render: Default.render,
+};
+
+/** An invalid code is two attributes: `aria-invalid` on the field, and the message below. */
+export const Invalid: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <div className="flex flex-col gap-2">
+      <InputOTP aria-label="Verification code" maxLength={6} defaultValue="000000" aria-invalid>
+        <InputOTPGroup>
+          <InputOTPSlot index={0} />
+          <InputOTPSlot index={1} />
+          <InputOTPSlot index={2} />
+        </InputOTPGroup>
+        <InputOTPSeparator />
+        <InputOTPGroup>
+          <InputOTPSlot index={3} />
+          <InputOTPSlot index={4} />
+          <InputOTPSlot index={5} />
+        </InputOTPGroup>
+      </InputOTP>
+      <p className="text-sm font-bold text-destructive">That code is expired.</p>
+    </div>
   ),
 };
 

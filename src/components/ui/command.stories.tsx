@@ -120,3 +120,63 @@ export const WithButton: Story = {
     </div>
   ),
 };
+
+const dialogMeta = { component: CommandDialog } as const satisfies Partial<
+  Meta<typeof CommandDialog>
+>;
+
+/** The dialog's own props: the accessible name, the description, and its close button. */
+export const Dialog: StoryObj<typeof dialogMeta> = {
+  args: {
+    title: 'Command palette',
+    description: 'Search for a command to run.',
+    showCloseButton: false,
+  },
+  argTypes: {
+    title: {
+      control: 'text',
+      description: 'Dialog title, also its accessible name.',
+      table: { category: 'Content', defaultValue: { summary: 'Command Palette' } },
+    },
+    description: {
+      control: 'text',
+      description: 'Second line under the title.',
+      table: { category: 'Content' },
+    },
+    showCloseButton: {
+      control: 'boolean',
+      description: 'Corner close button. Escape closes the palette either way.',
+      table: { category: 'Appearance', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <CommandDialog {...args} defaultOpen>
+      <Command label="Command menu">
+        <CommandInput placeholder="Type a command or search…" />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Articles">
+            <CommandItem>New article</CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </Command>
+    </CommandDialog>
+  ),
+};
+
+/** A group with no matches is what `CommandEmpty` replaces; it is a slot, not a prop. */
+export const Empty: Story = {
+  parameters: { controls: { disable: true } },
+  render: (args) => (
+    <Command {...args} className="w-96 rounded-sm border border-border">
+      <CommandInput placeholder="Type a command or search…" defaultValue="zzz" />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Articles">
+          <CommandItem>New article</CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  ),
+};

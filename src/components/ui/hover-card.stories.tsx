@@ -45,20 +45,61 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const contentMeta = { component: HoverCardContent } as const satisfies Partial<
+  Meta<typeof HoverCardContent>
+>;
+
 export const Default: Story = {
   render: (args) => (
-    <>
-      <HoverCard {...args}>
-        <HoverCardTrigger asChild>
-          <Button variant="link">@michal</Button>
-        </HoverCardTrigger>
-        <HoverCardContent className="w-72">
-          <p className="text-sm font-semibold">Michał Konopski</p>
-          <p className="text-sm text-muted-foreground">
-            Writes about design systems and the web platform.
-          </p>
-        </HoverCardContent>
-      </HoverCard>
-    </>
+    <HoverCard {...args}>
+      <HoverCardTrigger asChild>
+        <Button variant="link">@michal</Button>
+      </HoverCardTrigger>
+      <HoverCardContent aria-label="Michał Konopski" className="w-72">
+        <p className="text-sm font-semibold">Michał Konopski</p>
+        <p className="text-sm text-muted-foreground">
+          Writes about design systems and the web platform.
+        </p>
+      </HoverCardContent>
+    </HoverCard>
+  ),
+};
+
+/** Which edge the card prefers, and how far it floats from the trigger. */
+export const Placement: StoryObj<typeof contentMeta> = {
+  args: { side: 'bottom', align: 'center', sideOffset: 4 },
+  argTypes: {
+    side: {
+      control: 'inline-radio',
+      options: ['top', 'right', 'bottom', 'left'],
+      description: 'Preferred side; it flips when the viewport runs out.',
+      table: { category: 'Layout', defaultValue: { summary: 'bottom' } },
+    },
+    align: {
+      control: 'inline-radio',
+      options: ['start', 'center', 'end'],
+      description: 'Alignment against the trigger.',
+      table: { category: 'Layout', defaultValue: { summary: 'center' } },
+    },
+    sideOffset: {
+      control: 'number',
+      description: 'Gap in pixels.',
+      table: { category: 'Layout', defaultValue: { summary: '4' } },
+    },
+    alignOffset: { control: 'number', table: { category: 'Layout' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <HoverCard defaultOpen>
+      <HoverCardTrigger asChild>
+        <Button variant="link">@michal</Button>
+      </HoverCardTrigger>
+      <HoverCardContent {...args} aria-label="Profile preview" className="w-72">
+        <p className="text-sm font-semibold">Michał Konopski</p>
+        <p className="text-sm text-muted-foreground">
+          {args.side ?? 'bottom'} · {args.align ?? 'center'}
+        </p>
+      </HoverCardContent>
+    </HoverCard>
   ),
 };

@@ -64,6 +64,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const contentMeta = { component: MenubarContent } as const satisfies Partial<
+  Meta<typeof MenubarContent>
+>;
+const itemMeta = { component: MenubarItem } as const satisfies Partial<Meta<typeof MenubarItem>>;
+
+/** Radix restores `aria-hidden` and tabindex when the menu closes; open menus trip axe. */
+const openMenuA11y = {
+  a11y: { config: { rules: [{ id: 'aria-hidden-focus', enabled: false }] } },
+};
+
 export const Default: Story = {
   render: (args) => (
     <>
@@ -92,5 +102,74 @@ export const Default: Story = {
         </MenubarMenu>
       </Menubar>
     </>
+  ),
+};
+
+/** Where a menu drops, and how far from its trigger. */
+export const Content: StoryObj<typeof contentMeta> = {
+  args: { align: 'start', alignOffset: -4, sideOffset: 8 },
+  parameters: openMenuA11y,
+  argTypes: {
+    align: {
+      control: 'inline-radio',
+      options: ['start', 'center', 'end'],
+      description: 'Alignment against the trigger.',
+      table: { category: 'Layout', defaultValue: { summary: 'start' } },
+    },
+    alignOffset: {
+      control: 'number',
+      description: 'Horizontal nudge, in pixels.',
+      table: { category: 'Layout', defaultValue: { summary: '-4' } },
+    },
+    sideOffset: {
+      control: 'number',
+      description: 'Vertical gap, in pixels.',
+      table: { category: 'Layout', defaultValue: { summary: '8' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <Menubar value="file">
+      <MenubarMenu value="file">
+        <MenubarTrigger>File</MenubarTrigger>
+        <MenubarContent {...args}>
+          <MenubarItem>New</MenubarItem>
+          <MenubarItem>Open…</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  ),
+};
+
+/** `inset` aligns an item under a label; `destructive` tints the row. */
+export const Item: StoryObj<typeof itemMeta> = {
+  args: { inset: true, variant: 'default', children: 'Duplicate' },
+  parameters: openMenuA11y,
+  argTypes: {
+    inset: {
+      control: 'boolean',
+      description: 'Extra left padding, for items that sit under a label or icon.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'destructive'],
+      description: '`destructive` tints the row; it never fills it.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <Menubar value="edit">
+      <MenubarMenu value="edit">
+        <MenubarTrigger>Edit</MenubarTrigger>
+        <MenubarContent>
+          <MenubarLabel>Article</MenubarLabel>
+          <MenubarItem inset>Copy</MenubarItem>
+          <MenubarItem {...args}>{children}</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
   ),
 };

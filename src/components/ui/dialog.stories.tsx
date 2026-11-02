@@ -96,6 +96,66 @@ export const OpenByDefault: Story = {
   render: Default.render,
 };
 
+const contentMeta = { component: DialogContent } as const satisfies Partial<
+  Meta<typeof DialogContent>
+>;
+
+/** `variant="bare"` drops the card chrome and the entrance animation. */
+export const ContentVariant: StoryObj<typeof contentMeta> = {
+  args: { variant: 'default', showOverlay: true },
+  argTypes: {
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'bare'],
+      description:
+        '`default` is the card; `bare` is a full-viewport layer with no chrome, for image viewers and canvases.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    showOverlay: {
+      control: 'boolean',
+      description: 'Render the backdrop. Turning it off makes the dialog non-modal in practice.',
+      table: { category: 'Appearance', defaultValue: { summary: 'true' } },
+    },
+    overlayClassName: {
+      control: 'text',
+      description: 'Reaches the backdrop, e.g. `bg-foreground/50`.',
+      table: { category: 'Styling' },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ variant, showOverlay, overlayClassName }) => (
+    <Dialog defaultOpen>
+      <DialogContent
+        variant={variant}
+        showOverlay={showOverlay}
+        overlayClassName={overlayClassName || undefined}
+        className={variant === 'bare' ? 'flex items-center justify-center' : undefined}
+      >
+        <DialogHeader>
+          <DialogTitle>Delete draft</DialogTitle>
+          <DialogDescription>The draft is gone after this.</DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  ),
+};
+
+/** `DialogFooter` can carry its own close button, which is the destructive-action layout. */
+export const FooterClose: Story = {
+  parameters: { controls: { include: ['defaultOpen', 'modal'] } },
+  render: (args) => (
+    <Dialog {...args} defaultOpen>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Publish now?</DialogTitle>
+          <DialogDescription>Subscribers get an email immediately.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter showCloseButton />
+      </DialogContent>
+    </Dialog>
+  ),
+};
+
 export const WithoutCloseButton: Story = {
   parameters: { controls: { include: ['defaultOpen', 'modal'] } },
   render: (args) => (

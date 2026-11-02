@@ -39,14 +39,16 @@ const meta = {
   },
   argTypes: {
     variant: {
-      control: 'select',
+      control: 'inline-radio',
+      options: ['default', 'outline', 'muted'],
       description: 'Surface treatment of the row.',
-      table: { category: 'Appearance' },
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     size: {
-      control: 'select',
-      description: 'Row density.',
-      table: { category: 'Appearance' },
+      control: 'inline-radio',
+      options: ['default', 'sm', 'xs'],
+      description: 'Row density: 40px, 32px, 28px.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     asChild: {
       control: 'boolean',
@@ -64,6 +66,8 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+const mediaMeta = { component: ItemMedia } as const satisfies Partial<Meta<typeof ItemMedia>>;
 
 export const Default: Story = {
   render: (args) => (
@@ -90,5 +94,85 @@ export const Default: Story = {
         </Item>
       </ItemGroup>
     </>
+  ),
+};
+
+/** All three surfaces side by side; `outline` and `muted` read as clickable rows. */
+export const Variant: Story = {
+  parameters: { controls: { include: ['variant', 'size'] } },
+  render: (args) => (
+    <ItemGroup className="w-96">
+      {(['default', 'outline', 'muted'] as const).map((variant) => (
+        <Item key={variant} {...args} variant={variant}>
+          <ItemContent>
+            <ItemTitle>{variant}</ItemTitle>
+            <ItemDescription>Surface treatment</ItemDescription>
+          </ItemContent>
+        </Item>
+      ))}
+    </ItemGroup>
+  ),
+};
+
+/** The three densities, against the same copy. */
+export const Size: Story = {
+  parameters: { controls: { include: ['variant'] } },
+  render: (args) => (
+    <ItemGroup className="w-96">
+      {(['default', 'sm', 'xs'] as const).map((size) => (
+        <Item key={size} {...args} size={size}>
+          <ItemContent>
+            <ItemTitle>{size}</ItemTitle>
+            <ItemDescription>Row density</ItemDescription>
+          </ItemContent>
+        </Item>
+      ))}
+    </ItemGroup>
+  ),
+};
+
+/** `icon` and `image` media get their own box; the default one hugs whatever you put in it. */
+export const Media: StoryObj<typeof mediaMeta> = {
+  args: { variant: 'icon' },
+  argTypes: {
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'icon', 'image'],
+      description: '`icon` centres a glyph in a muted tile; `image` drops the padding for a thumbnail.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <ItemGroup className="w-96">
+      <Item>
+        <ItemMedia {...args}>{args.variant === 'image' ? '🖼' : '📘'}</ItemMedia>
+        <ItemContent>
+          <ItemTitle>Design systems in practice</ItemTitle>
+          <ItemDescription>Media variant: {args.variant}</ItemDescription>
+        </ItemContent>
+      </Item>
+    </ItemGroup>
+  ),
+};
+
+/** `asChild` turns the row itself into the interactive element, so the whole row is the link. */
+export const AsLink: Story = {
+  args: { asChild: true },
+  parameters: { controls: { include: ['variant', 'size', 'asChild'] } },
+  render: (args) => (
+    // With `asChild` the row is the link itself, so the group cannot also claim
+    // `role="list"`: a list may only contain list items.
+    <ItemGroup role="none" className="w-96">
+      <Item {...args} asChild>
+        <a href="#article">
+          <ItemMedia variant="icon">📘</ItemMedia>
+          <ItemContent>
+            <ItemTitle>Design systems in practice</ItemTitle>
+            <ItemDescription>18 min read · TypeScript</ItemDescription>
+          </ItemContent>
+        </a>
+      </Item>
+    </ItemGroup>
   ),
 };
