@@ -2,11 +2,43 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.0] - 2026-11-03
+
+### Bug Fixes
+
+- Remove duplicated prop
+
+
+### Documentation
+
+- Draft the library and packaging articles (#7)
+
+
+### Features
+
+- **sonner:** Export toast so a consumer never imports sonner
+
+
+### Other
+
+- Revert "docs: draft the library and packaging articles (#7)"
+
+
+### Testing
+
+- Give every part real controls, and make the test suite enforce it (#8)
+- Fail a pull request when Chromatic sees a visual change (#9)
+
 ## [0.2.1] - 2026-10-30
 
 ### Bug Fixes
 
 - **storybook:** Let the component types drive the docs controls (#6)
+
+
+### Chores
+
+- Release v0.2.1
 
 ## [0.2.0] - 2026-10-29
 
