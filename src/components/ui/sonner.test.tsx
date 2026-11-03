@@ -1,10 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { toast } from 'sonner';
 import { describe, expect, it } from 'vitest';
 
 import { Button } from './button';
-import { Toaster } from './sonner';
+import { Toaster, toast } from './sonner';
 
 // Sonner renders its list element only once at least one toast is queued.
 describe('Toaster', () => {

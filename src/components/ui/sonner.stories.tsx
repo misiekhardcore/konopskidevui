@@ -1,7 +1,5 @@
-import { toast } from 'sonner';
-
 import { Button } from './button';
-import { Toaster } from './sonner';
+import { Toaster, toast } from './sonner';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 

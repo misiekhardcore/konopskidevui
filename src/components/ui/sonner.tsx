@@ -6,7 +6,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import * as React from 'react';
-import { Toaster as Sonner, type ToasterProps } from 'sonner';
+import { Toaster as Sonner, toast, type ToasterProps } from 'sonner';
 
 type SonnerTheme = NonNullable<ToasterProps['theme']>;
 
@@ -55,3 +55,13 @@ function cnToaster(className?: string) {
 }
 
 export { Toaster };
+
+/**
+ * Raises a toast into the nearest mounted `Toaster`.
+ *
+ * Re-exported from `sonner` so a consumer renders the region and queues into it
+ * from one module, instead of pairing this component with a separate `sonner`
+ * import. The `success`, `error`, `warning`, `info`, `loading`, `promise`,
+ * `custom`, `message` and `dismiss` helpers come attached to the same function.
+ */
+export { toast };

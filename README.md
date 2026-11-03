@@ -100,6 +100,18 @@ import { Button } from '@konopskidev/ui/components/button';
 import { cn } from '@konopskidev/ui/lib/utils';
 ```
 
+`Toaster` and `toast` come from the same module, so a consumer never imports `sonner` directly:
+mount the region once, then queue into it from anywhere in the client tree.
+
+```tsx
+import { Button } from '@konopskidev/ui/components/button';
+import { Toaster, toast } from '@konopskidev/ui/components/sonner';
+
+export function PublishButton() {
+  return <Button onClick={() => toast.success('Article published')}>Publish</Button>;
+}
+```
+
 Every module that calls a hook, or wraps a primitive with no client boundary of its own, carries
 `'use client'`, so it renders inside a React Server Component tree. Two kinds of module stay
 unmarked on purpose:
