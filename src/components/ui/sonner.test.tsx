@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Button } from './button';
 import { Toaster, toast } from './sonner';
+import { ThemeProvider } from './theme-provider';
 
 // Sonner renders its list element only once at least one toast is queued.
 describe('Toaster', () => {
@@ -56,5 +57,20 @@ describe('Toaster', () => {
 
     expect(list.className).toContain('toaster');
     expect(list.className).toContain('custom-toaster');
+  });
+
+  it('follows the nearest theme provider', async () => {
+    render(
+      <ThemeProvider defaultTheme="dark">
+        <Toaster />
+      </ThemeProvider>,
+    );
+    toast('Provider theme');
+
+    await screen.findByText('Provider theme');
+    expect(document.querySelector('[data-sonner-toaster]')).toHaveAttribute(
+      'data-sonner-theme',
+      'dark',
+    );
   });
 });

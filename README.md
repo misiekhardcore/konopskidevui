@@ -3,7 +3,7 @@
 The konopskidev design system: every component the shadcn registry ships, rendered in the exact
 visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 and React 19.
 
-- **63 components** — the full `radix-nova` registry, plus the hand-written house primitives.
+- **65 components** — the full `radix-nova` registry, plus the hand-written house primitives.
 - **One style source** — tokens, theme, base layers and prose live in [`src/styles`](src/styles), so
   every app imports the same stylesheet instead of re-deriving the palette.
 - **ESM and CommonJS** — both formats ship, with declarations for each, so `import`, `require` and a
@@ -18,10 +18,15 @@ visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 an
 ## Install
 
 ```bash
-pnpm add @konopskidev/ui
+pnpm add @konopskidev/ui next-themes
 ```
 
-Peer dependencies: `react@^19`, `react-dom@^19`, `tailwindcss@^4`, and `lucide-react` (optional).
+Peer dependencies: `react@^19`, `react-dom@^19`, `tailwindcss@^4`, `next-themes@^0.4`, and
+`lucide-react` (optional).
+
+`next-themes` is required because the root barrel carries `ThemeProvider` and `ThemeSwitcher`. It has
+to be a peer rather than a bundled dependency: the app's copy and the components' copy must be one
+instance, or the switcher would write a store nothing else reads.
 
 Some components are built on a heavy library. Those are **optional peers**: they are not installed
 with the package, and you add the one a component needs — the manual half of what `shadcn add` does
@@ -70,6 +75,50 @@ component rendered unstyled with no error in the build or the console.
 
 Dark mode is the `.dark` class on any ancestor. The `--font-*` variables come from the app
 (konopskidev sets them with `next/font`); every style has a sensible fallback.
+
+## Theming
+
+`next-themes` owns the theme; the package supplies the house defaults and the control. Mount the
+provider once near the app root — it writes `.dark` onto `<html>`, starts on `system`, and suppresses
+transitions for the frame the class flips:
+
+```tsx
+import { ThemeProvider } from '@konopskidev/ui';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+The `<html>` element needs `suppressHydrationWarning`: the inline script next-themes renders has
+already set the class by the time React hydrates.
+
+`ThemeSwitcher` is the three-state control — Light, System, Dark — and writes that same store, so it
+takes no `value` and no `onChange`:
+
+```tsx
+import { ThemeSwitcher } from '@konopskidev/ui';
+
+<ThemeSwitcher />;
+```
+
+It brings its own tooltip provider, so it renders anywhere below `ThemeProvider`, and `labels`
+translates the three names for an app that is not in English. `Toaster` reads the same store, so a
+theme change flips toasts with the page; its `theme` prop remains for pinning one surface. Anything
+else reads or sets the theme through the re-exported hook, so a consumer never pairs this package
+with a second `next-themes` import:
+
+```tsx
+import { useTheme } from '@konopskidev/ui';
+
+const { theme, setTheme } = useTheme();
+```
 
 ## Use it
 
@@ -120,7 +169,7 @@ unmarked on purpose:
   prose primitives. `Slot` is `asChild` plumbing with no behaviour, and Radix leaves it unmarked for
   the same reason. Because the directive is file-level, marking `button.tsx` would also make
   `buttonVariants` a client reference, and `buttonVariants()` from a server component would throw.
-- **Thin wrappers over a dependency that declares the boundary itself** — `cmdk`, `sonner`,
+- **Thin wrappers over a dependency that declares the boundary itself** — `cmdk`, `next-themes`,
   `react-resizable-panels`, `@shadcn/react`. The client graph already starts inside the dependency,
   so marking the wrapper only moves its own few lines into the client bundle.
 
@@ -161,6 +210,10 @@ Conventions that are behaviour, not class strings:
   `showOverlay={false}` removes it, and `closeButton` takes `false` or your own element when the
   default ghost button would be unreadable. `DialogContentPrimitive` is exported for layouts the
   props cannot express.
+- **Theme state is next-themes state.** `ThemeSwitcher` takes no `value`/`onValueChange` of its own:
+  it reads and writes the nearest provider, which is how the header control, `Toaster` and any
+  `useTheme()` call stay on one theme. One option is always pressed, so re-clicking the current one
+  cannot clear the group.
 
 ## Storybook
 

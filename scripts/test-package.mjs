@@ -39,6 +39,7 @@ const CORE_DEPENDENCIES = [
   'class-variance-authority',
   'tw-animate-css',
   'lucide-react',
+  'next-themes',
   'tailwindcss',
 ];
 
@@ -86,7 +87,7 @@ function checkEsm() {
   fs.writeFileSync(
     path.join(consumer, 'esm.mjs'),
     `import assert from 'node:assert/strict';
-import { Button, Card, CardTitle, Dialog, Table } from '@konopskidev/ui';
+import { Button, Card, CardTitle, Dialog, Table, ThemeProvider, ThemeSwitcher } from '@konopskidev/ui';
 import { DialogContent } from '@konopskidev/ui/components/dialog';
 import { cn } from '@konopskidev/ui/lib/utils';
 
@@ -95,6 +96,8 @@ assert.equal(typeof Card, 'function');
 assert.equal(typeof CardTitle, 'function');
 assert.equal(typeof Dialog, 'function');
 assert.equal(typeof Table, 'function');
+assert.equal(typeof ThemeProvider, 'function');
+assert.equal(typeof ThemeSwitcher, 'function');
 assert.equal(typeof DialogContent, 'function');
 assert.equal(cn('a', 'b'), 'a b');
 console.log('esm: barrel + deep import resolve');
@@ -114,6 +117,8 @@ assert.equal(typeof ui.Button, 'function');
 assert.equal(typeof ui.Card, 'function');
 assert.equal(typeof ui.Dialog, 'function');
 assert.equal(typeof ui.Table, 'function');
+assert.equal(typeof ui.ThemeProvider, 'function');
+assert.equal(typeof ui.ThemeSwitcher, 'function');
 assert.equal(typeof require('@konopskidev/ui/components/button').Button, 'function');
 assert.equal(typeof require('@konopskidev/ui/components/card').CardImage, 'function');
 assert.equal(typeof require('@konopskidev/ui/lib/utils').cn, 'function');

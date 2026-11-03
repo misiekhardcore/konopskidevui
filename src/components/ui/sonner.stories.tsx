@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Transient feedback, mounted once near the app root. The theme is a prop rather than a theme-provider lookup, so the library has no `next-themes` dependency: pass your theme down or leave it on `system`.',
+          'Transient feedback, mounted once near the app root. The toaster follows the nearest `ThemeProvider`, so it flips with `ThemeSwitcher` without a prop; pass `theme` to pin one surface to a token set of its own.',
       },
     },
   },
@@ -84,7 +84,7 @@ export const WithCloseButton: Story = {
   render: Default.render,
 };
 
-/** `theme` is a prop, not a `next-themes` lookup, so a dark app can force it. */
+/** `theme` overrides the provider for the toaster alone. */
 export const DarkTheme: Story = {
   args: { theme: 'dark' },
   render: Default.render,
