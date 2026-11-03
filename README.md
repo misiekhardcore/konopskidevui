@@ -233,7 +233,8 @@ not all 272: `parameters.chromatic.disableSnapshot` is `true` project-wide in
 in with `disableSnapshot: false`. That opt-in is a property of the story, so a rename cannot drop a
 component out of the visual suite — `pnpm test` checks every stories file still carries one.
 
-The token is `CHROMATIC_PROJECT_TOKEN`: in `.env` for `pnpm test:visual` (the script loads it), and as
+The token is `CHROMATIC_PROJECT_TOKEN`: in `.env` for `pnpm test:visual`, which loads it with Node's
+`--env-file-if-exists` (Node ≥ 22.9; otherwise export the variable before running the script), and as
 a repository secret for [`.github/workflows/visual.yml`](.github/workflows/visual.yml), which runs on
 every pull request and on `main`. The job skips rather than fails when the secret is absent, so a fork
 still gets a green build. `main` auto-accepts its own changes; a pull request reports the differences
