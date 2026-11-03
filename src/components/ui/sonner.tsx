@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -8,21 +10,27 @@ import {
 import * as React from 'react';
 import { Toaster as Sonner, toast, type ToasterProps } from 'sonner';
 
+import { useTheme } from './theme-provider';
+
 type SonnerTheme = NonNullable<ToasterProps['theme']>;
 
 export interface ToasterComponentProps extends ToasterProps {
   /**
-   * Sonner reads no theme provider of its own. The library is deliberately
-   * framework-agnostic, so the app passes its theme down (or leaves it on
-   * `system`, which follows `prefers-color-scheme`).
+   * Overrides the nearest `ThemeProvider` for this surface only. Left unset,
+   * the toaster follows the resolved next-themes theme, and falls back to
+   * `system` (which follows `prefers-color-scheme`) outside a provider.
    */
   theme?: SonnerTheme;
 }
 
-function Toaster({ className, theme = 'system', ...props }: ToasterComponentProps) {
+function Toaster({ className, theme, ...props }: ToasterComponentProps) {
+  const { resolvedTheme } = useTheme();
+  const providerTheme: SonnerTheme | undefined =
+    resolvedTheme === 'light' || resolvedTheme === 'dark' ? resolvedTheme : undefined;
+
   return (
     <Sonner
-      theme={theme}
+      theme={theme ?? providerTheme ?? 'system'}
       data-slot="sonner"
       className={cnToaster(className)}
       icons={{

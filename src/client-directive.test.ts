@@ -40,6 +40,7 @@ const DIRECTIVE = /^['"]use client['"];?$/;
  */
 const SELF_BOUNDARY_PACKAGES = [
   'cmdk',
+  'next-themes',
   'react-resizable-panels',
   'sonner',
   '@shadcn/react/questionnaire',

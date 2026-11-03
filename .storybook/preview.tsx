@@ -1,4 +1,6 @@
-import { withThemeByClassName } from '@storybook/addon-themes';
+import { useEffect, useRef } from 'react';
+
+import { ThemeProvider, useTheme } from '../src/components/ui/theme-provider';
 
 import type { Preview } from '@storybook/react-vite';
 
@@ -57,21 +59,69 @@ const withoutEmptyEnumValues: NonNullable<Preview['argTypesEnhancers']>[number] 
   return next;
 };
 
+/**
+ * Pushes a toolbar change into next-themes, so the toolbar and every
+ * `<ThemeSwitcher />` inside a story drive the same store instead of two
+ * different ones writing `<html>` behind each other's back. The first render is
+ * skipped: the provider already started on the toolbar's value, and re-setting
+ * it on mount would undo a choice a play function made moments later.
+ */
+function ThemeSync({ theme }: { theme: string }) {
+  const { setTheme } = useTheme();
+  const applied = useRef(theme);
+
+  useEffect(() => {
+    if (applied.current === theme) return;
+
+    applied.current = theme;
+    setTheme(theme);
+  }, [setTheme, theme]);
+
+  return null;
+}
+
 const preview: Preview = {
   argTypesEnhancers: [withoutEmptyEnumValues],
+  globalTypes: {
+    theme: {
+      description: 'Token set for the preview; the same next-themes store the components read',
+      toolbar: {
+        icon: 'paintbrush',
+        items: [
+          { value: 'light', title: 'Light' },
+          { value: 'dark', title: 'Dark' },
+          { value: 'system', title: 'System' },
+        ],
+        dynamicTitle: true,
+      },
+    },
+  },
   decorators: [
     // `@custom-variant dark (&:is(.dark *))` needs the class on an ancestor, so
-    // it goes on <html> exactly as next-themes would put it in a real app.
-    withThemeByClassName({
-      themes: { light: 'light', dark: 'dark' },
-      defaultTheme: 'light',
-      parentSelector: 'html',
-    }),
-    (Story) => (
-      <div className="bg-background font-sans text-base text-foreground">
-        <Story />
-      </div>
-    ),
+    // the library provider puts it on <html>, exactly as an app does. Using the
+    // package's own provider here means every story exercises the same wiring a
+    // consumer gets, rather than a Storybook-only approximation of it.
+    (Story, context) => {
+      // The vitest runner renders stories without the manager's globals, so the
+      // toolbar default is repeated here rather than assumed.
+      const theme = context.globals.theme ?? 'light';
+
+      return (
+        // One storage key per story, so a theme a play function picked cannot
+        // leak into the next story's first render.
+        <ThemeProvider
+          attribute="class"
+          defaultTheme={theme}
+          enableSystem
+          storageKey={`storybook-theme-${context.id}`}
+        >
+          <ThemeSync theme={theme} />
+          <div className="bg-background font-sans text-base text-foreground">
+            <Story />
+          </div>
+        </ThemeProvider>
+      );
+    },
   ],
   initialGlobals: {
     theme: 'light',
