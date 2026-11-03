@@ -206,10 +206,40 @@ stylesheet styles the components with no consumer configuration.
 point at the files explicitly.
 
 Coverage is measured across both projects, so the interactions the play functions exercise count
-towards the same number as the jsdom suites. The thresholds are a ratchet — the floor sits just under
-what the suite reaches today (89 % statements, lines and functions, 74 % branches overall; 97 % for
-hooks and 75 % for lib on lines), so a new component without tests fails the run instead of sliding
-past. Raise them when a change lifts the number; never lower them to get a branch green.
+towards the same number as the jsdom suites. The thresholds are a ratchet — the floors sit just under
+what the suite reaches today (97 % statements, 97 % lines, 96 % functions, 95 % branches), so a new
+component without tests fails the run instead of sliding past. Raise them when a change lifts the
+number; never lower them to get a branch green.
+
+The provider is Istanbul rather than V8. V8 instruments the first line of every module as a branch it
+never takes, which is about sixty branches the suite can never cover; a 90 % floor on top of that is
+both unreachable and impossible to hold as files are added. Istanbul measures the source instead, so
+the number on screen is the number the tests earn.
+
+A component's parts are covered where they are used: `ChartTooltipContent` and `ChartLegendContent`
+are driven with crafted recharts payloads (one per series, a nested label, a formatter, a missing
+value) rather than by hoping a rendered chart shows a tooltip in jsdom.
+
+## Visual tests
+
+```bash
+pnpm test:visual    # Chromatic: builds Storybook, uploads, compares against the baselines
+```
+
+Storybook 10 has no built-in screenshot diffing — its "Visual tests" panel is Chromatic — so the
+snapshots live in Chromatic rather than in this repository. One story per component is snapshotted,
+not all 272: `parameters.chromatic.disableSnapshot` is `true` project-wide in
+[`.storybook/preview.tsx`](.storybook/preview.tsx), and the one composition worth watching opts back
+in with `disableSnapshot: false`. That opt-in is a property of the story, so a rename cannot drop a
+component out of the visual suite — `pnpm test` checks every stories file still carries one.
+
+The token is `CHROMATIC_PROJECT_TOKEN`: in `.env` for `pnpm test:visual` (the script loads it), and as
+a repository secret for [`.github/workflows/visual.yml`](.github/workflows/visual.yml), which runs on
+every pull request and on `main`. The job skips rather than fails when the secret is absent, so a fork
+still gets a green build. `main` auto-accepts its own changes; a pull request reports the differences
+and exits zero until someone accepts them as baselines — flip `exitZeroOnChanges` in
+[`chromatic.config.json`](chromatic.config.json) once the baselines are settled if you want a visual
+change to block a merge.
 
 ## Quality gates
 
