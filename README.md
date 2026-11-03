@@ -237,10 +237,14 @@ The token is `CHROMATIC_PROJECT_TOKEN`: in `.env` for `pnpm test:visual`, which 
 `--env-file-if-exists` (Node ≥ 22.9; otherwise export the variable before running the script), and as
 a repository secret for [`.github/workflows/visual.yml`](.github/workflows/visual.yml), which runs on
 every pull request and on `main`. The job skips rather than fails when the secret is absent, so a fork
-still gets a green build. `main` auto-accepts its own changes; a pull request reports the differences
-and exits zero until someone accepts them as baselines — flip `exitZeroOnChanges` in
-[`chromatic.config.json`](chromatic.config.json) once the baselines are settled if you want a visual
-change to block a merge.
+still gets a green build.
+
+`main` auto-accepts its own changes, so a fix merged there becomes the new baseline. A pull request
+compares against that baseline and **fails** when a snapshot differs: the workflow passes
+`exitZeroOnChanges: false` to the Chromatic action, which otherwise exits zero on a `pull_request`
+regardless of the config file. Review the diff in Chromatic and accept it there to unblock the pull
+request. A story that newly joins the suite counts as a change too, so the first build that snapshots
+it needs an acceptance as well.
 
 ## Quality gates
 
