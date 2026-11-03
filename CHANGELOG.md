@@ -2,11 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.4.0] - 2026-11-03
+
+### Features
+
+- **theme:** Add ThemeSwitcher and put the library on next-themes (#11)
+
 ## [0.3.0] - 2026-11-03
 
 ### Bug Fixes
 
 - Remove duplicated prop
+
+
+### Chores
+
+- Release v0.3.0
 
 
 ### Documentation
