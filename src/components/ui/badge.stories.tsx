@@ -44,7 +44,7 @@ export const Default: Story = {
   parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <div className="flex flex-wrap items-center gap-2">
-      <Badge {...args}>Published</Badge>
+      <Badge {...args}>Published now</Badge>
       <Badge variant="secondary">Draft</Badge>
       <Badge variant="outline">Archived</Badge>
       <Badge variant="destructive">Failed</Badge>
