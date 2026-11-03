@@ -1,3 +1,5 @@
+import { expect, screen, userEvent } from 'storybook/test';
+
 import { Label } from './label';
 import {
   Select,
@@ -65,7 +67,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The trigger's own `size`, plus where the popup is anchored. */
+const triggerMeta = { component: SelectTrigger } as const satisfies Partial<
+  Meta<typeof SelectTrigger>
+>;
+const contentMeta = { component: SelectContent } as const satisfies Partial<
+  Meta<typeof SelectContent>
+>;
+
+const options = (
+  <>
+    <SelectItem value="newest">Newest first</SelectItem>
+    <SelectItem value="oldest">Oldest first</SelectItem>
+  </>
+);
+
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Select {...args}>
       <SelectTrigger id="sort" aria-label="Sort by">
@@ -86,6 +105,14 @@ export const Default: Story = {
       </SelectContent>
     </Select>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Sort by' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Oldest first' }));
+
+    await expect(canvas.getByRole('combobox', { name: 'Sort by' })).toHaveTextContent(
+      'Oldest first',
+    );
+  },
 };
 
 export const WithPlaceholder: Story = {
@@ -95,10 +122,7 @@ export const WithPlaceholder: Story = {
       <SelectTrigger id="sort" aria-label="Sort by">
         <SelectValue placeholder="Pick a sort order" />
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="newest">Newest first</SelectItem>
-        <SelectItem value="oldest">Oldest first</SelectItem>
-      </SelectContent>
+      <SelectContent>{options}</SelectContent>
     </Select>
   ),
 };
@@ -106,4 +130,57 @@ export const WithPlaceholder: Story = {
 export const Disabled: Story = {
   args: { disabled: true },
   render: Default.render,
+};
+
+/** `sm` matches a 28px row; the default is the same height as `Input`. */
+export const TriggerSize: StoryObj<typeof triggerMeta> = {
+  args: { size: 'default' },
+  argTypes: {
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'default'],
+      description: 'Trigger height.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ size }) => (
+    <div className="flex flex-col gap-3">
+      <Select defaultValue="newest">
+        <SelectTrigger size={size ?? 'default'} aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>{options}</SelectContent>
+      </Select>
+    </div>
+  ),
+};
+
+/** `item-aligned` overlays the trigger; `popper` drops below it and can be aligned. */
+export const ContentPosition: StoryObj<typeof contentMeta> = {
+  args: { position: 'item-aligned', align: 'center' },
+  argTypes: {
+    position: {
+      control: 'inline-radio',
+      options: ['item-aligned', 'popper'],
+      description: 'Whether the list covers the trigger or floats beside it.',
+      table: { category: 'Layout', defaultValue: { summary: 'item-aligned' } },
+    },
+    align: {
+      control: 'inline-radio',
+      options: ['start', 'center', 'end'],
+      description: 'Edge alignment, used with `position="popper"`.',
+      table: { category: 'Layout', defaultValue: { summary: 'center' } },
+    },
+    sideOffset: { control: 'number', table: { category: 'Layout' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <Select defaultValue="newest">
+      <SelectTrigger aria-label="Sort by">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent {...args}>{options}</SelectContent>
+    </Select>
+  ),
 };

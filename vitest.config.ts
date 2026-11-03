@@ -15,20 +15,23 @@ export default defineConfig({
   resolve: { alias },
   test: {
     coverage: {
-      provider: 'v8',
+      // Istanbul rather than V8: V8 instruments the first line of every module as
+      // a branch it never takes, which added ~60 untakeable branches and made a
+      // 90% floor impossible to hold as files were added. Istanbul measures the
+      // source instead.
+      provider: 'istanbul',
       reporter: ['text', 'lcov'],
       include: ['src/components/ui/**/*.tsx', 'src/lib/**/*.{ts,tsx}', 'src/hooks/**/*.ts'],
       exclude: ['src/**/*.stories.tsx', 'src/**/*.test.tsx'],
-      // A ratchet: the floor is what the suite covers today, so a new component
-      // without tests lowers the number and fails the run. The utilities are
-      // held to a much higher bar than the 63 class-string-heavy components.
+      // A ratchet: the floors sit just under what the suite covers today, so a
+      // new component without tests lowers the numbers and fails the run. Coverage
+      // spans both projects — the jsdom suites plus the stories and their play
+      // functions — because the interactions only happen in the browser.
       thresholds: {
-        lines: 65,
-        functions: 60,
-        statements: 65,
-        branches: 50,
-        'src/hooks/**': { lines: 90, functions: 75, statements: 90, branches: 85 },
-        'src/lib/**': { lines: 70, functions: 50, statements: 70, branches: 90 },
+        lines: 95,
+        functions: 94,
+        statements: 94,
+        branches: 94,
       },
     },
     projects: [

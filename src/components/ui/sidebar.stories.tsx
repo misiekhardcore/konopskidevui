@@ -10,8 +10,13 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarTrigger,
 } from './sidebar';
@@ -48,16 +53,19 @@ const meta = {
   argTypes: {
     side: {
       control: 'inline-radio',
+      options: ['left', 'right'],
       description: 'Which edge the rail is attached to.',
       table: { category: 'Layout', defaultValue: { summary: 'left' } },
     },
     variant: {
       control: 'inline-radio',
+      options: ['sidebar', 'floating', 'inset'],
       description: 'Surface treatment of the rail.',
       table: { category: 'Appearance', defaultValue: { summary: 'sidebar' } },
     },
     collapsible: {
-      control: 'select',
+      control: 'inline-radio',
+      options: ['offcanvas', 'icon', 'none'],
       description: 'How it collapses: slide away, shrink to icons, or not at all.',
       table: { category: 'Behaviour', defaultValue: { summary: 'offcanvas' } },
     },
@@ -69,6 +77,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <SidebarProvider>
       <Sidebar {...args}>
@@ -126,4 +136,246 @@ export const IconCollapsible: Story = {
 export const Floating: Story = {
   args: { variant: 'floating' },
   render: Default.render,
+};
+
+const menuButtonMeta = { component: SidebarMenuButton } as const satisfies Partial<
+  Meta<typeof SidebarMenuButton>
+>;
+const skeletonMeta = { component: SidebarMenuSkeleton } as const satisfies Partial<
+  Meta<typeof SidebarMenuSkeleton>
+>;
+const actionMeta = { component: SidebarMenuAction } as const satisfies Partial<
+  Meta<typeof SidebarMenuAction>
+>;
+
+/** A menu row: `isActive` marks the current page, `variant` outlines a nested one. */
+export const MenuButton: StoryObj<typeof menuButtonMeta> = {
+  args: { isActive: true, variant: 'default', size: 'default' },
+  argTypes: {
+    isActive: {
+      control: 'boolean',
+      description: 'Marks the current page and tints the row.',
+      table: { category: 'State', defaultValue: { summary: 'false' } },
+    },
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'outline'],
+      description: '`outline` boxes the row, for a nested item.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'default', 'lg'],
+      description: 'Row height.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    tooltip: {
+      control: 'text',
+      description: 'Label shown when the sidebar is collapsed to icons.',
+      table: { category: 'Accessibility' },
+    },
+    asChild: { control: 'boolean', table: { category: 'Composition' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton {...args}>
+                    <HomeIcon />
+                    <span>Overview</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <FileTextIcon />
+                    <span>Articles</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <div className="p-6 text-sm">Content sits in the inset region.</div>
+      </SidebarInset>
+    </SidebarProvider>
+  ),
+};
+
+/** The loading placeholder keeps the menu's rhythm while the data arrives. */
+export const Skeleton: StoryObj<typeof skeletonMeta> = {
+  args: { showIcon: true },
+  argTypes: {
+    showIcon: {
+      control: 'boolean',
+      description: 'Reserve the icon column, so rows do not jump when the data lands.',
+      table: { category: 'Layout', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuSkeleton {...args} />
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuSkeleton />
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <div className="p-6 text-sm">Loading the menu…</div>
+      </SidebarInset>
+    </SidebarProvider>
+  ),
+};
+
+/** `showOnHover` keeps the row quiet until the pointer or focus arrives. */
+export const MenuAction: StoryObj<typeof actionMeta> = {
+  args: { showOnHover: true },
+  argTypes: {
+    showOnHover: {
+      control: 'boolean',
+      description: 'Reveal the action on hover and focus instead of always.',
+      table: { category: 'Appearance', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <HomeIcon />
+                    <span>Overview</span>
+                  </SidebarMenuButton>
+                  <SidebarMenuAction {...args} aria-label="More options">
+                    ⋯
+                  </SidebarMenuAction>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <div className="p-6 text-sm">Hover the row to see its action.</div>
+      </SidebarInset>
+    </SidebarProvider>
+  ),
+};
+
+const providerMeta = { component: SidebarProvider } as const satisfies Partial<
+  Meta<typeof SidebarProvider>
+>;
+const subButtonMeta = { component: SidebarMenuSubButton } as const satisfies Partial<
+  Meta<typeof SidebarMenuSubButton>
+>;
+
+/** `defaultOpen` decides the state a rail starts in; the trigger flips it from there. */
+export const Provider: StoryObj<typeof providerMeta> = {
+  args: { defaultOpen: true },
+  argTypes: {
+    defaultOpen: {
+      control: 'boolean',
+      description: 'Whether the rail starts expanded. Ignored once `open` is set.',
+      table: { category: 'State', defaultValue: { summary: 'true' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <SidebarProvider {...args}>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <HomeIcon />
+                    <span>Overview</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+          <span className="text-sm font-medium">Overview</span>
+        </header>
+      </SidebarInset>
+    </SidebarProvider>
+  ),
+};
+
+/** A sub-row: `isActive` marks the page, `size="sm"` tightens it under its parent. */
+export const SubButton: StoryObj<typeof subButtonMeta> = {
+  args: { isActive: true, size: 'sm', children: 'Getting started' },
+  argTypes: {
+    isActive: {
+      control: 'boolean',
+      description: 'Marks the current page.',
+      table: { category: 'State', defaultValue: { summary: 'false' } },
+    },
+    size: {
+      control: 'inline-radio',
+      options: ['sm', 'md'],
+      description: 'Row height; `sm` fits under an expanded parent row.',
+      table: { category: 'Appearance', defaultValue: { summary: 'md' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>
+                    <FileTextIcon />
+                    <span>Articles</span>
+                  </SidebarMenuButton>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton {...args}>{children}</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton>Publishing</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <div className="p-6 text-sm">The nested rows sit under Articles.</div>
+      </SidebarInset>
+    </SidebarProvider>
+  ),
 };

@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Label } from './label';
 import { Switch } from './switch';
 
@@ -18,8 +20,9 @@ const meta = {
   argTypes: {
     size: {
       control: 'inline-radio',
-      description: 'Track size.',
-      table: { category: 'Appearance' },
+      options: ['sm', 'default'],
+      description: 'Track size. `sm` sits on a dense settings row.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     checked: { control: 'boolean', table: { category: 'State' } },
     defaultChecked: { control: 'boolean', table: { category: 'State' } },
@@ -38,12 +41,40 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
-    <>
-      <div className="flex items-center gap-3">
-        <Switch {...args} id="dark-mode" />
-        <Label htmlFor="dark-mode">Dark mode</Label>
-      </div>
-    </>
+    <div className="flex items-center gap-3">
+      <Switch {...args} id="dark-mode" />
+      <Label htmlFor="dark-mode">Dark mode</Label>
+    </div>
   ),
+  play: async ({ canvas }) => {
+    const control = canvas.getByRole('switch', { name: 'Dark mode' });
+    await expect(control).toBeChecked();
+
+    await userEvent.click(control);
+
+    await expect(control).not.toBeChecked();
+  },
+};
+
+/** Both track sizes on and off, against a 40px row. */
+export const Sizes: Story = {
+  parameters: { controls: { include: ['disabled'] } },
+  render: (args) => (
+    <div className="flex flex-col gap-4">
+      {(['default', 'sm'] as const).map((size) => (
+        <div key={size} className="flex items-center gap-3">
+          <Switch {...args} id={`switch-${size}`} size={size} defaultChecked />
+          <Label htmlFor={`switch-${size}`}>{size}</Label>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: Default.render,
 };

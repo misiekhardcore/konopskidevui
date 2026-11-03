@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { Button } from './button';
-import { ButtonGroup } from './button-group';
+import { ButtonGroup, ButtonGroupSeparator, ButtonGroupText } from './button-group';
 
 describe('ButtonGroup', () => {
-  it('renders a composed instance', () => {
+  it('exposes the group as one control with its orientation', () => {
     const { container } = render(
       <ButtonGroup>
         <Button variant="outline">Day</Button>
@@ -13,28 +13,51 @@ describe('ButtonGroup', () => {
       </ButtonGroup>,
     );
 
-    expect(container.firstElementChild).not.toBeNull();
+    const group = container.querySelector('[data-slot="button-group"]');
+    expect(group).toHaveAttribute('role', 'group');
+    expect(group).toHaveAttribute('data-orientation', 'horizontal');
+    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 
-  it('marks the root with its data-slot hook', () => {
+  it('stacks vertically when asked', () => {
     const { container } = render(
-      <ButtonGroup>
+      <ButtonGroup orientation="vertical">
         <Button variant="outline">Day</Button>
-        <Button variant="outline">Week</Button>
       </ButtonGroup>,
     );
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="button-group"]')).toHaveAttribute(
+      'data-orientation',
+      'vertical',
+    );
   });
 
-  it('keeps every button individually focusable', async () => {
+  it('lets the text half be a link', () => {
     render(
       <ButtonGroup>
-        <Button>Day</Button>
-        <Button>Week</Button>
+        <ButtonGroupText asChild>
+          <a href="https://konopski.dev">konopski.dev</a>
+        </ButtonGroupText>
+        <Button variant="outline">Copy</Button>
       </ButtonGroup>,
     );
 
-    expect(screen.getAllByRole('button')).toHaveLength(2);
+    expect(screen.getByRole('link', { name: 'konopski.dev' })).toHaveAttribute(
+      'href',
+      'https://konopski.dev',
+    );
+  });
+
+  it('draws the separator on the axis the group does not use', () => {
+    const { container } = render(
+      <ButtonGroup>
+        <Button variant="outline">Save</Button>
+        <ButtonGroupSeparator orientation="vertical" />
+        <Button variant="outline">Publish</Button>
+      </ButtonGroup>,
+    );
+
+    const separator = container.querySelector('[data-slot="button-group-separator"]');
+    expect(separator).toHaveAttribute('data-orientation', 'vertical');
   });
 });

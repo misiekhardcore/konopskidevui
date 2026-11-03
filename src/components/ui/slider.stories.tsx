@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Slider } from './slider';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -57,7 +59,18 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => <Slider {...args} aria-label="Font size" />,
+  play: async ({ canvas }) => {
+    const slider = canvas.getByRole('slider', { name: 'Font size' });
+    const before = Number(slider.getAttribute('aria-valuenow'));
+
+    slider.focus();
+    await userEvent.keyboard('{ArrowRight}');
+
+    await expect(Number(slider.getAttribute('aria-valuenow'))).toBeGreaterThan(before);
+  },
 };
 
 export const Range: Story = {

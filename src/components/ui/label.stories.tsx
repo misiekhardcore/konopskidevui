@@ -1,3 +1,4 @@
+import { Checkbox } from './checkbox';
 import { Input } from './input';
 import { Label } from './label';
 
@@ -34,14 +35,40 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
-    <>
-      <div className="flex flex-col gap-2">
-        <Label {...args} htmlFor="title">
-          Article title
-        </Label>
-        <Input id="title" placeholder="On design systems" />
-      </div>
-    </>
+    <div className="flex flex-col gap-2">
+      <Label {...args}>{args.children}</Label>
+      <Input id="title" placeholder="On design systems" />
+    </div>
+  ),
+};
+
+/** A required field says so in the label; the asterisk is decoration, `required` is the contract. */
+export const Required: Story = {
+  args: { children: 'Article title', htmlFor: 'title-required' },
+  render: (args) => (
+    <div className="flex flex-col gap-2">
+      <Label {...args}>
+        {args.children}
+        <span aria-hidden="true" className="text-destructive">
+          *
+        </span>
+      </Label>
+      <Input id="title-required" placeholder="On design systems" required />
+    </div>
+  ),
+};
+
+/** Next to a checkbox the label is clickable, so the whole row toggles. */
+export const WithCheckbox: Story = {
+  parameters: { controls: { include: ['children'] } },
+  args: { children: 'Email me about releases', htmlFor: 'label-checkbox' },
+  render: (args) => (
+    <div className="flex items-center gap-2">
+      <Checkbox id="label-checkbox" />
+      <Label {...args}>{args.children}</Label>
+    </div>
   ),
 };

@@ -59,4 +59,95 @@ describe('Select', () => {
     expect(trigger.className).toContain('focus-ring');
     expect(trigger.className).toContain('border-input');
   });
+
+  it('publishes the trigger size so the row height can follow it', () => {
+    render(
+      <Select defaultValue="newest">
+        <SelectTrigger aria-label="Sort by" size="sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveAttribute('data-size', 'sm');
+  });
+
+  it('shows the placeholder until a value is chosen', async () => {
+    render(
+      <Select>
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue placeholder="Pick a sort order" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    const trigger = screen.getByRole('combobox', { name: 'Sort by' });
+    expect(trigger).toHaveTextContent('Pick a sort order');
+
+    await userEvent.click(trigger);
+    await userEvent.click(await screen.findByRole('option', { name: 'Newest first' }));
+
+    expect(trigger).toHaveTextContent('Newest first');
+  });
+
+  it('defaults the trigger to the full-height row', () => {
+    render(
+      <Select defaultValue="newest">
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveAttribute(
+      'data-size',
+      'default',
+    );
+  });
+
+  it('anchors the popup to the trigger when it is asked to float', async () => {
+    render(
+      <Select defaultValue="newest">
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent position="popper" align="start">
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Sort by' }));
+    const content = await screen.findByRole('listbox');
+
+    expect(content).toHaveAttribute('data-align-trigger', 'false');
+    expect(document.querySelector('[data-slot="select-content"]')).toHaveAttribute(
+      'data-align-trigger',
+      'false',
+    );
+    expect(document.querySelector('[data-slot="select-content"]')?.className).toContain(
+      'translate-y-1',
+    );
+  });
+
+  it('closes the list on Escape without changing the value', async () => {
+    renderSelect();
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Sort by' }));
+    await screen.findByRole('option', { name: 'Oldest first' });
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveTextContent('Newest first');
+  });
 });

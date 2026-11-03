@@ -57,6 +57,32 @@ describe('Slider', () => {
     );
   });
 
+  it('falls back to the 0–100 range when no bounds are given', () => {
+    render(<Slider aria-label="Opacity" />);
+
+    const thumb = screen.getByRole('slider');
+    expect(thumb).toHaveAttribute('aria-valuemin', '0');
+    expect(thumb).toHaveAttribute('aria-valuemax', '100');
+    expect(screen.getAllByRole('slider')).toHaveLength(1);
+  });
+
+  it('names the thumb from the root label when no per-thumb labels are given', () => {
+    render(<Slider value={[40]} aria-label="Font size" />);
+
+    expect(screen.getByRole('slider')).toHaveAccessibleName('Font size');
+  });
+
+  it('keeps a labelledby on the thumb when the caller labels it from outside', () => {
+    render(
+      <>
+        <span id="volume-label">Volume</span>
+        <Slider value={[40]} aria-labelledby="volume-label" />
+      </>,
+    );
+
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-labelledby', 'volume-label');
+  });
+
   it('does not respond while disabled', async () => {
     render(<Slider defaultValue={[40]} disabled aria-label="Font size" />);
 

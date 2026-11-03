@@ -4,21 +4,26 @@ import { describe, expect, it } from 'vitest';
 import { Separator } from './separator';
 
 describe('Separator', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Separator />);
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Separator />);
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('is announced when it is not decorative', async () => {
+  it('is a separator in the accessibility tree by default', () => {
     render(<Separator decorative={false} />);
 
     expect(screen.getByRole('separator')).toBeInTheDocument();
+  });
+
+  it('disappears from the accessibility tree when decorative', () => {
+    render(<Separator decorative />);
+
+    expect(screen.queryByRole('separator')).toBeNull();
+  });
+
+  it('publishes the orientation instead of encoding it in the width', () => {
+    const { container, rerender } = render(<Separator decorative={false} />);
+
+    expect(screen.getByRole('separator')).toHaveAttribute('data-orientation', 'horizontal');
+
+    rerender(<Separator decorative={false} orientation="vertical" />);
+
+    expect(screen.getByRole('separator')).toHaveAttribute('data-orientation', 'vertical');
+    expect(container.querySelector('[data-slot="separator"]')).not.toBeNull();
   });
 });

@@ -36,6 +36,31 @@ describe('highlighter', () => {
     expect(tail.state).toBeTruthy();
   });
 
+  it('ships a grammar for every language it advertises', async () => {
+    const shipped = [
+      'bash',
+      'css',
+      'diff',
+      'html',
+      'javascript',
+      'json',
+      'jsx',
+      'markdown',
+      'python',
+      'sql',
+      'tsx',
+      'typescript',
+      'yaml',
+    ];
+
+    for (const language of shipped) {
+      const lines = await highlightCode('answer = 1', language);
+
+      expect(lines, language).not.toBeNull();
+      expect(lines?.length, language).toBeGreaterThan(0);
+    }
+  });
+
   it('tokenizes ansi line by line', async () => {
     const lines = await highlightCode('one\ntwo', 'ansi');
 

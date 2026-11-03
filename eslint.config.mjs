@@ -60,6 +60,19 @@ export default defineConfig([
   },
 
   {
+    files: ['**/*.stories.tsx'],
+    rules: {
+      // A `*Meta` object names the part a story documents, so the story's args
+      // are typed by that part's props. Storybook reads it as configuration, not
+      // as a story, and the object itself never reaches the render.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: 'Meta$' },
+      ],
+    },
+  },
+
+  {
     files: ['src/**/*.test.{ts,tsx}'],
     extends: [testingLibrary.configs['flat/react']],
     rules: {

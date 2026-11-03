@@ -50,6 +50,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Card {...args} className="w-96">
       <CardHeader>
@@ -125,6 +127,62 @@ export const Interactive: Story = {
       <CardHeader>
         <CardTitle>Interactive card</CardTitle>
         <CardDescription>Hover it to see the border shift.</CardDescription>
+      </CardHeader>
+    </Card>
+  ),
+};
+
+const imageMeta = { component: CardImage } as const satisfies Partial<Meta<typeof CardImage>>;
+const titleMeta = { component: CardTitle } as const satisfies Partial<Meta<typeof CardTitle>>;
+
+/** The aspect box is what reserves the media's space before it loads. */
+export const ImageAspect: StoryObj<typeof imageMeta> = {
+  args: { aspect: 'aspect-video', children: null },
+  argTypes: {
+    children: { control: false, table: { category: 'Content' } },
+    aspect: {
+      control: 'inline-radio',
+      options: ['aspect-video', 'aspect-square', 'aspect-[4/3]', 'aspect-[21/9]'],
+      description:
+        'Any `aspect-*` utility. `children` is required, so an empty frame cannot exist.',
+      table: { category: 'Layout', defaultValue: { summary: 'aspect-video' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <Card className="w-96 overflow-hidden p-0">
+      <CardImage {...args}>
+        <img
+          src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=800&h=450&fit=crop"
+          alt="A desk with a notebook and a laptop"
+          className="h-full w-full object-cover"
+        />
+      </CardImage>
+      <CardHeader>
+        <CardTitle>Reading performance budgets</CardTitle>
+      </CardHeader>
+    </Card>
+  ),
+};
+
+/** `asChild` lets the title be the heading level the page outline needs. */
+export const TitleAsChild: StoryObj<typeof titleMeta> = {
+  args: { asChild: true, children: 'Designing with tokens' },
+  argTypes: {
+    asChild: {
+      control: 'boolean',
+      description: 'Render the child element, e.g. an `<h2>` or a link.',
+      table: { category: 'Composition', defaultValue: { summary: 'false' } },
+    },
+    children: { control: 'text', table: { category: 'Content' } },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ children, ...args }) => (
+    <Card className="w-96">
+      <CardHeader>
+        <CardTitle {...args} asChild>
+          <h3>{children}</h3>
+        </CardTitle>
       </CardHeader>
     </Card>
   ),

@@ -1,37 +1,52 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Toggle } from './toggle';
 
 describe('Toggle', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Toggle aria-label="Toggle bold">B</Toggle>);
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Toggle aria-label="Toggle bold">B</Toggle>);
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of ['default', 'outline'] as const) {
-      const { unmount } = render(<Toggle variant={value}>B</Toggle>);
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
-  });
-
-  it('toggles aria-pressed on click', async () => {
+  it('is a button with aria-pressed, not a checkbox', () => {
     render(<Toggle aria-label="Bold">B</Toggle>);
 
-    const button = screen.getByRole('button', { name: 'Bold' });
-    expect(button).toHaveAttribute('aria-pressed', 'false');
+    const toggle = screen.getByRole('button', { name: 'Bold' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('checkbox')).toBeNull();
+  });
 
-    await userEvent.click(button);
-    expect(button).toHaveAttribute('aria-pressed', 'true');
+  it('flips the pressed state and reports it', async () => {
+    const onPressedChange = vi.fn();
+    render(
+      <Toggle aria-label="Bold" onPressedChange={onPressedChange}>
+        B
+      </Toggle>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Bold' }));
+
+    expect(onPressedChange).toHaveBeenCalledWith(true);
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('starts pressed when asked', () => {
+    render(
+      <Toggle aria-label="Bold" defaultPressed>
+        B
+      </Toggle>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('does not change while disabled', async () => {
+    const onPressedChange = vi.fn();
+    render(
+      <Toggle aria-label="Bold" disabled onPressedChange={onPressedChange}>
+        B
+      </Toggle>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Bold' }));
+
+    expect(onPressedChange).not.toHaveBeenCalled();
   });
 });

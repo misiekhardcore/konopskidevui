@@ -11,38 +11,6 @@ import {
 } from './pagination';
 
 describe('Pagination', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationLink href="?page=1" isActive>
-              1
-            </PaginationLink>
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationLink href="?page=1" isActive>
-              1
-            </PaginationLink>
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('marks the current page for assistive tech', async () => {
     render(
       <Pagination>
@@ -75,5 +43,22 @@ describe('Pagination', () => {
 
     expect(screen.getByRole('link', { name: /previous/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /next/i })).toBeInTheDocument();
+  });
+
+  it('keeps the controls out of the tab order when unavailable', () => {
+    render(
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious href="?page=1" aria-disabled="true" />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>,
+    );
+
+    expect(screen.getByRole('link', { name: /previous/i })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 });

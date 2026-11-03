@@ -1,6 +1,6 @@
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { fn } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from './button';
 import {
@@ -67,6 +67,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Dialog {...args}>
       <DialogTrigger asChild>
@@ -89,11 +91,91 @@ export const Default: Story = {
       </DialogContent>
     </Dialog>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Rename article' }));
+    await expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  },
 };
 
 export const OpenByDefault: Story = {
   args: { defaultOpen: true },
   render: Default.render,
+};
+
+const contentMeta = { component: DialogContent } as const satisfies Partial<
+  Meta<typeof DialogContent>
+>;
+
+/** `variant="bare"` drops the card chrome and the entrance animation. */
+export const ContentVariant: StoryObj<typeof contentMeta> = {
+  args: { variant: 'default', showOverlay: true },
+  argTypes: {
+    variant: {
+      control: 'inline-radio',
+      options: ['default', 'bare'],
+      description:
+        '`default` is the card; `bare` is a full-viewport layer with no chrome, for image viewers and canvases.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
+    },
+    showOverlay: {
+      control: 'boolean',
+      description: 'Render the backdrop. Turning it off makes the dialog non-modal in practice.',
+      table: { category: 'Appearance', defaultValue: { summary: 'true' } },
+    },
+    overlayClassName: {
+      control: 'text',
+      description: 'Reaches the backdrop, e.g. `bg-foreground/50`.',
+      table: { category: 'Styling' },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: ({ variant, showOverlay, overlayClassName }) => (
+    <Dialog defaultOpen>
+      <DialogContent
+        variant={variant}
+        showOverlay={showOverlay}
+        overlayClassName={overlayClassName || undefined}
+        className={variant === 'bare' ? 'flex items-center justify-center' : undefined}
+      >
+        <DialogHeader>
+          <DialogTitle>Delete draft</DialogTitle>
+          <DialogDescription>The draft is gone after this.</DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  ),
+};
+
+const footerMeta = { component: DialogFooter } as const satisfies Partial<
+  Meta<typeof DialogFooter>
+>;
+
+/** `DialogFooter` can carry its own close button, which is the destructive-action layout. */
+export const FooterClose: StoryObj<typeof footerMeta> = {
+  args: { showCloseButton: true },
+  argTypes: {
+    showCloseButton: {
+      control: 'boolean',
+      description: 'Append a `Close` button, for a dialog whose corner close is turned off.',
+      table: { category: 'Composition', defaultValue: { summary: 'false' } },
+    },
+    className: { control: false, table: { category: 'Styling' } },
+  },
+  render: (args) => (
+    <Dialog defaultOpen>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Publish now?</DialogTitle>
+          <DialogDescription>Subscribers get an email immediately.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter {...args} />
+      </DialogContent>
+    </Dialog>
+  ),
 };
 
 export const WithoutCloseButton: Story = {

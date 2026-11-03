@@ -4,44 +4,32 @@ import { describe, expect, it } from 'vitest';
 import { Badge } from './badge';
 
 describe('Badge', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Badge>Published</Badge>);
+  it('is an inline span, so it never breaks the line it annotates', () => {
+    render(<Badge>Published</Badge>);
 
-    expect(container.firstElementChild).not.toBeNull();
+    expect(screen.getByText('Published').tagName).toBe('SPAN');
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Badge>Published</Badge>);
+  it('paints the semantic variant', () => {
+    const { rerender } = render(<Badge>Draft</Badge>);
+    const badge = screen.getByText('Draft');
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
+    expect(badge.className).toContain('bg-primary');
+
+    rerender(<Badge variant="destructive">Failed</Badge>);
+
+    expect(screen.getByText('Failed').className).toContain('text-destructive');
   });
 
-  it('renders every documented variant', () => {
-    for (const value of [
-      'default',
-      'secondary',
-      'destructive',
-      'outline',
-      'ghost',
-      'tag',
-      'link',
-    ] as const) {
-      const { unmount } = render(<Badge variant={value}>Badge</Badge>);
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
-  });
-
-  it('renders as a link when asChild is set', async () => {
+  it('renders the child instead of a span with asChild', () => {
     render(
-      <Badge asChild>
-        <a href="/tags/typescript">TypeScript</a>
+      <Badge asChild variant="tag">
+        <a href="#typescript">TypeScript</a>
       </Badge>,
     );
 
-    expect(screen.getByRole('link', { name: 'TypeScript' })).toHaveAttribute(
-      'href',
-      '/tags/typescript',
-    );
+    const link = screen.getByRole('link', { name: 'TypeScript' });
+    expect(link.tagName).toBe('A');
+    expect(link.className).toContain('rounded-sm');
   });
 });

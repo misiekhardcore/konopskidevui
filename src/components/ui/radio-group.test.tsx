@@ -5,28 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 
 describe('RadioGroup', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <RadioGroup defaultValue="a">
-        <RadioGroupItem value="a" aria-label="Option A" />
-        <RadioGroupItem value="b" aria-label="Option B" />
-      </RadioGroup>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <RadioGroup defaultValue="a">
-        <RadioGroupItem value="a" aria-label="Option A" />
-        <RadioGroupItem value="b" aria-label="Option B" />
-      </RadioGroup>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
   it('moves focus with the arrow keys', async () => {
     render(
       <RadioGroup defaultValue="monthly" aria-label="Billing">

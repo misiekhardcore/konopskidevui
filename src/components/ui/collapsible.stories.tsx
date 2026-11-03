@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Button } from './button';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
 
@@ -41,16 +43,36 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
-    <>
-      <Collapsible {...args} className="w-80" defaultOpen>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline">Toggle details</Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-3 text-sm text-muted-foreground">
-          The build runs on every push and takes about four minutes.
-        </CollapsibleContent>
-      </Collapsible>
-    </>
+    <Collapsible {...args} className="w-80">
+      <CollapsibleTrigger asChild>
+        <Button variant="outline">Toggle details</Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-3 text-sm text-muted-foreground">
+        The build runs on every push and takes about four minutes.
+      </CollapsibleContent>
+    </Collapsible>
   ),
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: 'Toggle details' });
+    await expect(canvas.getByText(/build runs on every push/)).toBeVisible();
+
+    await userEvent.click(trigger);
+
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  },
+};
+
+/** Closed is the default state; the trigger carries `aria-expanded` for both. */
+export const Closed: Story = {
+  args: { defaultOpen: false },
+  render: Default.render,
+};
+
+/** A disabled collapsible keeps its trigger focusable but inert. */
+export const Disabled: Story = {
+  args: { disabled: true },
+  render: Default.render,
 };

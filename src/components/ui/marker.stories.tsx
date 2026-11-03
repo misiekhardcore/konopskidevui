@@ -17,8 +17,10 @@ const meta = {
   },
   argTypes: {
     variant: {
-      control: 'select',
-      table: { category: 'Appearance' },
+      control: 'inline-radio',
+      options: ['default', 'separator', 'border'],
+      description: '`separator` draws a rule before the marker; `border` boxes it.',
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     asChild: { control: 'boolean', table: { category: 'Composition' } },
     className: { control: false, table: { category: 'Styling' } },
@@ -33,17 +35,45 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
-    <>
-      <div className="flex flex-col gap-2 text-sm">
-        <Marker {...args}>
-          <MarkerIcon>•</MarkerIcon>
-          <MarkerContent>System prompt</MarkerContent>
+    <div className="flex flex-col gap-2 text-sm">
+      <Marker {...args}>
+        <MarkerIcon>•</MarkerIcon>
+        <MarkerContent>System prompt</MarkerContent>
+      </Marker>
+      <Marker variant="border">
+        <MarkerContent>Context loaded</MarkerContent>
+      </Marker>
+    </div>
+  ),
+};
+
+/** All three treatments against the same copy. */
+export const Variants: Story = {
+  parameters: { controls: { include: ['asChild'] } },
+  render: (args) => (
+    <div className="flex flex-col gap-2 text-sm">
+      {(['default', 'separator', 'border'] as const).map((variant) => (
+        <Marker key={variant} {...args} variant={variant}>
+          <MarkerContent>{variant}</MarkerContent>
         </Marker>
-        <Marker variant="border">
-          <MarkerContent>Context loaded</MarkerContent>
-        </Marker>
-      </div>
-    </>
+      ))}
+    </div>
+  ),
+};
+
+/** `asChild` makes the marker the interactive element, for a jump to a tool result. */
+export const AsLink: Story = {
+  args: { asChild: true },
+  parameters: { controls: { include: ['variant', 'asChild'] } },
+  render: (args) => (
+    <Marker {...args}>
+      <a href="#tool-result">
+        <MarkerIcon>•</MarkerIcon>
+        <MarkerContent>Tool result</MarkerContent>
+      </a>
+    </Marker>
   ),
 };

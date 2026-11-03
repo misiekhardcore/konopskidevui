@@ -48,6 +48,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const WithError: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   args: { error: 'Enter a valid email address.', defaultValue: 'not-an-email' },
 };
 

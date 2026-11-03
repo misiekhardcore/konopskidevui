@@ -37,6 +37,18 @@ describe('Toaster', () => {
     expect(await screen.findByRole('list')).toHaveAttribute('data-sonner-theme', 'dark');
   });
 
+  it('follows the system preference until a theme is passed', async () => {
+    render(<Toaster />);
+    toast('Theme default');
+
+    await screen.findByText('Theme default');
+    // `system` is the default, and the test media query reports a light page.
+    expect(document.querySelector('[data-sonner-toaster]')).toHaveAttribute(
+      'data-sonner-theme',
+      'light',
+    );
+  });
+
   it('keeps a caller className alongside the group class', async () => {
     render(<Toaster className="custom-toaster" />);
     toast('Class check');

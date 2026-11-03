@@ -1,40 +1,43 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Marker, MarkerIcon, MarkerContent } from './marker';
+import { Marker, MarkerContent, MarkerIcon } from './marker';
 
 describe('Marker', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
+  it('renders its icon and content inline', () => {
+    render(
       <Marker>
         <MarkerIcon>•</MarkerIcon>
-        <MarkerContent>Marker</MarkerContent>
+        <MarkerContent>System prompt</MarkerContent>
       </Marker>,
     );
 
-    expect(container.firstElementChild).not.toBeNull();
+    expect(screen.getByText('System prompt')).toBeInTheDocument();
+    expect(screen.getByText('•')).toBeInTheDocument();
   });
 
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <Marker>
-        <MarkerIcon>•</MarkerIcon>
-        <MarkerContent>Marker</MarkerContent>
+  it('publishes the variant the stylesheet switches on', () => {
+    const { container, rerender } = render(<Marker>Context loaded</Marker>);
+
+    expect(container.firstElementChild).toHaveAttribute('data-variant', 'default');
+
+    rerender(<Marker variant="border">Context loaded</Marker>);
+
+    expect(container.firstElementChild).toHaveAttribute('data-variant', 'border');
+  });
+
+  it('becomes the link itself with asChild', () => {
+    render(
+      <Marker asChild>
+        <a href="#tool-result">
+          <MarkerContent>Tool result</MarkerContent>
+        </a>
       </Marker>,
     );
 
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('renders every documented variant', () => {
-    for (const value of ['default', 'border', 'separator'] as const) {
-      const { unmount } = render(
-        <Marker variant={value}>
-          <MarkerContent>Marker</MarkerContent>
-        </Marker>,
-      );
-      expect(document.body.textContent).toBeTruthy();
-      unmount();
-    }
+    expect(screen.getByRole('link', { name: 'Tool result' })).toHaveAttribute(
+      'href',
+      '#tool-result',
+    );
   });
 });

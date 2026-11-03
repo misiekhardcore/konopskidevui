@@ -239,6 +239,8 @@ function ComboboxChip({
           render={<Button variant="ghost" size="icon-xs" />}
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
+          // The icon is decorative, so the button needs the name to itself.
+          aria-label={typeof children === 'string' ? `Remove ${children}` : 'Remove'}
         >
           <XIcon aria-hidden className="pointer-events-none" />
         </ComboboxPrimitive.ChipRemove>

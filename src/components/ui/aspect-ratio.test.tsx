@@ -4,37 +4,40 @@ import { describe, expect, it } from 'vitest';
 import { AspectRatio } from './aspect-ratio';
 
 describe('AspectRatio', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(
-      <div className="w-80">
-        <AspectRatio ratio={16 / 9}>
-          <div className="h-full w-full bg-muted">16 / 9</div>
-        </AspectRatio>
-      </div>,
-    );
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(
-      <div className="w-80">
-        <AspectRatio ratio={16 / 9}>
-          <div className="h-full w-full bg-muted">16 / 9</div>
-        </AspectRatio>
-      </div>,
-    );
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('leaves the child reachable and sized by the ratio', async () => {
+  it('keeps the child mounted inside a single box', () => {
     render(
       <AspectRatio ratio={1}>
         <div data-testid="child">square</div>
       </AspectRatio>,
     );
 
-    expect(screen.getByTestId('child')).toBeInTheDocument();
+    const child = screen.getByTestId('child');
+    expect(child).toBeInTheDocument();
+    expect(child.parentElement).toHaveAttribute('data-slot', 'aspect-ratio');
+  });
+
+  it('publishes the ratio so the box can reserve its space', () => {
+    const { container } = render(
+      <AspectRatio ratio={16 / 9}>
+        <div>video</div>
+      </AspectRatio>,
+    );
+
+    // The ratio becomes a percentage padding on Radix's wrapper, so the height
+    // follows the width without a media query or a JavaScript measurement.
+    const wrapper = container.querySelector('[data-radix-aspect-ratio-wrapper]') as HTMLElement;
+    expect(wrapper.style.paddingBottom).toBe('56.25%');
+  });
+
+  it('forwards its ref to the element that owns the box', () => {
+    const ref = { current: null as HTMLDivElement | null };
+
+    render(
+      <AspectRatio ratio={4 / 3} ref={ref}>
+        <div>media</div>
+      </AspectRatio>,
+    );
+
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 });

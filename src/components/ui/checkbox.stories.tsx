@@ -1,4 +1,4 @@
-import { fn } from 'storybook/test';
+import { expect, fn, userEvent } from 'storybook/test';
 
 import { Checkbox } from './checkbox';
 import { Label } from './label';
@@ -45,7 +45,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole('checkbox', { name: /monthly digest/i });
+    await expect(box).not.toBeChecked();
+
+    await userEvent.click(box);
+
+    await expect(box).toBeChecked();
+  },
+};
 
 export const Checked: Story = {
   args: { defaultChecked: true },

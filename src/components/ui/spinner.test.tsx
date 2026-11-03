@@ -4,21 +4,21 @@ import { describe, expect, it } from 'vitest';
 import { Spinner } from './spinner';
 
 describe('Spinner', () => {
-  it('renders a composed instance', () => {
-    const { container } = render(<Spinner />);
-
-    expect(container.firstElementChild).not.toBeNull();
-  });
-
-  it('marks the root with its data-slot hook', () => {
-    const { container } = render(<Spinner />);
-
-    expect(container.querySelector('[data-slot]')).not.toBeNull();
-  });
-
-  it('exposes a status role for screen readers', async () => {
+  it('is a status with a name, so it is announced instead of skipped', () => {
     render(<Spinner />);
 
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
+  });
+
+  it('takes a caller label when the context is more specific', () => {
+    render(<Spinner aria-label="Saving" />);
+
+    expect(screen.getByRole('status', { name: 'Saving' })).toBeInTheDocument();
+  });
+
+  it('lets the caller set the size', () => {
+    render(<Spinner className="size-6" />);
+
+    expect(screen.getByRole('status')).toHaveClass('size-6');
   });
 });

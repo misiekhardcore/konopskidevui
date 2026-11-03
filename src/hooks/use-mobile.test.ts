@@ -45,7 +45,7 @@ describe('useIsMobile', () => {
         }) as unknown as MediaQueryList,
     );
 
-    const { result } = renderHook(() => useIsMobile());
+    const { result, unmount } = renderHook(() => useIsMobile());
 
     expect(result.current).toBe(false);
 
@@ -55,6 +55,9 @@ describe('useIsMobile', () => {
     });
 
     expect(result.current).toBe(true);
+
+    unmount();
+    expect(listeners.size).toBe(0);
     window.matchMedia = original;
   });
 });
