@@ -49,3 +49,6 @@ jobs:
         with:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           buildScriptName: build:storybook
+          # The action exits zero on `pull_request` by default, whatever the
+          # config file says. Passing it explicitly is what makes a diff fail.
+          exitZeroOnChanges: false
