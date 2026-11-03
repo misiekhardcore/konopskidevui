@@ -10,6 +10,7 @@ import {
   AttachmentDescription,
   AttachmentMedia,
   AttachmentTitle,
+  AttachmentTrigger,
 } from './attachment';
 
 function renderAttachment(props: React.ComponentProps<typeof Attachment> = {}) {
@@ -83,5 +84,89 @@ describe('Attachment', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Remove notes.txt' }));
 
     expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('publishes every upload state the card is painted from', () => {
+    for (const state of ['idle', 'uploading', 'processing', 'error', 'done'] as const) {
+      const { container, unmount } = render(
+        <Attachment state={state}>
+          <AttachmentContent>
+            <AttachmentTitle>notes.txt</AttachmentTitle>
+          </AttachmentContent>
+        </Attachment>,
+      );
+
+      expect(container.querySelector('[data-slot="attachment"]')).toHaveAttribute(
+        'data-state',
+        state,
+      );
+      unmount();
+    }
+  });
+
+  it('defaults to a finished, horizontally laid out card of the default size', () => {
+    const { container } = renderAttachment();
+    const attachment = container.querySelector('[data-slot="attachment"]');
+
+    expect(attachment).toHaveAttribute('data-state', 'done');
+    expect(attachment).toHaveAttribute('data-size', 'default');
+    expect(attachment).toHaveAttribute('data-orientation', 'horizontal');
+  });
+
+  it('publishes the media variant, so a thumbnail can fill the box', () => {
+    const { container } = render(
+      <Attachment>
+        <AttachmentMedia variant="image">
+          <img alt="preview" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" />
+        </AttachmentMedia>
+      </Attachment>,
+    );
+
+    expect(container.querySelector('[data-slot="attachment-media"]')).toHaveAttribute(
+      'data-variant',
+      'image',
+    );
+  });
+
+  it('paints its action with the variant it is given', () => {
+    render(
+      <AttachmentActions>
+        <AttachmentAction variant="destructive" aria-label="Remove" />
+      </AttachmentActions>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Remove' })).toHaveAttribute(
+      'data-variant',
+      'destructive',
+    );
+    expect(screen.getByRole('button', { name: 'Remove' })).toHaveAttribute('data-size', 'icon-xs');
+  });
+
+  it('makes the whole card clickable without ever submitting a form', () => {
+    const { container, unmount } = render(
+      <Attachment>
+        <AttachmentTrigger aria-label="Open notes.txt" />
+      </Attachment>,
+    );
+
+    expect(container.querySelector('button')).toHaveAttribute('type', 'button');
+    unmount();
+
+    const { container: submitView, unmount: unmountSubmit } = render(
+      <Attachment>
+        <AttachmentTrigger type="submit" aria-label="Upload" />
+      </Attachment>,
+    );
+    expect(submitView.querySelector('button')).toHaveAttribute('type', 'submit');
+    unmountSubmit();
+
+    const { container: linkView } = render(
+      <Attachment>
+        <AttachmentTrigger asChild aria-label="Open notes.txt">
+          <a href="/notes.txt">notes.txt</a>
+        </AttachmentTrigger>
+      </Attachment>,
+    );
+    expect(linkView.querySelector('a')).not.toHaveAttribute('type');
   });
 });

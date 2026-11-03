@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest';
  * in a meta is documentation only, and its parts never get controls.
  */
 
+/** Stories per file, counting the parts that document themselves separately. */
 const MIN_STORIES = 3;
 
 /** Props every wrapper forwards without adding anything of its own. */
@@ -140,6 +141,17 @@ describe('story coverage', () => {
       expect(stories.length, `${storyFile} exports ${stories.join(', ')}`).toBeGreaterThanOrEqual(
         MIN_STORIES,
       );
+    });
+
+    it.each(storyFiles)('%s is snapshotted by Chromatic', (storyFile) => {
+      const stories = fs.readFileSync(path.join(uiDir, storyFile), 'utf8');
+
+      // Snapshots are off project-wide; a component opts back in on exactly one
+      // story, so a rename cannot quietly drop it out of the visual suite.
+      expect(
+        stories.includes('disableSnapshot: false'),
+        `${storyFile} has no story with chromatic.disableSnapshot: false`,
+      ).toBe(true);
     });
   });
 

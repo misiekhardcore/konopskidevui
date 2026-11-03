@@ -1,7 +1,15 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Field, FieldError, FieldLabel, FieldLegend, FieldSeparator } from './field';
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldTitle,
+} from './field';
 import { Input } from './input';
 
 describe('Field', () => {
@@ -101,5 +109,20 @@ describe('Field', () => {
     );
 
     expect(screen.getByText('Account').tagName).toBe('LEGEND');
+  });
+
+  it('stacks a title and a hint beside the control it describes', () => {
+    const { container } = render(
+      <Field orientation="horizontal">
+        <FieldContent>
+          <FieldTitle>Workspace</FieldTitle>
+          <span className="text-sm text-muted-foreground">The team the article belongs to.</span>
+        </FieldContent>
+        <Input id="workspace" />
+      </Field>,
+    );
+
+    expect(container.querySelector('[data-slot="field-content"]')).toHaveTextContent('Workspace');
+    expect(screen.getByText('Workspace')).toHaveAttribute('data-slot', 'field-label');
   });
 });

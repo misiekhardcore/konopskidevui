@@ -83,4 +83,35 @@ describe('Command', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('New article')).toBeInTheDocument();
   });
+
+  it('names the palette by default and keeps the close button out of the way', async () => {
+    render(
+      <CommandDialog open>
+        <Command>
+          <CommandList>
+            <CommandItem>New article</CommandItem>
+          </CommandList>
+        </Command>
+      </CommandDialog>,
+    );
+
+    expect(await screen.findByRole('dialog', { name: 'Command Palette' })).toBeInTheDocument();
+    expect(screen.getByText('Search for a command to run...')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /close/i })).toBeNull();
+  });
+
+  it('offers the close button when the caller asks for it', async () => {
+    render(
+      <CommandDialog open showCloseButton title="Jump to">
+        <Command>
+          <CommandList>
+            <CommandItem>New article</CommandItem>
+          </CommandList>
+        </Command>
+      </CommandDialog>,
+    );
+
+    expect(await screen.findByRole('dialog', { name: 'Jump to' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+  });
 });

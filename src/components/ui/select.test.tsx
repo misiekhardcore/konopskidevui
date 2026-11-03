@@ -96,6 +96,49 @@ describe('Select', () => {
     expect(trigger).toHaveTextContent('Newest first');
   });
 
+  it('defaults the trigger to the full-height row', () => {
+    render(
+      <Select defaultValue="newest">
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Sort by' })).toHaveAttribute(
+      'data-size',
+      'default',
+    );
+  });
+
+  it('anchors the popup to the trigger when it is asked to float', async () => {
+    render(
+      <Select defaultValue="newest">
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent position="popper" align="start">
+          <SelectItem value="newest">Newest first</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Sort by' }));
+    const content = await screen.findByRole('listbox');
+
+    expect(content).toHaveAttribute('data-align-trigger', 'false');
+    expect(document.querySelector('[data-slot="select-content"]')).toHaveAttribute(
+      'data-align-trigger',
+      'false',
+    );
+    expect(document.querySelector('[data-slot="select-content"]')?.className).toContain(
+      'translate-y-1',
+    );
+  });
+
   it('closes the list on Escape without changing the value', async () => {
     renderSelect();
 

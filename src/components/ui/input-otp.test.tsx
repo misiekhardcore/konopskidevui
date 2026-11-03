@@ -55,6 +55,15 @@ describe('InputOTP', () => {
     expect(input).toHaveValue('1234');
   });
 
+  it('draws a blinking caret in the slot the user is typing into', async () => {
+    renderOtp();
+
+    await userEvent.click(screen.getByLabelText('One-time code'));
+
+    const active = document.querySelector('[data-slot="input-otp-slot"][data-active="true"]');
+    expect(active?.querySelector('.animate-caret-blink')).not.toBeNull();
+  });
+
   it('renders the group as a labelled control', () => {
     renderOtp();
 

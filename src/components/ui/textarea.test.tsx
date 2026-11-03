@@ -46,6 +46,20 @@ describe('Textarea', () => {
     expect(field.className).toContain('resize-none');
   });
 
+  it('keeps the aria-invalid the caller set when there is no error message', () => {
+    render(<Textarea aria-invalid placeholder="Notes" />);
+
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('resets to a fixed height while it does not grow with its content', () => {
+    render(<Textarea placeholder="Notes" />);
+
+    const field = screen.getByRole('textbox');
+    expect(field.className).toContain('resize-y');
+    expect(field.style.height).toBe('auto');
+  });
+
   it('forwards a ref to the underlying field', () => {
     const ref = createRef<HTMLTextAreaElement>();
     render(<Textarea ref={ref} placeholder="Notes" />);

@@ -1,7 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from './item';
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemFooter,
+  ItemGroup,
+  ItemHeader,
+  ItemMedia,
+  ItemTitle,
+} from './item';
 
 describe('Item', () => {
   it('is a list item inside a list group', () => {
@@ -61,5 +71,26 @@ describe('Item', () => {
       'data-variant',
       'icon',
     );
+  });
+
+  it('bands a row with a header and a footer, and collects its actions', () => {
+    const { container } = render(
+      <Item>
+        <ItemHeader>Draft</ItemHeader>
+        <ItemContent>
+          <ItemTitle>An article</ItemTitle>
+        </ItemContent>
+        <ItemActions>
+          <button type="button">Publish</button>
+        </ItemActions>
+        <ItemFooter>Updated today</ItemFooter>
+      </Item>,
+    );
+
+    expect(container.querySelector('[data-slot="item-header"]')).toHaveTextContent('Draft');
+    expect(container.querySelector('[data-slot="item-actions"]')).toContainElement(
+      screen.getByRole('button', { name: 'Publish' }),
+    );
+    expect(container.querySelector('[data-slot="item-footer"]')).toHaveTextContent('Updated today');
   });
 });
