@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Button } from './button';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
 
@@ -51,6 +53,14 @@ export const Default: Story = {
       </CollapsibleContent>
     </Collapsible>
   ),
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: 'Toggle details' });
+    await expect(canvas.getByText(/build runs on every push/)).toBeVisible();
+
+    await userEvent.click(trigger);
+
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  },
 };
 
 /** Closed is the default state; the trigger carries `aria-expanded` for both. */

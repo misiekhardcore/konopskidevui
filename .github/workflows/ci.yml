@@ -34,14 +34,14 @@ jobs:
       - name: Typecheck
         run: pnpm tsc
 
-      - name: Unit tests
-        run: pnpm test:coverage
-
       - name: Install the Storybook browser
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Storybook tests (render, play functions, axe)
-        run: pnpm test:stories
+      # Both projects: the jsdom suites and the stories, whose play functions are
+      # the only place real interaction happens. Coverage and thresholds are one
+      # number across the two.
+      - name: Tests and coverage
+        run: pnpm test:coverage
 
       - name: Build the library
         run: pnpm build

@@ -1,3 +1,5 @@
+import { expect, screen, userEvent, waitFor } from 'storybook/test';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +93,14 @@ export const Default: Story = {
       </AlertDialog>
     </>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Delete article' }));
+    await expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  },
 };
 
 /** `sm` narrows the card and stacks the footer buttons into two columns. */

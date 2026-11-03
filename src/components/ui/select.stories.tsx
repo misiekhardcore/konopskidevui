@@ -1,3 +1,5 @@
+import { expect, screen, userEvent } from 'storybook/test';
+
 import { Label } from './label';
 import {
   Select,
@@ -101,6 +103,14 @@ export const Default: Story = {
       </SelectContent>
     </Select>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Sort by' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Oldest first' }));
+
+    await expect(canvas.getByRole('combobox', { name: 'Sort by' })).toHaveTextContent(
+      'Oldest first',
+    );
+  },
 };
 
 export const WithPlaceholder: Story = {

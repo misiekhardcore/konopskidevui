@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Label } from './label';
 import { Switch } from './switch';
 
@@ -45,6 +47,14 @@ export const Default: Story = {
       <Label htmlFor="dark-mode">Dark mode</Label>
     </div>
   ),
+  play: async ({ canvas }) => {
+    const control = canvas.getByRole('switch', { name: 'Dark mode' });
+    await expect(control).toBeChecked();
+
+    await userEvent.click(control);
+
+    await expect(control).not.toBeChecked();
+  },
 };
 
 /** Both track sizes on and off, against a 40px row. */

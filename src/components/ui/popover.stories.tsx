@@ -1,3 +1,5 @@
+import { expect, screen, userEvent } from 'storybook/test';
+
 import { Button } from './button';
 import { Input } from './input';
 import { Label } from './label';
@@ -66,7 +68,7 @@ export const Default: Story = {
       <PopoverTrigger asChild>
         <Button variant="outline">Open filters</Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72">
+      <PopoverContent aria-label="Filters" className="w-72">
         <PopoverHeader>
           <PopoverTitle>Filters</PopoverTitle>
           <PopoverDescription>Narrow the article list.</PopoverDescription>
@@ -78,6 +80,11 @@ export const Default: Story = {
       </PopoverContent>
     </Popover>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Open filters' }));
+
+    await expect(await screen.findByText('Narrow the article list.')).toBeInTheDocument();
+  },
 };
 
 /** Which edge the panel prefers, and how far it sits from the trigger. */

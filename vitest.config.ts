@@ -19,16 +19,19 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       include: ['src/components/ui/**/*.tsx', 'src/lib/**/*.{ts,tsx}', 'src/hooks/**/*.ts'],
       exclude: ['src/**/*.stories.tsx', 'src/**/*.test.tsx'],
-      // A ratchet: the floor is what the suite covers today, so a new component
-      // without tests lowers the number and fails the run. The utilities are
-      // held to a much higher bar than the 63 class-string-heavy components.
+      // A ratchet: the floor sits just under what the suite covers today, so a
+      // new component without tests lowers the number and fails the run. Coverage
+      // spans both projects — the jsdom suites plus the stories and their play
+      // functions — because the interactions only happen in the browser. The
+      // utilities are held to a much higher bar than the class-string-heavy
+      // components.
       thresholds: {
-        lines: 65,
-        functions: 60,
-        statements: 65,
-        branches: 50,
-        'src/hooks/**': { lines: 90, functions: 75, statements: 90, branches: 85 },
-        'src/lib/**': { lines: 70, functions: 50, statements: 70, branches: 90 },
+        lines: 89,
+        functions: 89,
+        statements: 89,
+        branches: 74,
+        'src/hooks/**': { lines: 97, functions: 83, statements: 97, branches: 95 },
+        'src/lib/**': { lines: 75, functions: 55, statements: 74, branches: 90 },
       },
     },
     projects: [

@@ -10,8 +10,9 @@ visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 an
   Jest suite all resolve the package without a transform.
 - **Only what you install loads** — a component built on a heavy library (`recharts`, `shiki`,
   `vaul`, …) asks for it as an optional peer, and is never re-exported from the root barrel.
-- **Documented in Storybook 10** with real controls for every prop, and every story runs as a test
-  in a real browser (render + play function + axe accessibility checks).
+- **Documented in Storybook 10** with real controls for every prop, including the parts of a
+  compound component, and every story runs as a test in a real browser (render + play function + axe
+  accessibility checks).
 - **Tested with Vitest** — behaviour in jsdom, markup and a11y in Chromium.
 
 ## Install
@@ -158,18 +159,41 @@ pnpm build:storybook
 
 Every component has a `*.stories.tsx` with controls for each public prop, grouped by category
 (Appearance / State / Behaviour / Accessibility / Styling), plus the compositions that are easy to
-get wrong.
+get wrong — at least three stories per file.
+
+**Controls belong to one component.** Storybook builds the Controls panel from a story's meta, and a
+`subcomponents` entry in the meta is documentation only: those parts get a props table but never a
+control. So a part that takes a prop of its own (`InputGroupAddon.align`, `ItemMedia.variant`,
+`DialogFooter.showCloseButton`, `SidebarMenuButton.isActive`) documents itself in a story of its own,
+in the same file, with its props as that story's args:
+
+```tsx
+const addonMeta = { component: InputGroupAddon } as const satisfies Partial<
+  Meta<typeof InputGroupAddon>
+>;
+
+export const Addon: StoryObj<typeof addonMeta> = {
+  args: { align: 'inline-start' },
+  argTypes: { align: { control: 'inline-radio', options: [...] } },
+  render: (args) => <InputGroup><InputGroupAddon {...args}>…</InputGroupAddon></InputGroup>,
+};
+```
+
+A part with nothing but forwarded props — `InputGroupText` takes `React.ComponentProps<'span'>` — has
+no control to offer; what it needs is a story that shows it, not a panel. [`src/story-coverage.test.ts`](src/story-coverage.test.ts)
+enforces the whole arrangement: every component module has a stories file, every stories file exports
+at least three stories, and every part with an optional prop of its own has a story rendering it.
 
 ## Tests
 
 ```bash
-pnpm test           # jsdom behaviour tests
+pnpm test           # jsdom behaviour tests, plus the story-coverage guard
 pnpm test:stories   # every story rendered in Chromium, play functions + axe
+pnpm test:coverage  # both projects, with the thresholds below
 pnpm test:package   # packs the tarball and consumes it, both formats + Tailwind
-pnpm test:coverage
 ```
 
-`pnpm test:stories` needs a browser: `pnpm exec playwright install chromium`.
+`pnpm test:stories` and `pnpm test:coverage` need a browser: `pnpm exec playwright install chromium`.
 
 `pnpm test:package` is the check the metadata validators cannot make: it `npm pack`s the package,
 installs it into a scratch consumer with only React and Tailwind, then `import`s and `require`s it,
@@ -181,8 +205,11 @@ stylesheet styles the components with no consumer configuration.
 `moduleNameMapper` per export family (`components/*`, `lib/*`, `hooks/*`) is enough if you need to
 point at the files explicitly.
 
-Coverage thresholds are a ratchet — the floor sits where the suite is today (65 % overall, 90 % for
-hooks, 70 % for lib), so a new component without tests fails the run instead of sliding past.
+Coverage is measured across both projects, so the interactions the play functions exercise count
+towards the same number as the jsdom suites. The thresholds are a ratchet — the floor sits just under
+what the suite reaches today (89 % statements, lines and functions, 74 % branches overall; 97 % for
+hooks and 75 % for lib on lines), so a new component without tests fails the run instead of sliding
+past. Raise them when a change lifts the number; never lower them to get a branch green.
 
 ## Quality gates
 
@@ -215,7 +242,11 @@ pnpm format
 Then write `src/components/ui/<component>.stories.tsx` and `<component>.test.tsx`, export it from
 `src/components/ui/<component>.tsx` and regenerate the barrel with `pnpm barrel`.
 
-Two rules are enforced by tests rather than convention:
+Three rules are enforced by tests rather than convention:
+
+- **Documented?** The stories file needs at least three stories, and every part with a prop of its
+  own needs a story that renders it. `pnpm test` fails on a component that ships without either, so a
+  missing story is a red build rather than a note in review.
 
 - **Client or server?** A module that calls a hook, or wraps a primitive that does not declare its
   own client boundary, needs `'use client'` as its first line; `pnpm test` fails both when it is

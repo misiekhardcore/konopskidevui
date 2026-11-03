@@ -1,3 +1,5 @@
+import { expect, screen, userEvent } from 'storybook/test';
+
 import { Button } from './button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
@@ -57,6 +59,11 @@ export const Default: Story = {
       </Tooltip>
     </TooltipProvider>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.hover(canvas.getByRole('button', { name: 'Copy link' }));
+
+    await expect(await screen.findByRole('tooltip')).toHaveTextContent('Copy link');
+  },
 };
 
 /** The four sides, all open, so the arrow direction is visible at a glance. */

@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -56,6 +58,11 @@ export const Default: Story = {
       </TabsContent>
     </Tabs>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('tab', { name: 'Activity' }));
+
+    await expect(canvas.getByRole('tabpanel')).toHaveTextContent('Commented on');
+  },
 };
 
 const listMeta = { component: TabsList } as const satisfies Partial<Meta<typeof TabsList>>;

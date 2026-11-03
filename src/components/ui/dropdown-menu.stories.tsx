@@ -1,3 +1,5 @@
+import { expect, screen, userEvent } from 'storybook/test';
+
 import { Button } from './button';
 import {
   DropdownMenu,
@@ -66,7 +68,17 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * Radix's modal layer marks the rest of the page `aria-hidden` while a menu is
+ * open, and the trigger inside it keeps its tabindex until focus returns. Radix
+ * restores both as the menu closes, so the open-by-default stories opt out.
+ */
+const openMenuA11y = {
+  a11y: { config: { rules: [{ id: 'aria-hidden-focus', enabled: false }] } },
+};
+
 export const Default: Story = {
+  parameters: openMenuA11y,
   render: (args) => (
     <DropdownMenu {...args}>
       <DropdownMenuTrigger asChild>
@@ -100,15 +112,11 @@ export const Default: Story = {
       </DropdownMenuContent>
     </DropdownMenu>
   ),
-};
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Open menu' }));
 
-/**
- * Radix's modal layer marks the rest of the page `aria-hidden` while a menu is
- * open, and the trigger inside it keeps its tabindex until focus returns. Radix
- * restores both as the menu closes, so the open-by-default stories opt out.
- */
-const openMenuA11y = {
-  a11y: { config: { rules: [{ id: 'aria-hidden-focus', enabled: false }] } },
+    await expect(await screen.findByRole('menuitem', { name: /Profile/ })).toBeInTheDocument();
+  },
 };
 
 const contentMeta = { component: DropdownMenuContent } as const satisfies Partial<

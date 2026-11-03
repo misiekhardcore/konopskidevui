@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Label } from './label';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 
@@ -63,6 +65,11 @@ export const Default: Story = {
       </div>
     </RadioGroup>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByLabelText('Yearly · €90'));
+
+    await expect(canvas.getByLabelText('Yearly · €90')).toBeChecked();
+  },
 };
 
 /** The orientation is the arrow-key axis: horizontal groups move with ← and →. */

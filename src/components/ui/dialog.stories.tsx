@@ -1,6 +1,6 @@
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { fn } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
 
 import { Button } from './button';
 import {
@@ -89,6 +89,14 @@ export const Default: Story = {
       </DialogContent>
     </Dialog>
   ),
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Rename article' }));
+    await expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  },
 };
 
 export const OpenByDefault: Story = {

@@ -98,7 +98,7 @@
     "test": "vitest run --project=unit",
     "test:watch": "vitest --project=unit",
     "test:stories": "vitest run --project=storybook",
-    "test:coverage": "vitest run --project=unit --coverage",
+    "test:coverage": "vitest run --coverage",
     "verify:package": "publint && attw --pack . --profile node16 --exclude-entrypoints ./styles.css ./lib/highlighter ./hooks/use-highlighted-code",
     "verify": "pnpm lint && pnpm tsc && pnpm test && pnpm build && pnpm test:package && pnpm verify:package",
     "style": "node scripts/apply-house-style.mjs && prettier --write \"src/components/ui/**/*.tsx\"",

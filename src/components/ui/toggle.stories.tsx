@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Toggle } from './toggle';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -50,6 +52,13 @@ export const Default: Story = {
       <span className="font-bold">B</span>
     </Toggle>
   ),
+  play: async ({ canvas }) => {
+    const button = canvas.getByRole('button', { name: 'Toggle bold' });
+
+    await userEvent.click(button);
+
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+  },
 };
 
 /** Both variants and all three sizes, pressed and unpressed. */

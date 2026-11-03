@@ -1,3 +1,5 @@
+import { expect, userEvent } from 'storybook/test';
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './accordion';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -64,7 +66,16 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Single: Story = {};
+export const Single: Story = {
+  play: async ({ canvas }) => {
+    const trigger = canvas.getByRole('button', { name: 'How long does shipping take?' });
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.click(trigger);
+
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  },
+};
 
 export const Multiple: Story = {
   parameters: { controls: { include: ['disabled'] } },
