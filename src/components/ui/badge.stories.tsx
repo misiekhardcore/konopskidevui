@@ -32,7 +32,7 @@ const meta = {
   args: {
     variant: 'default',
     asChild: false,
-    children: 'Published',
+    children: 'Published again',
   },
 } satisfies Meta<typeof Badge>;
 
