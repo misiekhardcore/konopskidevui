@@ -50,6 +50,8 @@ const contentMeta = { component: HoverCardContent } as const satisfies Partial<
 >;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <HoverCard {...args}>
       <HoverCardTrigger asChild>

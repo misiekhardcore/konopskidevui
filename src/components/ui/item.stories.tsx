@@ -70,6 +70,8 @@ type Story = StoryObj<typeof meta>;
 const mediaMeta = { component: ItemMedia } as const satisfies Partial<Meta<typeof ItemMedia>>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <>
       <ItemGroup className="w-96">

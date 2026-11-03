@@ -63,6 +63,8 @@ const separatorMeta = { component: FieldSeparator } as const satisfies Partial<
 const errorMeta = { component: FieldError } as const satisfies Partial<Meta<typeof FieldError>>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <FieldSet className="w-80">
       <FieldLegend>Account</FieldLegend>

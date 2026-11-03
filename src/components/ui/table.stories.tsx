@@ -47,6 +47,8 @@ const articles = [
 ];
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Table {...args} className="w-[36rem]">
       <TableCaption>Articles published this quarter.</TableCaption>

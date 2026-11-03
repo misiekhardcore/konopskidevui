@@ -30,6 +30,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <div className="w-80 space-y-3">
       <Skeleton {...args} className="h-40 w-full" />

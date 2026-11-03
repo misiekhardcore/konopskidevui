@@ -53,6 +53,8 @@ const slides = (count: number, basis: string) =>
   ));
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Carousel {...args} className="w-80">
       <CarouselContent>{slides(4, 'basis-1/2')}</CarouselContent>

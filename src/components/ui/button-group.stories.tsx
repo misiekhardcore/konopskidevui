@@ -39,6 +39,8 @@ const separatorMeta = { component: ButtonGroupSeparator } as const satisfies Par
 >;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <ButtonGroup {...args}>
       <Button variant="outline">Day</Button>

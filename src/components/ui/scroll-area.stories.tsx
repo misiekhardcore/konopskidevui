@@ -34,6 +34,8 @@ type Story = StoryObj<typeof meta>;
 const barMeta = { component: ScrollBar } as const satisfies Partial<Meta<typeof ScrollBar>>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <ScrollArea {...args} className="h-56 w-80 rounded-sm border border-border p-4">
       <div className="flex flex-col gap-4">

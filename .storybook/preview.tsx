@@ -89,6 +89,10 @@ const preview: Preview = {
     },
     // Any axe violation fails `pnpm test:stories`.
     a11y: { test: 'error' },
+    // Chromatic snapshots one composition per component, not all of them: the
+    // opt-in is the story that sets `disableSnapshot: false` (the guard in
+    // `src/story-coverage.test.ts` keeps every component to at least one).
+    chromatic: { disableSnapshot: true },
     docs: { toc: true },
     options: {
       storySort: {

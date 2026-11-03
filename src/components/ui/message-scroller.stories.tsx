@@ -47,6 +47,8 @@ const itemMeta = { component: MessageScrollerItem } as const satisfies Partial<
 const items = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <MessageScrollerProvider>
       <MessageScroller {...args} className="h-48 w-80 rounded-sm border border-border">

@@ -78,7 +78,8 @@ const openMenuA11y = {
 };
 
 export const Default: Story = {
-  parameters: openMenuA11y,
+  // The one composition Chromatic snapshots for this component.
+  parameters: { ...openMenuA11y, chromatic: { disableSnapshot: false } },
   render: (args) => (
     <DropdownMenu {...args}>
       <DropdownMenuTrigger asChild>

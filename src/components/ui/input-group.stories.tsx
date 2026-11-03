@@ -56,6 +56,8 @@ const buttonMeta = { component: InputGroupButton } as const satisfies Partial<
 >;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <InputGroup {...args} className="w-80">
       <InputGroupAddon>

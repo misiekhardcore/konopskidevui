@@ -46,6 +46,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const AutoHeight: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   args: { autoHeight: true, rows: 2 },
 };
 

@@ -59,6 +59,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => <Slider {...args} aria-label="Font size" />,
   play: async ({ canvas }) => {
     const slider = canvas.getByRole('slider', { name: 'Font size' });

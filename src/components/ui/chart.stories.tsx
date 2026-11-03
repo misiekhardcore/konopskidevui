@@ -52,6 +52,8 @@ const config = {
 };
 
 export const BarChartExample: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   args: { className: 'h-64 w-[28rem]' },
   render: (args) => (
     <ChartContainer {...args} config={config}>

@@ -67,6 +67,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Single: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   play: async ({ canvas }) => {
     const trigger = canvas.getByRole('button', { name: 'How long does shipping take?' });
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');

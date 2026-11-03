@@ -76,6 +76,8 @@ const openMenuA11y = {
 };
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <>
       <Menubar {...args}>

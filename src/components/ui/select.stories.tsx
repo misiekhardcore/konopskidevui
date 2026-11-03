@@ -83,6 +83,8 @@ const options = (
 );
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Select {...args}>
       <SelectTrigger id="sort" aria-label="Sort by">

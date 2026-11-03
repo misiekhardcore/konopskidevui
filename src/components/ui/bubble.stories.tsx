@@ -44,6 +44,8 @@ const reactionsMeta = { component: BubbleReactions } as const satisfies Partial<
 >;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <BubbleGroup className="w-96">
       <Bubble {...args}>

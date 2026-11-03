@@ -73,6 +73,8 @@ const actionMeta = { component: AttachmentAction } as const satisfies Partial<
 >;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <div className="flex w-96 flex-col gap-3">
       <Attachment {...args}>

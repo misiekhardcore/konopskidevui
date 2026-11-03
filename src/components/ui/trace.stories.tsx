@@ -44,6 +44,8 @@ type Story = StoryObj<typeof meta>;
 const lineMeta = { component: TraceLine } as const satisfies Partial<Meta<typeof TraceLine>>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <>
       <Trace {...args} className="w-96">

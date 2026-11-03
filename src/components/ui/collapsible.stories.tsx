@@ -43,6 +43,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Collapsible {...args} className="w-80">
       <CollapsibleTrigger asChild>

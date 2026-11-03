@@ -88,6 +88,8 @@ const options = (item: string) => (
 );
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Combobox {...args} items={frameworks}>
       <ComboboxInput placeholder="Select a framework" />

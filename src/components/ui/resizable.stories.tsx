@@ -49,6 +49,8 @@ const panels = (
 );
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <ResizablePanelGroup {...args} className="h-40 w-96 rounded-sm border border-border">
       {panels}

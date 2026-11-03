@@ -60,6 +60,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Single: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <ToggleGroup {...args} type="single" defaultValue="center" aria-label="Text alignment">
       <ToggleGroupItem value="left" aria-label="Align left">

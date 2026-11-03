@@ -53,6 +53,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <RadioGroup {...args} className="flex flex-col gap-3" defaultValue="monthly">
       <div className="flex items-center gap-2">

@@ -35,6 +35,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <div className="flex flex-col gap-2">
       <Label {...args}>{args.children}</Label>

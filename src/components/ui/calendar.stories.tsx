@@ -86,6 +86,8 @@ type Story = StoryObj<typeof meta>;
 const september = new Date(2026, 8, 1);
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => <Calendar {...args} defaultMonth={september} className="rounded-sm border" />,
 };
 

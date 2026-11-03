@@ -95,6 +95,8 @@ const menu = (viewport: boolean) => (
 );
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => menu(args.viewport ?? true),
 };
 

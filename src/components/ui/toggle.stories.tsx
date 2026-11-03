@@ -47,6 +47,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <Toggle {...args} aria-label="Toggle bold">
       <span className="font-bold">B</span>

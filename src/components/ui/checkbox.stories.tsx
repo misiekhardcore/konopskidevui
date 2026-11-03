@@ -46,6 +46,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   play: async ({ canvas }) => {
     const box = canvas.getByRole('checkbox', { name: /monthly digest/i });
     await expect(box).not.toBeChecked();

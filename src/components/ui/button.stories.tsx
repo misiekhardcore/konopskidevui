@@ -69,7 +69,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Variants: Story = {
-  parameters: { controls: { include: ['disabled', 'onClick'] } },
+  // The one composition Chromatic snapshots for this component.
+  parameters: {
+    controls: { include: ['disabled', 'onClick'] },
+    chromatic: { disableSnapshot: false },
+  },
   render: (args) => (
     <div className="flex max-w-2xl flex-wrap items-center gap-3">
       {(

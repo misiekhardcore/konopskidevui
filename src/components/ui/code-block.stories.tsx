@@ -68,6 +68,8 @@ const snippet = `export function cn(...inputs: ClassValue[]) {
 }`;
 
 export const Default: Story = {
+  // The one composition Chromatic snapshots for this component.
+  parameters: { chromatic: { disableSnapshot: false } },
   render: (args) => (
     <CodeBlock {...args} className="w-[32rem]">
       <CodeBlockHeader>
