@@ -218,6 +218,12 @@ Conventions that are behaviour, not class strings:
 - **Slider names live on the thumbs**, where focus goes; pass `thumbLabels` for ranges.
 - **`Item` rows are list items** inside `ItemGroup`; with `asChild` the consumer's element keeps its
   own role.
+- **`Pagination` links take the router's element.** `PaginationLink`, `PaginationPrevious` and
+  `PaginationNext` render an `<a>`, and `as` swaps it for `next/link` —
+  `<PaginationLink as={Link} href="/page/2">2</PaginationLink>` — so navigation stays client-side and
+  Next's internal-link rule (`@next/next/no-html-link-for-pages`) has nothing to flag. `asChild`
+  cannot do this job here: the arrows and labels belong to the component, so only the element that
+  wraps them is swappable. The library never imports a router, so `next` stays out of the package.
 - **`CardImage` requires content.** The aspect box exists to frame media, so `children` is required
   rather than every call site guarding an empty frame.
 - **`DialogContent` composes.** `variant="bare"` gives a full-viewport layer with no card chrome and

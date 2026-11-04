@@ -2,7 +2,7 @@ import { cn } from 'cn';
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Button } from './button';
+import { buttonVariants, type Button } from './button';
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
@@ -32,19 +32,31 @@ function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
+  /**
+   * The tag or component the link renders as. Pass your router's link, e.g.
+   * `next/link`, so a page change is a client-side navigation:
+   * `<PaginationLink as={Link} href="/page/2">2</PaginationLink>`. It receives
+   * the anchor props, the button styling and `aria-current`.
+   */
+  as?: React.ElementType;
 } & Pick<React.ComponentProps<typeof Button>, 'size'> &
   React.ComponentProps<'a'>;
 
-function PaginationLink({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) {
+function PaginationLink({
+  as: LinkElement = 'a',
+  className,
+  isActive,
+  size = 'icon',
+  ...props
+}: PaginationLinkProps) {
   return (
-    <Button asChild variant={isActive ? 'outline' : 'ghost'} size={size} className={cn(className)}>
-      <a
-        aria-current={isActive ? 'page' : undefined}
-        data-slot="pagination-link"
-        data-active={isActive}
-        {...props}
-      />
-    </Button>
+    <LinkElement
+      aria-current={isActive ? 'page' : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      className={cn(buttonVariants({ variant: isActive ? 'outline' : 'ghost', size }), className)}
+      {...props}
+    />
   );
 }
 

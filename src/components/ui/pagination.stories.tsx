@@ -9,6 +9,7 @@ import {
 } from './pagination';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type * as React from 'react';
 
 const meta = {
   title: 'Components/Pagination',
@@ -26,7 +27,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Moves through a long result set. Every link is a real URL so the page stays shareable and crawlable.',
+          "Moves through a long result set. Every link is a real URL so the page stays shareable and crawlable; `as` swaps the anchor for your router's link, e.g. `next/link`.",
       },
     },
   },
@@ -95,6 +96,12 @@ export const Link: StoryObj<typeof linkMeta> = {
       table: { category: 'Appearance', defaultValue: { summary: 'icon' } },
     },
     children: { control: 'text', table: { category: 'Content' } },
+    as: {
+      control: false,
+      description:
+        "Tag or component the link renders as. Pass `next/link`'s `Link` to keep navigation client-side.",
+      table: { category: 'Composition', defaultValue: { summary: 'a' } },
+    },
     className: { control: false, table: { category: 'Styling' } },
   },
   render: ({ children, ...args }) => (
@@ -148,6 +155,43 @@ export const NextLabel: StoryObj<typeof nextMeta> = {
       <PaginationContent>
         <PaginationItem>
           <PaginationNext href="?page=3" text={text} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  ),
+};
+
+function RouterLink({ href, children, ...props }: React.ComponentProps<'a'>) {
+  // Stands in for `next/link`: the library only needs a component that forwards
+  // its props and children to an anchor, so no router becomes a dependency.
+  return (
+    <a href={href} data-router-link="" {...props}>
+      {children}
+    </a>
+  );
+}
+
+/** `as` takes the router's link, so every page change is a client-side navigation. */
+export const WithRouterLink: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious as={RouterLink} href="?page=1" />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink as={RouterLink} href="?page=1">
+            1
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink as={RouterLink} href="?page=2" isActive>
+            2
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationNext as={RouterLink} href="?page=3" />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
