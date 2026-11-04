@@ -26,7 +26,7 @@ Peer dependencies: `react@^19`, `react-dom@^19`, `tailwindcss@^4`, `next-themes@
 
 `next-themes` is required because the root barrel carries `ThemeProvider` and `ThemeSwitcher`. It has
 to be a peer rather than a bundled dependency: the app's copy and the components' copy must be one
-instance, or the switcher would write a store nothing else reads.
+instance, or the switcher would write a store nothing else reads. `Toaster` does not use it.
 
 Some components are built on a heavy library. Those are **optional peers**: they are not installed
 with the package, and you add the one a component needs — the manual half of what `shadcn add` does
@@ -73,8 +73,11 @@ registers the package's own modules with `@source` — the path is relative to t
 drift from your install. Before that existed, a wrong consumer-side path failed silently: every
 component rendered unstyled with no error in the build or the console.
 
-Dark mode is the `.dark` class on any ancestor. The `--font-*` variables come from the app
-(konopskidev sets them with `next/font`); every style has a sensible fallback.
+Dark mode is the `.dark` class on `<html>`, which is where `ThemeProvider` writes it. A `.dark` on a
+descendant (including `<body>`) still re-themes the components inside it, because the tokens
+cascade, but `<html>` keeps `color-scheme: light`: the root canvas and the scrollbars stay light.
+The `--font-*` variables come from the app (konopskidev sets them with `next/font`); every style has
+a sensible fallback.
 
 ## Theming
 
@@ -108,11 +111,17 @@ import { ThemeSwitcher } from '@konopskidev/ui';
 <ThemeSwitcher />;
 ```
 
-It brings its own tooltip provider, so it renders anywhere below `ThemeProvider`, and `labels`
-translates the three names for an app that is not in English. `Toaster` reads the same store, so a
-theme change flips toasts with the page; its `theme` prop remains for pinning one surface. Anything
-else reads or sets the theme through the re-exported hook, so a consumer never pairs this package
-with a second `next-themes` import:
+It brings its own tooltip provider, so it renders anywhere below `ThemeProvider`. `labels` translates
+the three names for an app that is not in English, `showLabels` puts them on the surface for a touch
+target or a drawer row, and `fallbackTheme` keeps an option pressed until the provider reports one
+(set it to the provider's `defaultTheme` when that is not `system`). The group defaults to the 40px
+house control height; pass `size="sm"` for a compact header.
+
+`Toaster` follows the same `.dark` class on `<html>`, not the provider, so a theme change flips
+toasts with no prop and no mount order to get wrong. Its `theme` prop is an opt-out: it gives that
+one toaster sonner's own palette. `richColors` also keeps sonner's tinted palette and does not follow
+the house tokens. Anything else reads or sets the theme through the re-exported hook, so a consumer
+never pairs this package with a second `next-themes` import:
 
 ```tsx
 import { useTheme } from '@konopskidev/ui';
@@ -170,8 +179,8 @@ unmarked on purpose:
   the same reason. Because the directive is file-level, marking `button.tsx` would also make
   `buttonVariants` a client reference, and `buttonVariants()` from a server component would throw.
 - **Thin wrappers over a dependency that declares the boundary itself** — `cmdk`, `next-themes`,
-  `react-resizable-panels`, `@shadcn/react`. The client graph already starts inside the dependency,
-  so marking the wrapper only moves its own few lines into the client bundle.
+  `react-resizable-panels`, `@shadcn/react`, `sonner`. The client graph already starts inside the
+  dependency, so marking the wrapper only moves its own few lines into the client bundle.
 
 A test enforces both directions and re-checks that every package in the second group still ships the
 directive, so a new component cannot silently regress the rule:
@@ -191,10 +200,16 @@ is the single place that says how:
 | `rounded-xl`, `rounded-lg`, `rounded-md` | `rounded-sm`                      |
 | `rounded-t-xl`, `rounded-l-lg`, …        | `rounded-t-sm`, `rounded-l-sm`, … |
 | `ring-1 ring-foreground/10` borders      | `border border-input`             |
-| `h-8` controls                           | `h-10` controls                   |
+| `h-8` / `h-7` controls                   | `h-10` / `h-8` controls           |
 | `rounded-[2px]`, `rounded-[4px]`         | `rounded-sm`                      |
 
 It is idempotent — run `pnpm style` after pulling new registry components in, then `pnpm format`.
+
+Control heights stay hand-written because not every `h-8` is a control. The scale is 24 / 32 / 40 /
+48: single-line controls default to 40px and drop to 32px at `sm`; `Button` exposes all four as `xs`
+/ `sm` / `default` / `lg` (and square `icon-*` sizes). `Textarea`, the sidebar rows, questionnaire
+options and calendar cells are deliberately outside it — they are multi-line, navigation or touch
+targets, not form controls.
 
 Conventions that are behaviour, not class strings:
 
@@ -211,9 +226,10 @@ Conventions that are behaviour, not class strings:
   default ghost button would be unreadable. `DialogContentPrimitive` is exported for layouts the
   props cannot express.
 - **Theme state is next-themes state.** `ThemeSwitcher` takes no `value`/`onValueChange` of its own:
-  it reads and writes the nearest provider, which is how the header control, `Toaster` and any
-  `useTheme()` call stay on one theme. One option is always pressed, so re-clicking the current one
-  cannot clear the group.
+  it reads and writes the nearest provider, which is how the header control and any `useTheme()`
+  call stay on one theme; `Toaster` follows the `.dark` class that provider writes. One option is
+  always pressed — `fallbackTheme` covers the frame before the provider reports — so re-clicking the
+  current one cannot clear the group.
 
 ## Storybook
 

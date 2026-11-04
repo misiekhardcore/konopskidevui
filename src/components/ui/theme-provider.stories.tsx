@@ -25,7 +25,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '`next-themes` with the konopskidev defaults: `.dark` on `<html>`, `system` on first run, and transitions off while the class flips. Everything else is forwarded, so the storage key, the allowed themes and a forced theme stay available. Mount it once near the app root — `ThemeSwitcher` and `Toaster` both read the store it creates. The app still needs `suppressHydrationWarning` on `<html>`, because the inline script has already set the class by the time React hydrates.',
+          '`next-themes` with the konopskidev defaults: `.dark` on `<html>`, `system` on first run, and transitions off while the class flips. Everything else is forwarded, so the storage key, the allowed themes and a forced theme stay available. Mount it once near the app root — `ThemeSwitcher` reads and writes the store it creates, and `Toaster` follows the `.dark` class it writes. The app still needs `suppressHydrationWarning` on `<html>`, because the inline script has already set the class by the time React hydrates.',
       },
     },
   },

@@ -25,6 +25,17 @@ interface ThemeSwitcherProps extends Omit<
    * the ones it needs.
    */
   labels?: Partial<Record<ThemeValue, string>>;
+  /**
+   * Theme shown as pressed until the provider reports one. Match it to the
+   * `ThemeProvider`'s `defaultTheme` when that is not `system`, so the control
+   * does not change its pressed option on hydration.
+   */
+  fallbackTheme?: ThemeValue;
+  /**
+   * Render each option's label next to its icon instead of relying on the
+   * tooltip, for a touch target or a drawer row.
+   */
+  showLabels?: boolean;
 }
 
 /**
@@ -32,17 +43,20 @@ interface ThemeSwitcherProps extends Omit<
  * toggle group.
  *
  * The value is not a prop — the component reads and writes the nearest
- * next-themes provider, so a theme chosen here is the same theme `Toaster` and
- * every `useTheme()` call see. Mount `ThemeProvider` once near the app root and
- * render this anywhere below it.
+ * next-themes provider, so a theme chosen here is the same one every
+ * `useTheme()` call sees and the `.dark` class it writes is what `Toaster`
+ * follows. Mount `ThemeProvider` once near the app root and render this
+ * anywhere below it.
  *
  * The group carries its own tooltip provider, so it does not depend on the app
  * mounting one for its labels.
  */
 function ThemeSwitcher({
   variant = 'outline',
-  size = 'sm',
+  size = 'default',
   labels,
+  fallbackTheme = 'system',
+  showLabels = false,
   className,
   'aria-label': ariaLabel = 'Color theme',
   ...props
@@ -57,7 +71,7 @@ function ThemeSwitcher({
         variant={variant}
         size={size}
         spacing={0}
-        value={theme}
+        value={theme ?? fallbackTheme}
         // A single ToggleGroup reports `''` when the pressed item is clicked
         // again. Ignoring that empty value keeps one theme always pressed
         // instead of letting the control render in no state at all.
@@ -65,20 +79,21 @@ function ThemeSwitcher({
         className={className}
         {...props}
       >
-        {THEME_OPTIONS.map(({ value, label, Icon }) => (
-          <Tooltip key={value}>
-            <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value={value}
-                aria-label={labels?.[value] ?? label}
-                suppressHydrationWarning
-              >
-                <Icon aria-hidden />
-              </ToggleGroupItem>
-            </TooltipTrigger>
-            <TooltipContent>{labels?.[value] ?? label}</TooltipContent>
-          </Tooltip>
-        ))}
+        {THEME_OPTIONS.map(({ value, label, Icon }) => {
+          const name = labels?.[value] ?? label;
+
+          return (
+            <Tooltip key={value}>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem value={value} aria-label={name} suppressHydrationWarning>
+                  <Icon aria-hidden />
+                  {showLabels ? <span>{name}</span> : null}
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        })}
       </ToggleGroup>
     </TooltipProvider>
   );

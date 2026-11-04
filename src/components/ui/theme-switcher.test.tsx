@@ -65,11 +65,40 @@ describe('ThemeSwitcher', () => {
     expect(screen.getByRole('radio', { name: 'Light' })).toBeInTheDocument();
   });
 
-  it('renders without a provider, leaving every option unpressed', () => {
+  it('presses the fallback theme when there is no provider', () => {
     render(<ThemeSwitcher />);
 
     expect(screen.getAllByRole('radio')).toHaveLength(3);
+    expect(screen.getByRole('radio', { name: 'System' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('accepts a fallback theme that matches a non-system provider default', () => {
+    render(<ThemeSwitcher fallbackTheme="dark" />);
+
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('radio', { name: 'System' })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('shows the visible labels on request', () => {
+    renderSwitcher({ showLabels: true });
+
+    expect(screen.getByRole('radio', { name: 'Light' })).toHaveTextContent('Light');
+    expect(screen.getByRole('radio', { name: 'System' })).toHaveTextContent('System');
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveTextContent('Dark');
+  });
+
+  it('defaults to the house control height and can be made compact', () => {
+    const { rerender } = renderSwitcher();
+
+    for (const item of screen.getAllByRole('radio')) expect(item).toHaveClass('h-10');
+
+    rerender(
+      <ThemeProvider defaultTheme="system">
+        <ThemeSwitcher size="sm" />
+      </ThemeProvider>,
+    );
+
+    for (const item of screen.getAllByRole('radio')) expect(item).toHaveClass('h-8');
   });
 
   it('passes the group size and variant through', () => {

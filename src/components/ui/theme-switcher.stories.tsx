@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'The three-state theme control: Light, System and Dark as one segmented toggle group. It reads and writes the nearest next-themes provider instead of taking a value, so the choice is the same one `Toaster` and every `useTheme()` call see. Mount `ThemeProvider` once near the app root; the group brings its own tooltip provider.',
+          'The three-state theme control: Light, System and Dark as one segmented toggle group. It reads and writes the nearest next-themes provider instead of taking a value, so the choice is the same one every `useTheme()` call sees and the `.dark` class it writes is what `Toaster` follows. Mount `ThemeProvider` once near the app root; the group brings its own tooltip provider.',
       },
     },
   },
@@ -27,13 +27,25 @@ const meta = {
       control: 'inline-radio',
       options: ['sm', 'default', 'lg'],
       description: 'Height of every item in the group.',
-      table: { category: 'Appearance', defaultValue: { summary: 'sm' } },
+      table: { category: 'Appearance', defaultValue: { summary: 'default' } },
     },
     labels: {
       control: 'object',
       description:
         'Names for the tooltip and the accessible label, per option. Omitted keys keep the English default.',
       table: { category: 'Content' },
+    },
+    fallbackTheme: {
+      control: 'inline-radio',
+      options: ['light', 'system', 'dark'],
+      description:
+        'Pressed option until the provider reports a theme. Match it to `ThemeProvider` when that is not `system`.',
+      table: { category: 'State', defaultValue: { summary: 'system' } },
+    },
+    showLabels: {
+      control: 'boolean',
+      description: 'Show each option’s name next to its icon, for touch and drawer rows.',
+      table: { category: 'Content', defaultValue: { summary: 'false' } },
     },
     disabled: { control: 'boolean', table: { category: 'State' } },
     'aria-label': {
@@ -45,7 +57,9 @@ const meta = {
   },
   args: {
     variant: 'outline',
-    size: 'sm',
+    size: 'default',
+    fallbackTheme: 'system',
+    showLabels: false,
     disabled: false,
   },
 } satisfies Meta<typeof ThemeSwitcher>;
@@ -66,7 +80,7 @@ export const DarkSelected: Story = {
   render: Default.render,
 };
 
-/** `labels` translates the tooltip and the accessible name together. */
+/** `labels` translates the tooltip, the accessible name and the visible text together. */
 export const CustomLabels: Story = {
   args: { labels: { light: 'Jasny', system: 'Systemowy', dark: 'Ciemny' } },
   render: (args) => <ThemeSwitcher {...args} aria-label="Motyw" />,
@@ -75,6 +89,17 @@ export const CustomLabels: Story = {
 export const Disabled: Story = {
   args: { disabled: true },
   render: Default.render,
+};
+
+/** `showLabels` puts the names on the surface, so touch does not need a tooltip. */
+export const Labelled: Story = {
+  args: { showLabels: true },
+  render: (args) => (
+    <div className="flex w-fit flex-col gap-2">
+      <span className="eyebrow">Theme</span>
+      <ThemeSwitcher {...args} />
+    </div>
+  ),
 };
 
 /** Clicking a pressed option keeps it pressed instead of clearing the group. */

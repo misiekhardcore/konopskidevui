@@ -59,6 +59,25 @@ describe('NativeSelect', () => {
     expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveAttribute('data-size', 'sm');
   });
 
+  it('uses the house control height, with a compact size', () => {
+    const { rerender } = render(
+      <NativeSelect aria-label="Sort">
+        <NativeSelectOption value="a">A</NativeSelectOption>
+      </NativeSelect>,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveClass('h-10');
+
+    rerender(
+      <NativeSelect aria-label="Sort" size="sm">
+        <NativeSelectOption value="a">A</NativeSelectOption>
+      </NativeSelect>,
+    );
+
+    // The control keeps the base height and the `data-size` variant swaps it.
+    expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveClass('data-[size=sm]:h-8');
+  });
+
   it('stays unusable when disabled', async () => {
     renderSelect({ disabled: true });
 

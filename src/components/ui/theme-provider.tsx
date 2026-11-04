@@ -9,7 +9,8 @@ import type { ComponentProps } from 'react';
  *
  * Every other prop is forwarded to `next-themes`, which owns the storage key,
  * the allowed theme list and the flash-of-wrong-theme script. Mount it once near
- * the app root; `<ThemeSwitcher />` and `Toaster` both read the store it creates.
+ * the app root; `<ThemeSwitcher />` reads and writes the store it creates, and
+ * `Toaster` follows the `.dark` class it writes.
  *
  * The app still owns one line `next-themes` cannot provide from inside a
  * component: `suppressHydrationWarning` on the `<html>` element, because the
