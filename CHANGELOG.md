@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.5.0] - 2026-11-04
+
+### Features
+
+- **ui:** Skin sonner from page tokens and normalise control heights (#12)
+
 ## [0.4.0] - 2026-11-03
+
+### Chores
+
+- Release v0.4.0
+
 
 ### Features
 
