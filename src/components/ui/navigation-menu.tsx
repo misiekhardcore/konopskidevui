@@ -57,7 +57,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  'group/navigation-menu-trigger inline-flex h-9 w-max items-center justify-center rounded-sm px-2.5 py-1.5 text-sm font-medium focus-ring transition-all outline-none hover:bg-muted focus:bg-muted focus-visible:outline-1 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-popup-open:bg-muted/50 data-popup-open:hover:bg-muted data-open:bg-muted/50 data-open:hover:bg-muted data-open:focus:bg-muted',
+  'group/navigation-menu-trigger inline-flex h-10 w-max items-center justify-center rounded-sm px-2.5 py-1.5 text-sm font-medium focus-ring transition-all outline-none hover:bg-muted focus:bg-muted focus-visible:outline-1 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-popup-open:bg-muted/50 data-popup-open:hover:bg-muted data-open:bg-muted/50 data-open:hover:bg-muted data-open:focus:bg-muted',
 );
 
 function NavigationMenuTrigger({

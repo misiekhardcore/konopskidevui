@@ -12,8 +12,9 @@
  *    layer would make the override lose against `@theme inline` utilities.
  * 2. Tokens are referenced, never redefined, by `theme.css`. A colour is
  *    declared exactly once, here.
- * 3. Dark mode is the `.dark` class on an ancestor (usually `<html>`), set by
- *    the consuming app.
+ * 3. Dark mode is the `.dark` class on `<html>`, set by the consuming app. A
+ *    `.dark` on a descendant still themes that subtree, but the root
+ *    `color-scheme` below only changes when the class is on the root element.
  */
 
 :root {

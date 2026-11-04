@@ -19,7 +19,7 @@ const meta = {
     docs: {
       description: {
         component: [
-          'One theme store for the whole library. `next-themes` holds it, `ThemeProvider` gives it the konopskidev defaults and writes `.dark` onto `<html>`, and `ThemeSwitcher` changes it. `Toaster` and any `useTheme()` call read the same value, so a page never ends up half dark.',
+          'One theme store for the whole library. `next-themes` holds it, `ThemeProvider` gives it the konopskidev defaults and writes `.dark` onto `<html>`, and `ThemeSwitcher` changes it. `Toaster` follows that `.dark` class and any `useTheme()` call reads the store, so a page never ends up half dark.',
           '',
           '```tsx',
           "import { ThemeProvider, ThemeSwitcher } from '@konopskidev/ui';",
@@ -56,7 +56,7 @@ export const Setup: Story = {
             A genetic algorithm evolving the shortest route through 24 points
           </p>
         </div>
-        <ThemeSwitcher />
+        <ThemeSwitcher size="sm" />
       </div>
       <div className="space-y-2 p-4">
         <p className="text-sm text-foreground">

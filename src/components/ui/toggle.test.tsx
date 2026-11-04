@@ -37,6 +37,20 @@ describe('Toggle', () => {
     expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'true');
   });
 
+  it.each([
+    ['sm', 'h-8'],
+    ['default', 'h-10'],
+    ['lg', 'h-12'],
+  ] as const)('renders the %s size on the house scale', (size, expectedClass) => {
+    render(
+      <Toggle aria-label="Bold" size={size}>
+        B
+      </Toggle>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(expectedClass);
+  });
+
   it('does not change while disabled', async () => {
     const onPressedChange = vi.fn();
     render(

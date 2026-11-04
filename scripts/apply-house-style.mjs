@@ -56,7 +56,12 @@ const RULES = [
   // 6. Controls are 16px, not responsive 16→14px.
   { find: /\btext-base md:text-sm\b/g, replace: 'text-sm' },
 
-  // 7. House rule: buttons are clickable, disabled controls are not.
+  // 7. Heights stay hand-written: a blanket h-8 → h-10 rule would also hit
+  //    SidebarMenuButton and the calendar grid. The scale is 24 / 32 / 40 / 48:
+  //    single-line controls default to h-10 (h-8 at `sm`), Button is
+  //    h-6 / h-8 / h-10 / h-12, and multi-line or grid cells keep their own.
+
+  // 8. House rule: buttons are clickable, disabled controls are not.
   {
     find: /disabled:pointer-events-none disabled:opacity-50/g,
     replace: 'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',

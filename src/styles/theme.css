@@ -9,7 +9,8 @@
  */
 
 /* Dark mode is the `.dark` class on an ancestor; `&:is(.dark *)` is the only
-   form that actually matches every element inside it. */
+   form that actually matches every element inside it. The root `color-scheme`
+   still only follows `<html>` — see `tokens.css`. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 
 import { Button } from './button';
 import { Toaster, toast } from './sonner';
-import { ThemeProvider } from './theme-provider';
 
 // Sonner renders its list element only once at least one toast is queued.
 describe('Toaster', () => {
@@ -30,23 +29,28 @@ describe('Toaster', () => {
     expect(screen.getByRole('region', { name: /notifications/i })).toBeInTheDocument();
   });
 
-  it('renders the requested theme on the toaster', async () => {
-    render(<Toaster theme="dark" />);
-    toast('Theme check');
+  it('follows the page tokens by default', async () => {
+    render(<Toaster />);
+    toast('Page theme');
 
-    expect(await screen.findByRole('list')).toHaveAttribute('data-sonner-theme', 'dark');
+    const list = await screen.findByRole('list');
+
+    expect(list).toHaveClass('toaster-page');
+    expect(list.style.getPropertyValue('--normal-bg')).toBe('var(--popover)');
+    expect(list.style.getPropertyValue('--normal-text')).toBe('var(--popover-foreground)');
+    expect(list.style.getPropertyValue('--normal-border')).toBe('var(--border)');
+    expect(list.style.getPropertyValue('--gray11')).toBe('var(--muted-foreground)');
   });
 
-  it('follows the system preference until a theme is passed', async () => {
-    render(<Toaster />);
-    toast('Theme default');
+  it('opts out of the page skin when a theme is passed', async () => {
+    render(<Toaster theme="dark" />);
+    toast('Native palette');
 
-    await screen.findByText('Theme default');
-    // `system` is the default, and the test media query reports a light page.
-    expect(document.querySelector('[data-sonner-toaster]')).toHaveAttribute(
-      'data-sonner-theme',
-      'light',
-    );
+    const list = await screen.findByRole('list');
+
+    expect(list).not.toHaveClass('toaster-page');
+    expect(list).toHaveAttribute('data-sonner-theme', 'dark');
+    expect(list.style.getPropertyValue('--normal-bg')).toBe('');
   });
 
   it('keeps a caller className alongside the group class', async () => {
@@ -57,20 +61,5 @@ describe('Toaster', () => {
 
     expect(list.className).toContain('toaster');
     expect(list.className).toContain('custom-toaster');
-  });
-
-  it('follows the nearest theme provider', async () => {
-    render(
-      <ThemeProvider defaultTheme="dark">
-        <Toaster />
-      </ThemeProvider>,
-    );
-    toast('Provider theme');
-
-    await screen.findByText('Provider theme');
-    expect(document.querySelector('[data-sonner-toaster]')).toHaveAttribute(
-      'data-sonner-theme',
-      'dark',
-    );
   });
 });

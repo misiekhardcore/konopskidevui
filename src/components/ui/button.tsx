@@ -9,8 +9,8 @@ import * as React from 'react';
  * The variant and size names are a superset of shadcn/ui's: everything upstream
  * accepts still works, and the site's extras (`primary`, `ghost-primary`,
  * `ghost-destructive`, the `icon-*` sizes) sit alongside them. Sizing is
- * padding-based rather than fixed-height, so a button lines up with the 40px
- * `Input` by using the default size.
+ * the house control scale — 24/32/40/48px — so the default size lines up with
+ * the 40px `Input`.
  */
 const buttonVariants = cva(
   'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm border border-transparent font-sans text-sm font-medium whitespace-nowrap focus-ring transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4',
@@ -28,14 +28,14 @@ const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'px-4 py-2.5',
-        xs: 'gap-1 px-2 py-1 text-xs [&_svg:not([class*=size-])]:size-3',
-        sm: 'px-3 py-1.5 text-sm',
-        lg: 'px-6 py-3',
-        'icon-xs': 'p-1.5 [&_svg:not([class*=size-])]:size-3',
-        'icon-sm': 'p-2',
-        icon: 'p-2.5',
-        'icon-lg': 'p-3',
+        default: 'h-10 px-4',
+        xs: 'h-6 gap-1 px-2 text-xs [&_svg:not([class*=size-])]:size-3',
+        sm: 'h-8 px-3 text-sm',
+        lg: 'h-12 px-6',
+        'icon-xs': 'size-6 [&_svg:not([class*=size-])]:size-3',
+        'icon-sm': 'size-8',
+        icon: 'size-10',
+        'icon-lg': 'size-12',
       },
     },
     defaultVariants: {

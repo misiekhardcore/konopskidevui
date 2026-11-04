@@ -43,13 +43,13 @@ describe('Button', () => {
   });
 
   it.each([
-    ['xs', 'px-2'],
-    ['sm', 'px-3'],
-    ['default', 'px-4'],
-    ['lg', 'px-6'],
-    ['icon', 'p-2.5'],
-    ['icon-lg', 'p-3'],
-  ] as const)('renders the %s size', (size, expectedClass) => {
+    ['xs', 'h-6'],
+    ['sm', 'h-8'],
+    ['default', 'h-10'],
+    ['lg', 'h-12'],
+    ['icon', 'size-10'],
+    ['icon-lg', 'size-12'],
+  ] as const)('renders the %s size on the house scale', (size, expectedClass) => {
     render(<Button size={size}>Sized</Button>);
 
     expect(screen.getByRole('button').className).toContain(expectedClass);
@@ -76,6 +76,14 @@ describe('Button', () => {
     // tailwind-merge semantics: the caller's padding wins.
     expect(button.className).toContain('px-10');
     expect(button.className).not.toContain('px-4');
+  });
+
+  it('lets a caller override the fixed height', () => {
+    render(<Button className="h-8">Compact</Button>);
+    const button = screen.getByRole('button');
+
+    expect(button.className).toContain('h-8');
+    expect(button.className).not.toContain('h-10');
   });
 
   it('is disabled when asked, and cannot be clicked', async () => {

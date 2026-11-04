@@ -1,0 +1,48 @@
+/*
+ * sonner skin
+ * ===========
+ *
+ * sonner paints its palette from a `theme` prop: the `data-sonner-theme`
+ * attribute selects values for a handful of custom properties, and five rules
+ * bypass those properties with a hard-coded colour. The component sets the
+ * surface properties inline (sonner spreads its own style first, so inline
+ * wins) and this file replaces the hard-coded rules, so the toast follows the
+ * page's tokens and `.dark` with no prop at all.
+ *
+ * Scoped to `.toaster-page`, which the component adds only when it was not
+ * given a `theme`; passing one is an explicit opt-out. The selectors are more
+ * specific than sonner's because sonner injects its stylesheet at runtime,
+ * after this one, so an equal-specificity rule would lose.
+ */
+
+[data-sonner-toaster].toaster-page
+  [data-sonner-toast][data-styled='true']:not([data-rich-colors='true'])
+  [data-description] {
+  color: var(--muted-foreground);
+}
+
+[data-sonner-toaster].toaster-page [data-sonner-toast][data-styled='true'] [data-cancel] {
+  background: color-mix(in oklab, currentColor 8%, transparent);
+}
+
+[data-sonner-toaster].toaster-page
+  [data-sonner-toast][data-styled='true']:hover
+  [data-close-button]:hover {
+  background: var(--accent);
+  border-color: var(--border);
+}
+
+/*
+ * sonner's focus shadows are black at 20–40%, which is invisible on the dark
+ * surface. Use the house ring on the toast and on both of its buttons.
+ */
+[data-sonner-toaster].toaster-page [data-sonner-toast]:focus-visible,
+[data-sonner-toaster].toaster-page [data-sonner-toast] [data-close-button]:focus-visible {
+  box-shadow:
+    0 4px 12px rgb(0 0 0 / 0.1),
+    0 0 0 2px var(--ring);
+}
+
+[data-sonner-toaster].toaster-page [data-sonner-toast] [data-button]:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
