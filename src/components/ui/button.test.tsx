@@ -135,7 +135,7 @@ describe('Button', () => {
   });
 
   it('exposes a variants helper that can be composed onto other elements', () => {
-    expect(buttonVariants({ variant: 'outline', size: 'lg' })).toContain('border-current');
+    expect(buttonVariants({ variant: 'outline', size: 'lg' })).toContain('border-border');
     expect(buttonVariants({ variant: 'outline', size: 'lg' })).toContain('px-6');
   });
 });
