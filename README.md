@@ -211,6 +211,33 @@ Control heights stay hand-written because not every `h-8` is a control. The scal
 options and calendar cells are deliberately outside it — they are multi-line, navigation or touch
 targets, not form controls.
 
+### Variant weight
+
+Every variant-bearing control says the same thing with its names: a fill is emphasis, a border is
+structure, and its absence is neither.
+
+| Variant             | Look                                      | Use for                                        |
+| ------------------- | ----------------------------------------- | ---------------------------------------------- |
+| `default`/`primary` | solid `--primary` fill                    | the one action a view exists for (Save, Pay)   |
+| `secondary`         | solid `--secondary` fill, no border       | a second action that still deserves a fill     |
+| `outline`           | no fill, 1px border in the label's colour | the action beside a primary one (Cancel, Back) |
+| `ghost`             | no chrome until hover                     | repeated, low-stakes actions in toolbars/rows  |
+| `link`              | primary text, underline on hover          | a minor action inside a sentence               |
+
+`outline` is the one that gets flattened. `bg-background` on a page background is not a fill, and
+`--border` is a hairline a step away from `--secondary`, so an outline button and a secondary button
+end up as two pale boxes of the same weight. A border is an unfilled button's only affordance, so it
+is drawn in the label's own colour: transparent background, `border-current`, `text-foreground`, and
+`--accent` on hover. The tinted forms `outline-primary` and `outline-destructive` keep the pair on
+the accent instead of the body colour, next to the existing `ghost-primary` / `ghost-destructive`.
+`Badge`'s `outline` follows the same rule, because it competes with `secondary` in exactly the same
+way.
+
+Outline variants that describe a container rather than an action — `Item`'s outlined row, the
+sidebar's outlined menu button, an outlined `Bubble` — keep the structural `--border` /
+`--sidebar-border` hairline: there is no fill for them to be confused with, and a current-colour
+border on a surface reads as emphasis it does not have.
+
 Conventions that are behaviour, not class strings:
 
 - **Optional placeholders announce themselves.** `Input` and `Textarea` append ` (optional)` to a

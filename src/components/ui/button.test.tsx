@@ -31,6 +31,8 @@ describe('Button', () => {
     ['secondary', 'bg-secondary'],
     ['destructive', 'bg-destructive'],
     ['outline', 'border-border'],
+    ['outline-primary', 'text-primary'],
+    ['outline-destructive', 'text-destructive'],
     ['ghost', 'bg-transparent'],
     ['ghost-primary', 'text-primary'],
     ['ghost-destructive', 'text-destructive'],
@@ -53,6 +55,21 @@ describe('Button', () => {
     render(<Button size={size}>Sized</Button>);
 
     expect(screen.getByRole('button').className).toContain(expectedClass);
+  });
+
+  it('keeps outline unfilled, unlike secondary', () => {
+    const { rerender } = render(<Button variant="outline">Cancel</Button>);
+    const outline = screen.getByRole('button');
+
+    expect(outline.className).toContain('border-border');
+    expect(outline.className).toContain('bg-transparent');
+    expect(outline.className).not.toContain('bg-secondary');
+    expect(outline.className).not.toContain('bg-background');
+
+    // Secondary is the filled counterpart: same shape, a quiet surface instead.
+    rerender(<Button variant="secondary">Cancel</Button>);
+
+    expect(screen.getByRole('button').className).toContain('bg-secondary');
   });
 
   it('renders its child instead of a button when asChild is set', () => {

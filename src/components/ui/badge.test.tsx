@@ -21,6 +21,14 @@ describe('Badge', () => {
     expect(screen.getByText('Failed').className).toContain('text-destructive');
   });
 
+  it('draws the outline with no fill', () => {
+    render(<Badge variant="outline">Archived</Badge>);
+    const badge = screen.getByText('Archived');
+
+    expect(badge.className).toContain('border-border');
+    expect(badge.className).toContain('bg-transparent');
+  });
+
   it('renders the child instead of a span with asChild', () => {
     render(
       <Badge asChild variant="tag">
