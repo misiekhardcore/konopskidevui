@@ -21,11 +21,11 @@ describe('Badge', () => {
     expect(screen.getByText('Failed').className).toContain('text-destructive');
   });
 
-  it('draws the outline before the fill, so the border takes the label colour', () => {
+  it('draws the outline with no fill', () => {
     render(<Badge variant="outline">Archived</Badge>);
     const badge = screen.getByText('Archived');
 
-    expect(badge.className).toContain('border-current');
+    expect(badge.className).toContain('border-border');
     expect(badge.className).toContain('bg-transparent');
   });
 
