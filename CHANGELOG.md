@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.0] - 2026-11-12
+
+### Bug Fixes
+
+- **ui:** Draw outline variants with a label-coloured border (#13)
+
 ## [0.5.1] - 2026-11-04
+
+### Chores
+
+- Release v0.5.1
+
 
 ### Features
 
