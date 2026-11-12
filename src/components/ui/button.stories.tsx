@@ -13,7 +13,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Triggers an action. The variant names are a superset of shadcn/ui: `primary` is an alias of `default`, and `ghost-primary` / `ghost-destructive` are the site\u2019s tinted-ghost treatments.',
+          'Triggers an action. The variant names are a superset of shadcn/ui: `primary` is an alias of `default`; `outline` is an unfilled button whose 1px border takes the label colour, and `outline-primary` / `outline-destructive` are its tinted forms; `ghost-primary` / `ghost-destructive` are the tinted-ghost treatments.',
       },
     },
   },
@@ -83,6 +83,8 @@ export const Variants: Story = {
           'secondary',
           'destructive',
           'outline',
+          'outline-primary',
+          'outline-destructive',
           'ghost',
           'ghost-primary',
           'ghost-destructive',
