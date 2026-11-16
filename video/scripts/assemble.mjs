@@ -31,6 +31,35 @@ const clips = new Map(
 );
 const durations = new Map(timeline.beats.map((beat) => [beat.id, beat.duration]));
 
+/*
+ * Two ways the finished video can be silently wrong, both caught before an
+ * encode: narration recorded in more than one voice, and a clip filmed against
+ * a duration its audio no longer has. Both happen the moment someone edits
+ * `voice` and re-renders one beat, which otherwise produces a video that looks
+ * right and sounds like the old take.
+ */
+const timelineVoices = timeline.voices ?? (timeline.voice ? [timeline.voice] : []);
+if (timelineVoices.length > 1) {
+  log(
+    `warning: narration mixes ${timelineVoices.join(' + ')} — ` +
+      `re-run voice.mjs for the whole episode before recording`,
+  );
+}
+
+for (const beat of episode.beats) {
+  const duration = durations.get(beat.id);
+  const clip = clips.get(beat.id);
+  if (!clip || !duration) continue;
+
+  const drift = Math.abs(clip.duration - duration);
+  if (drift > 0.5) {
+    log(
+      `warning: ${beat.id} was filmed for ${clip.duration.toFixed(2)}s but its ` +
+        `narrated audio is ${duration.toFixed(2)}s — re-record it`,
+    );
+  }
+}
+
 mkdirSync(paths.frames, { recursive: true });
 mkdirSync(paths.out, { recursive: true });
 

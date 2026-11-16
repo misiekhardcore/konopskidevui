@@ -2,7 +2,7 @@
  * One entry point for the whole pipeline.
  *
  *   node video/scripts/cli.mjs sandbox                  # build the demo app + transcripts
- *   node video/scripts/cli.mjs audition                 # three voices, first beat only
+ *   node video/scripts/cli.mjs audition                 # first beat, in one voice
  *   node video/scripts/cli.mjs voice   --episode 01-palette
  *   node video/scripts/cli.mjs record  --episode 01-palette [--only 05-unlayered]
  *   node video/scripts/cli.mjs assemble --episode 01-palette
@@ -59,7 +59,7 @@ if (command === 'all') {
       'usage: node video/scripts/cli.mjs <command> [--episode <id>] [flags]',
       '',
       '  sandbox    build the demo app and the terminal transcripts',
-      '  audition   three voices reading the first beat',
+      '  audition   the first beat in one voice (--voice am_onyx)',
       '  voice      synthesise narration for every beat',
       '  record     record one clip per beat',
       '  assemble   cut, concat, mux and caption the final video',
