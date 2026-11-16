@@ -40,8 +40,8 @@ Scene types and their fields are listed in [`capture.md`](capture.md).
 ## 3. Voice it
 
 ```sh
-node video/scripts/cli.mjs audition --episode 02-…
-node video/scripts/cli.mjs voice --episode 02-…
+pnpm video:audition --episode 02-…
+pnpm video:voice    --episode 02-…
 ```
 
 Listen to the audition before synthesising the whole thing: changing `voice` later re-renders
@@ -56,7 +56,7 @@ and the pictures.
 ## 4. Build the demo app (once per series)
 
 ```sh
-node video/scripts/cli.mjs sandbox
+pnpm video:sandbox
 ```
 
 `palette-demo` is the project on screen: a real Vite + Tailwind v4 app carrying the repository's
@@ -67,7 +67,7 @@ registry transcript should change.
 ## 5. Record
 
 ```sh
-node video/scripts/cli.mjs record --episode 02-…
+pnpm video:record --episode 02-…
 ```
 
 Real time, one clip per beat, roughly the video's duration plus a few seconds per beat. Use
@@ -76,7 +76,7 @@ Real time, one clip per beat, roughly the video's duration plus a few seconds pe
 ## 6. Assemble
 
 ```sh
-node video/scripts/cli.mjs assemble --episode 02-…
+pnpm video:assemble --episode 02-…
 ```
 
 Cuts each clip to its audio, concatenates, muxes the narration, writes chapters and an `.srt`,

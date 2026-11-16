@@ -9,11 +9,13 @@
  *   node video/scripts/cli.mjs all     --episode 01-palette
  *   node video/scripts/cli.mjs serve   --episode 01-palette   # look at a beat
  *   node video/scripts/cli.mjs new --article articles/02-...md
+ *   node video/scripts/cli.mjs clean   [--keep-output]       # drop generated files
  */
 import { spawnSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import path from 'node:path';
 
-import { episodeIds, log, parseArgs, root } from './lib.mjs';
+import { episodeIds, log, parseArgs, paths, root } from './lib.mjs';
 
 const [command] = process.argv.slice(2);
 const args = process.argv.slice(2).slice(1);
@@ -50,6 +52,17 @@ if (command === 'all') {
   run('record.mjs', episodeArgs());
   log('\n== 3/3 assemble\n');
   run('assemble.mjs', episodeArgs());
+} else if (command === 'clean') {
+  /* Everything under build/ is derived: audio, clips, the demo app, the model
+     cache. `out/` holds the only files worth keeping, so it survives unless
+     asked otherwise. */
+  rmSync(paths.build, { recursive: true, force: true });
+  log(`removed ${path.relative(root, paths.build)}`);
+
+  if (!args.keepOutput) {
+    rmSync(paths.out, { recursive: true, force: true });
+    log(`removed ${path.relative(root, paths.out)}`);
+  }
 } else if (STAGES[command]) {
   const [script, argv] = STAGES[command];
   run(script, argv());
@@ -66,6 +79,7 @@ if (command === 'all') {
       '  all        voice, record, assemble',
       '  serve      serve the stage for manual inspection',
       '  new        draft a beat sheet from an article',
+      '  clean      delete video/build (and video/out unless --keep-output)',
     ].join('\n'),
   );
   process.exit(command ? 1 : 0);

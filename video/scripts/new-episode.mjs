@@ -129,8 +129,6 @@ const episode = {
   article: path.relative(root, articlePath),
   voice: 'am_fenrir',
   speed: 0.98,
-  fps: 30,
-  size: [1920, 1080],
   tail: 0.45,
   draft: true,
   beats,

@@ -14,15 +14,7 @@
  */
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import {
-  cpSync,
-  createReadStream,
-  existsSync,
-  readFileSync,
-  rmSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
+import { cpSync, createReadStream, existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import { codeToTokens } from 'shiki';
@@ -72,8 +64,8 @@ function file(response, target) {
 }
 
 /** Shiki tokens per line, so the stage can reveal a line without breaking it. */
-async function highlight(lines, lang) {
-  const { tokens } = await codeToTokens(lines.join('\n'), { lang, theme: 'github-light' });
+async function highlight(lines) {
+  const { tokens } = await codeToTokens(lines.join('\n'), { lang: 'css', theme: 'github-light' });
 
   return lines.map((text, index) => {
     const html = (tokens[index] ?? [])
@@ -153,14 +145,9 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
       },
     };
 
+    /* Every file a beat reveals is a stylesheet; the editor met Col 1 on CSS. */
     if (scene.lines?.length) {
-      payload.code = {
-        file: scene.file,
-        lines: await highlight(
-          scene.lines,
-          scene.lines.some((line) => /@theme|@utility|:root/.test(line)) ? 'css' : 'css',
-        ),
-      };
+      payload.code = { file: scene.file, lines: await highlight(scene.lines) };
     }
 
     if (scene.log) {
@@ -220,7 +207,6 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
   return {
     url,
     previewUrl,
-    previewPid: preview.pid,
     async close() {
       await new Promise((resolve) => server.close(resolve));
       try {
@@ -243,8 +229,6 @@ if (process.argv[1] && import.meta.filename === path.resolve(process.argv[1])) {
     port: Number(args.port ?? 4517),
     previewPort: Number(args.previewPort ?? 5174),
   });
-
-  writeFileSync(path.join(paths.build, 'servers.json'), `${JSON.stringify(servers, null, 2)}\n`);
 
   for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, async () => {

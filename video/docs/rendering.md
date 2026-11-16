@@ -32,7 +32,9 @@ in the audio track too, with `acrossfade` of the same length.
 
 ## Encoding
 
-- Segments: `libx264`, `preset veryfast`, `crf 18`, 30 fps, `yuv420p`
+- Segments: `libx264`, `preset veryfast`, `crf 18`, 30 fps, `yuv420p`. The frame size and rate
+  are `FRAME` in [`scripts/lib.mjs`](../scripts/lib.mjs) — the stage layout, the recorder viewport
+  and these flags read the same constant.
 - Concat: stream copy (identical parameters, so no re-encode)
 - Final mux: video copy + AAC 192 kb/s 48 kHz, `-movflags +faststart` for instant web playback
 - Chapters: an FFMETADATA1 file, one chapter per beat, named by the beat's caption

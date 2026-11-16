@@ -13,9 +13,18 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { die, episodeIds, log, parseArgs, paths, readEpisode, readTimeline, run } from './lib.mjs';
+import {
+  die,
+  episodeIds,
+  FRAME,
+  log,
+  parseArgs,
+  paths,
+  readEpisode,
+  readTimeline,
+  run,
+} from './lib.mjs';
 
-const FPS = 30;
 const FADE = 0.12;
 
 const args = parseArgs(process.argv.slice(2));
@@ -60,7 +69,6 @@ for (const beat of episode.beats) {
   }
 }
 
-mkdirSync(paths.frames, { recursive: true });
 mkdirSync(paths.out, { recursive: true });
 
 const work = path.join(paths.build, 'segments');
@@ -94,8 +102,8 @@ for (const beat of episode.beats) {
     String(duration),
     '-vf',
     [
-      `fps=${FPS}`,
-      'scale=1920:1080:flags=lanczos',
+      `fps=${FRAME.fps}`,
+      `scale=${FRAME.width}:${FRAME.height}:flags=lanczos`,
       'format=yuv420p',
       `fade=t=in:st=0:d=${FADE}`,
       `fade=t=out:st=${fadeOut.toFixed(3)}:d=${FADE}`,
@@ -110,7 +118,7 @@ for (const beat of episode.beats) {
     '-pix_fmt',
     'yuv420p',
     '-r',
-    String(FPS),
+    String(FRAME.fps),
     segment,
   ]);
 
@@ -308,8 +316,8 @@ const videoStream = probe.streams.find((stream) => stream.codec_name === 'h264')
 const audioStream = probe.streams.find((stream) => stream.codec_name === 'aac');
 
 if (!videoStream || !audioStream) die('the output is missing a stream');
-if (videoStream.width !== 1920 || videoStream.height !== 1080) {
-  die(`expected 1920x1080, got ${videoStream.width}x${videoStream.height}`);
+if (videoStream.width !== FRAME.width || videoStream.height !== FRAME.height) {
+  die(`expected ${FRAME.width}x${FRAME.height}, got ${videoStream.width}x${videoStream.height}`);
 }
 
 const expected = episode.beats.reduce((sum, beat) => sum + durations.get(beat.id), 0);
