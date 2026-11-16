@@ -99,8 +99,11 @@ try {
     const duration = durations.get(beat.id);
     if (!duration) die(`no audio duration for ${beat.id} — run voice.mjs first`);
 
-    const isLast = beat === beats.at(-1);
-    const tail = beat === beats.at(-1) ? (episode.tail ?? 0.4) : 0;
+    /* The outro tail belongs to the episode's final beat, not to whatever beat
+       happens to be last in a `--only` run. */
+    const lastInEpisode = episode.beats.at(-1);
+    const isLast = beat === lastInEpisode;
+    const tail = isLast ? (episode.tail ?? 0.4) : 0;
     const target = Number((duration + tail).toFixed(3));
 
     process.stdout.write(`\n${beat.id}  ${target}s  (${beat.scene.type})\n`);

@@ -22,7 +22,7 @@ video/
 
 ```sh
 node video/scripts/cli.mjs sandbox                  # the demo app + real terminal transcripts
-node video/scripts/cli.mjs audition                 # three voices reading beat 1
+node video/scripts/cli.mjs audition                 # beat 1 in one voice; --voice am_onyx
 node video/scripts/cli.mjs voice   --episode 01-palette
 node video/scripts/cli.mjs record  --episode 01-palette
 node video/scripts/cli.mjs assemble --episode 01-palette

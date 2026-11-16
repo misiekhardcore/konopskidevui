@@ -14,7 +14,7 @@ operations and the traps.
 
 ```sh
 node video/scripts/cli.mjs new      --article articles/02-….md   # skeleton beat sheet (editorial work follows)
-node video/scripts/cli.mjs audition --episode 02-…               # three voices, first beat
+node video/scripts/cli.mjs audition --episode 02-…               # first beat; --voice am_onyx to compare
 node video/scripts/cli.mjs sandbox                               # the demo app, once per series
 node video/scripts/cli.mjs voice    --episode 02-…
 node video/scripts/cli.mjs record   --episode 02-…   [--only <beat-id>]
@@ -29,6 +29,8 @@ node video/scripts/cli.mjs assemble --episode 02-…
   `video/episodes/<id>.json`. Never hand-edit a duration; it comes from `ffprobe` on the audio.
 - **Durations flow one way:** voice → `build/timeline.json` → record (ingests duration) →
   `build/clips.json` → assemble. A stage never keeps its own clock.
+- **`voice` in the beat sheet is a request, not the audio.** It does nothing until the voice stage
+  runs for every beat; `--only` over a different voice mixes two narrators into one video.
 - **Scenes pace themselves.** Anything animated is a fraction of the beat duration. There are no
   hardcoded timings to keep in sync, and no crossfade that costs time.
 - **Beats are recorded separately.** Real time, one clip each, head trimmed by measurement.
@@ -59,3 +61,9 @@ changing it afterwards means re-recording every clip.
 
 `reference/troubleshooting.md` — read it before debugging: the shadcn alias directory, the
 `onnxruntime-node` build scripts, the JSONC tsconfig, Monaco focus, and the head-trim done wrong.
+
+And the one that costs a whole re-render rather than an error: editing `voice`, running `voice
+--only <one beat>`, then `record --only <one beat>` and `assemble` produces a video that looks
+newer and sounds identical. `assemble` now warns on mixed voices and on clips filmed for a
+different duration, but the fix is to re-run `voice` and `record` for the whole episode — see
+[`video/docs/voice.md`](../../video/docs/voice.md).

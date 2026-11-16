@@ -10,19 +10,39 @@ machine surprising.
 
 ## Voices
 
-The series reads in a male, mid-thirties voice. `am_fenrir` is the default: calm, even, and it
-holds a press through a seven-minute read. The alternatives worth hearing are `am_fenrir`
-(brighter, a little more expressive) and `am_onyx` (lower and older). `am_puck` is the youngest of
-the set. `speed` is 0.98 for episode 1 — Kokoro's default read is a touch brisk for a technical
+The series reads in a male, mid-thirties voice. `am_fenrir` is the default: clear and lightly
+stressed, and it holds a press through a seven-minute read. The alternatives worth hearing are
+`am_michael` (calmer, flatter) and `am_onyx` (lower and older). `am_puck` is the youngest of the
+set. `speed` is 0.98 for episode 1 — Kokoro's default read is a touch brisk for a technical
 sentence.
 
 ```sh
-node video/scripts/cli.mjs audition --episode 01-palette
-open video/build/audition/am_fenrir.wav     # then am_fenrir / am_onyx
+node video/scripts/cli.mjs audition --episode 01-palette              # the episode's voice
+node video/scripts/cli.mjs audition --episode 01-palette --voice am_onyx
+open video/build/audition/am_fenrir.wav
+open video/build/audition/am_onyx.wav
 ```
 
-Changing voice or speed re-renders audio, which changes every beat's duration, which means the
-clips must be recorded again. Decide the voice before recording, not after.
+Each audition renders the first beat's real narration, so the comparison is same words, same
+speed, same loudness pass.
+
+## Changing the voice costs a full re-record
+
+`voice` in the beat sheet is a request, not a fact. Audio on disk is whatever the last `voice`
+run produced, and the timeline records the voice each beat was actually synthesised with. Editing
+the JSON changes nothing until you run the stage:
+
+```sh
+node video/scripts/cli.mjs voice  --episode 01-palette    # every beat, not --only
+node video/scripts/cli.mjs record --episode 01-palette    # every clip, it is cut to its audio
+node video/scripts/cli.mjs assemble --episode 01-palette
+```
+
+Re-voicing one beat with `--only` produces a mixed episode, and `record --only` then re-films one
+clip while the other thirteen still carry the previous durations. Both mistakes fail quietly: the
+video looks right and sounds like the old take. So `timeline.json` stores each beat's voice, and
+`assemble.mjs` warns when the voices disagree or when a clip was filmed for a duration its
+narration no longer has. Decide the voice before recording, or expect all three stages.
 
 ## How a beat is synthesised
 

@@ -21,9 +21,9 @@ import path from 'node:path';
 
 import { parseArgs, paths, readEpisode, log, die } from './lib.mjs';
 
-/* Male voices first: the series reads in a mid-thirties voice. `am_michael`
-   and `am_fenrir` are the two highest-graded American male voices Kokoro ships. */
-const AUDITION_VOICES = ['am_michael', 'am_fenrir', 'am_onyx'];
+/* The series reads in a male, mid-thirties register. `am_fenrir` is the pick;
+   `am_michael` and `am_onyx` are the alternatives worth auditioning. */
+const SELECTED_VOICE = 'am_fenrir';
 const SAMPLE_RATE = 24000;
 const SENTENCE_GAP = 0.11;
 
@@ -163,22 +163,24 @@ async function speak(text, voice, speed) {
 if (args.audition) {
   const dir = path.join(paths.build, 'audition');
   mkdirSync(dir, { recursive: true });
+  /* `--voice am_onyx` auditions a candidate against the same sentence, which is
+     the only fair comparison: same words, same speed, same loudness pass. */
+  const candidate = args.voice ?? episode.voice ?? SELECTED_VOICE;
 
-  for (const voice of AUDITION_VOICES) {
-    const raw = path.join(dir, `${voice}.raw.wav`);
-    const out = path.join(dir, `${voice}.wav`);
-    writeFileSync(raw, await speak(beats[0].narration, voice, episode.speed ?? 1));
-    finish(raw, out);
-    log(`${voice}.wav  ${duration(out).toFixed(2)}s`);
-  }
+  const raw = path.join(dir, `${candidate}.raw.wav`);
+  const out = path.join(dir, `${candidate}.wav`);
+  writeFileSync(raw, await speak(beats[0].narration, candidate, episode.speed ?? 1));
+  finish(raw, out);
+  log(`${candidate}.wav  ${duration(out).toFixed(2)}s`);
 
-  log(`audition samples in ${path.relative(paths.root, dir)}`);
+  log(`audition sample in ${path.relative(paths.root, dir)}`);
   process.exit(0);
 }
 
-const voice = args.voice ?? episode.voice ?? 'am_fenrir';
+const voice = args.voice ?? episode.voice ?? SELECTED_VOICE;
 const speed = Number(args.speed ?? episode.speed ?? 1);
-const timeline = { episode: episode.id, voice, beats: [] };
+log(`voice ${voice} · speed ${speed}`);
+const timeline = { episode: episode.id, voice, voices: [voice], beats: [] };
 
 for (const beat of beats) {
   const raw = path.join(paths.audio, `${beat.id}.raw.wav`);
@@ -198,6 +200,7 @@ for (const beat of beats) {
     id: beat.id,
     audio: path.relative(paths.root, out),
     duration: Number(seconds.toFixed(3)),
+    voice,
     words: beat.narration.split(/\s+/).length,
   });
 
@@ -213,7 +216,11 @@ if (args.only && existsSync(timelinePath)) {
     ...existing.beats.filter((beat) => !merged.has(beat.id)),
     ...timeline.beats,
   ].sort((a, b) => (a.id < b.id ? -1 : 1));
-  timeline.voice = existing.voice ?? voice;
+  /* Report every voice still present, not the last one asked for: a partial run
+     over a different voice leaves a mixed timeline, and calling it `voice`
+     alone is how a video ends up narrated by two people in silence. */
+  timeline.voices = [...new Set(timeline.beats.map((beat) => beat.voice ?? voice))];
+  timeline.voice = timeline.voices.length === 1 ? timeline.voices[0] : 'mixed';
 }
 
 writeFileSync(timelinePath, `${JSON.stringify(timeline, null, 2)}\n`);
@@ -223,3 +230,21 @@ const words = timeline.beats.reduce((sum, beat) => sum + beat.words, 0);
 log(
   `\n${timeline.beats.length} beats · ${words} words · ${Math.floor(total / 60)}m ${Math.round(total % 60)}s`,
 );
+
+if (timeline.voices?.length > 1) {
+  const byVoice = timeline.beats.reduce((groups, beat) => {
+    groups[beat.voice] = (groups[beat.voice] ?? 0) + 1;
+    return groups;
+  }, {});
+  const counts = Object.entries(byVoice)
+    .map(([name, count]) => `${name} ${count}`)
+    .join(', ');
+
+  log(
+    `\nmixed narration: ${counts}.\n` +
+      `Clips are cut to their audio, so re-record all of them:\n` +
+      `  node video/scripts/cli.mjs record --episode ${episode.id}\n` +
+      `  node video/scripts/cli.mjs assemble --episode ${episode.id}`,
+  );
+  process.exitCode = 1;
+}

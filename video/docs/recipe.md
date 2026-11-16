@@ -44,9 +44,11 @@ node video/scripts/cli.mjs audition --episode 02-…
 node video/scripts/cli.mjs voice --episode 02-…
 ```
 
-Listen to the audition samples before synthesising the whole thing: changing `voice` later
-re-renders audio only, but it also means re-recording every clip, because clips are cut to their
-audio.
+Listen to the audition before synthesising the whole thing: changing `voice` later re-renders
+audio only, but it also means re-recording every clip, because clips are cut to their audio. Edit
+the episode's `voice` and run the stage for **every** beat — `--only` over a new voice leaves a
+mixed episode that still sounds like the old take, which is the mistake [`voice.md`](voice.md)
+spends a section on.
 
 `timeline.json` records each beat's final duration. That file is the contract between the voice
 and the pictures.
