@@ -28,3 +28,11 @@ pnpm-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# article drafts and tutorial video artifacts (their sources are working copies)
+/articles/
+/video/build/
+/video/out/
+
+# local git worktrees
+/.worktrees/

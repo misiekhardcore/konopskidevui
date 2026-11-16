@@ -19,6 +19,11 @@ export default defineConfig([
     'prettier.config.mjs',
     'lint-staged.config.mjs',
     'scripts/**',
+    // Video tooling: plain Node scripts, like scripts/, plus generated artifacts.
+    'video/**',
+    '.claude/**',
+    // Article drafts and the HTML/mjs that generates their figures (gitignored).
+    'articles/**',
     '.storybook/vite.config.ts',
   ]),
 

@@ -1,0 +1,734 @@
+/*
+ * The stage: a 1920x1080 canvas the recorder screenshots.
+ *
+ * It borrows the articles' palette and typefaces on purpose - the video and the
+ * written series should look like two views of one artifact - and it is sized in
+ * CSS pixels at exactly the recording size, so nothing is ever scaled.
+ */
+@import '/nm/@fontsource/lato/400.css';
+@import '/nm/@fontsource/lato/700.css';
+@import '/nm/@fontsource/lato/900.css';
+@import '/nm/@fontsource/playfair-display/600.css';
+@import '/nm/@fontsource/jetbrains-mono/400.css';
+@import '/nm/@fontsource/jetbrains-mono/700.css';
+
+:root {
+  --background: #fbfbfa;
+  --foreground: #1d2329;
+  --muted: #f2f3f4;
+  --muted-foreground: #5d6670;
+  --card: #ffffff;
+  --border: #e1e4e7;
+  --primary: #1f4fa3;
+  --primary-soft: #eef3fb;
+  --success: #1f7a4d;
+  --danger: #a8331f;
+  --editor: #ffffff;
+  --editor-gutter: #8b949e;
+  --chrome: #eceff2;
+  --sans: 'Lato', system-ui, sans-serif;
+  --serif: 'Playfair Display', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  font-family: var(--sans);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+#canvas {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--background);
+}
+
+#scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* --------------------------------------------------------------- over-caption */
+
+/* Top-left, so it never fights the figure's own generated caption. */
+#caption {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  top: 34px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 600ms ease,
+    transform 600ms ease;
+}
+
+#canvas.ready #caption {
+  opacity: 1;
+  transform: none;
+}
+
+#caption .series {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+#progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--primary);
+  opacity: 0.55;
+}
+
+/* -------------------------------------------------------------------- figure */
+
+.figure {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 96px 80px 72px;
+}
+
+/* The canvas is a fixed 1920x1080, so the box is arithmetic rather than a
+   percentage: `max-height: 100%` inside a centred grid item stays indefinite
+   and the figure then overflows its own frame. */
+.figure img {
+  max-width: 100%;
+  max-height: 912px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 70px -40px rgba(29, 35, 41, 0.5);
+  transform: scale(1.01);
+  transform-origin: center 45%;
+  transition: transform 12000ms linear;
+}
+
+.figure.moving img {
+  transform: scale(1.055);
+}
+
+/* Below the figure, never on top of it: a row that wraps, not a stack. */
+.figure.has-steps {
+  padding-bottom: 224px;
+}
+
+.figure.has-steps img {
+  max-height: 742px;
+}
+
+.figure-steps {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 78px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.figure-step {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 21px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 420ms ease,
+    transform 420ms ease;
+}
+
+.figure-step.on {
+  opacity: 1;
+  transform: none;
+}
+
+.figure.outro .figure-step {
+  font-size: 23px;
+  padding: 14px 22px;
+}
+
+.figure-step b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 14px;
+}
+
+/* The outro's list sits under the cover, exactly like a step list. */
+.figure.outro .figure-steps {
+  bottom: 78px;
+}
+
+/* --------------------------------------------------------------------- cards */
+
+.cards {
+  position: absolute;
+  inset: 0;
+  padding: 96px 96px 150px;
+  display: grid;
+  align-content: center;
+  gap: 44px;
+}
+
+.cards .kicker {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.cards h1 {
+  font-family: var(--serif);
+  font-size: 62px;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  max-width: 20ch;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.trap {
+  padding: 34px 32px 36px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 20px 50px -44px rgba(29, 35, 41, 0.6);
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 520ms ease,
+    transform 520ms ease;
+}
+
+.trap.on {
+  opacity: 1;
+  transform: none;
+}
+
+.trap .label {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.trap.bad .label {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
+.trap.good .label {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.trap.good {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+.trap h2 {
+  font-family: var(--serif);
+  font-size: 31px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.trap p {
+  font-size: 22px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+/* ----------------------------------------------------------------------- ide */
+
+/* Sits below the caption bar: 56px is the caption's own height plus air. */
+.ide {
+  position: absolute;
+  inset: 56px 0 0 0;
+  display: grid;
+  grid-template-rows: 44px 1fr 34px;
+  background: var(--editor);
+}
+
+.ide-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 20px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--muted-foreground);
+}
+
+.ide-bar .dots {
+  display: flex;
+  gap: 8px;
+}
+
+.ide-bar .dots i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d7dbe0;
+}
+
+.ide-bar .title {
+  margin-inline: auto;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+}
+
+.ide-main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: 0;
+}
+
+.explorer {
+  border-right: 1px solid var(--border);
+  background: #fafafa;
+  padding: 16px 0;
+  font-size: 15px;
+  color: var(--muted-foreground);
+}
+
+.explorer .root {
+  padding: 0 20px 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.explorer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.explorer li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 20px 7px 28px;
+  white-space: nowrap;
+}
+
+.explorer li.dir {
+  padding-left: 14px;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.explorer li.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.explorer .swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #c7ccd2;
+}
+
+.explorer li.new {
+  animation: file-in 420ms ease both;
+}
+
+@keyframes file-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+.editor {
+  display: grid;
+  grid-template-rows: 42px 34px 1fr;
+  min-height: 0;
+  background: var(--editor);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: #f4f6f8;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px;
+  border-right: 1px solid var(--border);
+  background: var(--editor);
+  font-size: 15px;
+  border-top: 2px solid transparent;
+}
+
+.tab.active {
+  border-top-color: var(--primary);
+  font-weight: 600;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 26px;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.code {
+  padding: 18px 0 40px;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 23px;
+  line-height: 1.62;
+}
+
+.code .line {
+  position: relative;
+  display: flex;
+  gap: 26px;
+  padding-right: 40px;
+}
+
+.code .gutter {
+  width: 62px;
+  flex: none;
+  text-align: right;
+  color: var(--editor-gutter);
+  opacity: 0.55;
+  font-size: 17px;
+  line-height: 1.62;
+}
+
+.code .src {
+  position: relative;
+  white-space: pre;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 60ms linear;
+}
+
+.code .src.done {
+  clip-path: inset(0 0 0 0);
+}
+
+.code .line.hot .gutter {
+  color: var(--primary);
+  opacity: 1;
+}
+
+.code .line.hot {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.caret {
+  display: inline-block;
+  width: 3px;
+  height: 1.05em;
+  margin-left: 1px;
+  translate: 0 3px;
+  background: var(--primary);
+}
+
+.caret.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.ide-status {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  background: var(--chrome);
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.ide-status .spacer {
+  margin-inline: auto;
+}
+
+.ide-status .branch {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------- ide + preview */
+
+.split {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 26px;
+  padding: 74px 26px 128px;
+  background: var(--background);
+}
+
+.split .ide {
+  position: relative;
+  inset: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 26px 60px -48px rgba(29, 35, 41, 0.7);
+}
+
+.split .ide-main {
+  grid-template-columns: 210px 1fr;
+}
+
+.split .code {
+  font-size: 19px;
+}
+
+.split .explorer {
+  font-size: 14px;
+}
+
+.split .ide-main .code .gutter {
+  width: 46px;
+  font-size: 15px;
+}
+
+/* -------------------------------------------------------------------- browser */
+
+.browser {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 26px 60px -48px rgba(29, 35, 41, 0.7);
+}
+
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 18px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--muted-foreground);
+}
+
+.browser-bar .dots {
+  display: flex;
+  gap: 7px;
+}
+
+.browser-bar .dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #d7dbe0;
+}
+
+.browser-bar .url {
+  flex: 1;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.theme-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.browser iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--card);
+}
+
+/* ------------------------------------------------------------------- preview */
+
+.preview {
+  position: absolute;
+  inset: 0;
+  padding: 74px 60px 110px;
+}
+
+.preview .browser {
+  height: 100%;
+}
+
+/* -------------------------------------------------------------- terminal scene */
+
+.shell {
+  position: absolute;
+  inset: 0;
+  padding: 84px 72px 132px;
+  display: grid;
+  align-content: center;
+}
+
+.shell .heading {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.shell .heading .path {
+  font-family: var(--mono);
+  font-size: 19px;
+  color: var(--muted-foreground);
+}
+
+.shell .heading h2 {
+  font-family: var(--serif);
+  font-size: 40px;
+  font-weight: 600;
+}
+
+.term {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fffffe;
+  box-shadow: 0 30px 70px -52px rgba(29, 35, 41, 0.75);
+}
+
+.term-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 18px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.term-bar .dots {
+  display: flex;
+  gap: 7px;
+}
+
+.term-bar .dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #d7dbe0;
+}
+
+.term-body {
+  min-height: 600px;
+  padding: 24px 28px 34px;
+  font-family: var(--mono);
+  font-size: 21px;
+  line-height: 1.6;
+  color: #2b3138;
+}
+
+.term-body .row {
+  display: flex;
+  gap: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+}
+
+.term-body .row.on {
+  opacity: 1;
+  transform: none;
+}
+
+.term-body .row .prompt {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.term-body .row.dim {
+  color: var(--muted-foreground);
+}
+
+.term-body .row.ok {
+  color: var(--success);
+}
+
+.term-body .row.cut {
+  color: #9aa3ac;
+  font-style: italic;
+}
