@@ -21,15 +21,30 @@ video/
 ## Quickstart
 
 ```sh
-node video/scripts/cli.mjs sandbox                  # the demo app + real terminal transcripts
-node video/scripts/cli.mjs audition                 # beat 1 in one voice; --voice am_onyx
-node video/scripts/cli.mjs voice   --episode 01-palette
-node video/scripts/cli.mjs record  --episode 01-palette
-node video/scripts/cli.mjs assemble --episode 01-palette
+pnpm video:sandbox      # the demo app + real terminal transcripts, once per series
+pnpm video:audition     # beat 1 in the episode's voice (--voice am_onyx to compare)
+pnpm video              # voice, record, assemble — the whole episode
 ```
 
-`all` runs the last three. `--only 05-unlayered` re-does a single beat, which is the loop you
-actually live in: change one sentence, re-render one line.
+`pnpm video` is the five-minute path. The stages are also separate, which is what a partial
+change needs:
+
+```sh
+pnpm video:voice        # narration for every beat  -> video/build/audio + timeline.json
+pnpm video:record       # one clip per beat          -> video/build/clips + clips.json
+pnpm video:assemble     # cut, mux, caption         -> video/out/*.mp4 + *.srt
+```
+
+Every command takes `--episode <id>` (default: the first episode) and the last three take
+`--only 05-unlayered`, which re-does a single beat — the loop you actually live in: change one
+sentence, re-render one line. Changing `voice` is the exception; it re-renders every beat and
+every clip, and the scripts refuse to pretend otherwise (see [`docs/voice.md`](docs/voice.md)).
+
+`pnpm video:clean` deletes `video/build` (the ~400 MB of derived audio, clips, demo app and model
+cache) and, unless you pass `--keep-output`, `video/out`.
+
+Anything the scripts do, `node video/scripts/cli.mjs <stage>` does identically — the pnpm scripts
+are one-line wrappers for humans.
 
 Result: `video/out/01-the-palette-is-the-product.mp4` and `.srt`.
 

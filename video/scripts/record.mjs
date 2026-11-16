@@ -14,7 +14,16 @@ import path from 'node:path';
 
 import { chromium } from 'playwright';
 
-import { die, episodeIds, log, parseArgs, paths, readEpisode, readTimeline } from './lib.mjs';
+import {
+  die,
+  episodeIds,
+  FRAME,
+  log,
+  parseArgs,
+  paths,
+  readEpisode,
+  readTimeline,
+} from './lib.mjs';
 import { startServers } from './serve.mjs';
 
 const args = parseArgs(process.argv.slice(2));
@@ -109,9 +118,12 @@ try {
     process.stdout.write(`\n${beat.id}  ${target}s  (${beat.scene.type})\n`);
 
     const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
+      viewport: { width: FRAME.width, height: FRAME.height },
       deviceScaleFactor: 1,
-      recordVideo: { dir: paths.clips, size: { width: 1920, height: 1080 } },
+      recordVideo: {
+        dir: paths.clips,
+        size: { width: FRAME.width, height: FRAME.height },
+      },
     });
 
     const startedAt = Date.now();

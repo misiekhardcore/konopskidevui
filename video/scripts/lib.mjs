@@ -11,22 +11,23 @@ import path from 'node:path';
 export const root = path.resolve(import.meta.dirname, '../..');
 export const paths = {
   root,
-  video: path.join(root, 'video'),
   episodes: path.join(root, 'video/episodes'),
   stage: path.join(root, 'video/stage'),
-  docs: path.join(root, 'video/docs'),
   build: path.join(root, 'video/build'),
   audio: path.join(root, 'video/build/audio'),
   clips: path.join(root, 'video/build/clips'),
-  frames: path.join(root, 'video/build/frames'),
   workspace: path.join(root, 'video/build/palette-demo'),
   logs: path.join(root, 'video/build/logs'),
   hfCache: path.join(root, 'video/build/hf-cache'),
   out: path.join(root, 'video/out'),
-  articles: path.join(root, 'articles'),
   figures: path.join(root, 'articles/images'),
   storybook: path.join(root, 'video/build/storybook'),
 };
+
+/* One 1080p30 series: the stage is laid out for this frame, the recorder films
+   it and the assembler encodes it. Kept here rather than in each script so the
+   three cannot disagree. */
+export const FRAME = { width: 1920, height: 1080, fps: 30 };
 
 export const log = (message = '') => process.stdout.write(`${message}\n`);
 
@@ -126,23 +127,4 @@ export async function waitForHttp(url, { timeout = 60_000, interval = 250 } = {}
   }
 
   die(`timed out waiting for ${url}`);
-}
-
-/** An unused port, so a running Storybook on :6006 is never fought over. */
-export async function freePort(preferred) {
-  const net = await import('node:net');
-
-  const tryPort = (port) =>
-    new Promise((resolve) => {
-      const server = net.createServer();
-      server.unref();
-      server.once('error', () => resolve(false));
-      server.listen(port, '127.0.0.1', () => server.close(() => resolve(true)));
-    });
-
-  for (let port = preferred; port < preferred + 40; port += 1) {
-    if (await tryPort(port)) return port;
-  }
-
-  die(`no free port near ${preferred}`);
 }

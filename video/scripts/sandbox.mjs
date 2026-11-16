@@ -35,7 +35,6 @@ function writeLog(name, title, steps) {
   const file = path.join(paths.logs, `${name}.json`);
   writeFileSync(file, `${JSON.stringify({ title, steps }, null, 2)}\n`);
   log(`  log  ${path.relative(root, file)}`);
-  return file;
 }
 
 /** Keeps the head and tail of a long output and says how much it cut. */
@@ -80,21 +79,24 @@ if (!existsSync(path.join(ws, 'package.json'))) {
   });
 }
 
-log('installing Tailwind v4 and the four typefaces');
-run(
-  'pnpm',
-  [
-    'add',
-    'tailwindcss',
-    '@tailwindcss/vite',
-    'tw-animate-css',
-    '@fontsource/lato',
-    '@fontsource/playfair-display',
-    '@fontsource/lora',
-    '@fontsource/jetbrains-mono',
-  ],
-  { cwd: ws },
-);
+/* Re-running sandbox must not re-resolve the same ten packages. */
+if (!existsSync(path.join(ws, 'node_modules/tailwindcss'))) {
+  log('installing Tailwind v4 and the four typefaces');
+  run(
+    'pnpm',
+    [
+      'add',
+      'tailwindcss',
+      '@tailwindcss/vite',
+      'tw-animate-css',
+      '@fontsource/lato',
+      '@fontsource/playfair-display',
+      '@fontsource/lora',
+      '@fontsource/jetbrains-mono',
+    ],
+    { cwd: ws },
+  );
+}
 
 /* The stylesheets are the repository's own files, copied rather than retyped. */
 log('copying src/styles from the repository');
@@ -391,4 +393,4 @@ style.push(
 );
 writeLog('style', 'scripts/apply-house-style.mjs', style);
 
-log('\nsandbox ready: video/build/workspace');
+log(`\nsandbox ready: ${path.relative(root, ws)}`);

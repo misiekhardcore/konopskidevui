@@ -6,8 +6,6 @@
   "article": "articles/01-one-palette-sixty-three-components.md",
   "voice": "am_fenrir",
   "speed": 0.98,
-  "fps": 30,
-  "size": [1920, 1080],
   "tail": 0.45,
   "beats": [
     {
