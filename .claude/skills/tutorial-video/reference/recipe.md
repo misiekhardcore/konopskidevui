@@ -6,13 +6,18 @@ command each.
 ## 1. Draft the beats from the article
 
 ```sh
-node video/scripts/new-episode.mjs --article articles/02-sixty-three-components-one-rulebook.md
+pnpm video:new --article articles/02-sixty-three-components-one-rulebook.md
 ```
 
 That parses the H1, the intro, every `##` section and the figures, and writes
 `video/episodes/02-sixty-three-components-one-rulebook.json` with `"draft": true`: one beat per
 section, the section's first sentences as placeholder narration, and a scene guessed from what
 the section contains (a figure, a shell block, or a file path it mentions).
+
+[`../assets/episode-template.json`](../assets/episode-template.json) is the same shape, written by
+hand: every field the scripts read, and each of the six scene types once, with a line on when to
+reach for it. Use it when a beat is easier to draw than to derive, or when the article is not the
+source.
 
 The draft is a skeleton. Section boundaries are not storytelling beats and the placeholder
 narration is not speakable.
@@ -31,9 +36,9 @@ Edit the beat sheet until each beat is one idea, spoken. What survived from epis
   like "every radius becomes the one radius" is worth 20 lines of `RULES` entries.
 - **Numbers first.** Each beat's `caption` is the chapter title, so write it as one: "One class,
   both themes", not "Beat 5".
-- **Scenes reuse what the article already has.** `figure` for a generated diagram, `ide` for a
-  file, `terminal` for a transcript, `ide-split` for a change with its effect, `preview` for a
-  live page, `cards` for an argument.
+- **Scenes reuse what the article already has.** `figure` for a generated diagram, `workbench`
+  for a file, `terminal` for a transcript, `workbench-split` for a change with its effect,
+  `preview` for a live page, `cards` for an argument.
 
 Scene types and their fields are listed in [`capture.md`](capture.md).
 

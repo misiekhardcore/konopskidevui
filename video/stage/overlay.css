@@ -1,0 +1,61 @@
+/*
+ * Everything the video draws over a scene, in one place.
+ *
+ * The stage loads this for every beat, and the recorder injects it into the
+ * code-server page for a workbench beat, so a caption or the progress bar
+ * cannot look different depending on what is underneath it.
+ *
+ * Both are positioned against an absolutely positioned ancestor: `#canvas` on
+ * the stage, `#video-chrome` in the workbench.
+ */
+:root {
+  --background: #fbfbfa;
+  --foreground: #1d2329;
+  --muted-foreground: #5d6670;
+  --border: #e1e4e7;
+  --primary: #1f4fa3;
+  --sans: 'Lato', system-ui, sans-serif;
+}
+
+/* Top-left, so it never fights the figure's own generated caption. */
+#caption {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  top: 34px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  font-family: var(--sans);
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 600ms ease,
+    transform 600ms ease;
+}
+
+#caption.on {
+  opacity: 1;
+  transform: none;
+}
+
+#caption .series {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+#progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--primary);
+  opacity: 0.55;
+}

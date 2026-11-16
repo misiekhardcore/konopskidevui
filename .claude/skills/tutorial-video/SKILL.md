@@ -6,22 +6,34 @@ description: Turn an article in this repository into a narrated, screen-recorded
 # Tutorial videos
 
 `video/` holds a working pipeline, proven by episode 1 (`01-palette`). A new episode is a beat
-sheet, not new code. Read [`video/docs/recipe.md`](../../../video/docs/recipe.md) before writing one;
-the detail lives there and in the other docs under `video/docs/`. This file is the order of
-operations and the traps.
+sheet, not new code — start it from
+[`assets/episode-template.json`](assets/episode-template.json), which is the annotated shape of
+one: every field the scripts read, and every scene type once.
+
+This file is the order of operations and the invariants. The detail lives beside it:
+
+| Reference                                                      | What it answers                                                    |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [`reference/recipe.md`](reference/recipe.md)                   | Article → episode, step by step, and the definition of done        |
+| [`reference/voice.md`](reference/voice.md)                     | The model, the voices, loudness, and why a voice change re-records |
+| [`reference/capture.md`](reference/capture.md)                 | The stage, the six scene types and their fields, the recorder      |
+| [`reference/rendering.md`](reference/rendering.md)             | ffmpeg settings and the timing contract                            |
+| [`reference/troubleshooting.md`](reference/troubleshooting.md) | Symptom first. Read it before debugging.                           |
 
 ## Pipeline
 
 ```sh
-node video/scripts/cli.mjs new      --article articles/02-….md   # skeleton beat sheet (editorial work follows)
-node video/scripts/cli.mjs audition --episode 02-…               # first beat; --voice am_onyx to compare
-node video/scripts/cli.mjs sandbox                               # the demo app, once per series
-node video/scripts/cli.mjs voice    --episode 02-…
-node video/scripts/cli.mjs record   --episode 02-…   [--only <beat-id>]
-node video/scripts/cli.mjs assemble --episode 02-…
+pnpm video:sandbox                                  # the demo app + terminal transcripts, once per series
+pnpm video:new     --article articles/02-….md       # skeleton beat sheet; editorial work follows
+pnpm video:audition --episode 02-…                  # first beat; --voice am_onyx to compare
+pnpm video:voice    --episode 02-…
+pnpm video:record   --episode 02-…  [--only <beat-id>]
+pnpm video:assemble --episode 02-…
 ```
 
-`all` runs voice → record → assemble. Output: `video/out/<episode>.mp4` + `.srt`.
+`pnpm video` runs voice → record → assemble. Output: `video/out/<episode>.mp4` + `.srt`.
+Every one of these is a one-line wrapper around `node video/scripts/cli.mjs <stage>`, which takes
+the same flags — use whichever reads better.
 
 ## Invariants
 
@@ -59,11 +71,11 @@ changing it afterwards means re-recording every clip.
 
 ## Traps already paid for
 
-`reference/troubleshooting.md` — read it before debugging: the shadcn alias directory, the
+[`reference/troubleshooting.md`](reference/troubleshooting.md) — the shadcn alias directory, the
 `onnxruntime-node` build scripts, the JSONC tsconfig, Monaco focus, and the head-trim done wrong.
 
 And the one that costs a whole re-render rather than an error: editing `voice`, running `voice
 --only <one beat>`, then `record --only <one beat>` and `assemble` produces a video that looks
 newer and sounds identical. `assemble` now warns on mixed voices and on clips filmed for a
 different duration, but the fix is to re-run `voice` and `record` for the whole episode — see
-[`video/docs/voice.md`](../../video/docs/voice.md).
+[`reference/voice.md`](reference/voice.md).

@@ -21,7 +21,7 @@
     {
       "id": "02-argument",
       "caption": "The claim of the beat",
-      "narration": "Scene types: figure (a generated diagram), cards (three claims), terminal (a captured transcript), ide (a file typed on screen), ide-split (a change beside its effect), preview (a live page, such as Storybook).",
+      "narration": "Scene types: figure (a generated diagram), cards (three claims), terminal (a real shell session), workbench (a file typed in the real VS Code), workbench-split (a change beside its effect), preview (a live page, such as Storybook).",
       "scene": {
         "type": "cards",
         "kicker": "UPPERCASE KICKER",
@@ -41,11 +41,10 @@
     {
       "id": "03-typed-file",
       "caption": "The file, typed",
-      "narration": "Lines are revealed left to right; the pace is the beat duration divided by the character count, so there is nothing to tune.",
+      "narration": "The real workbench types the file; the pace is the beat duration divided by the character count, so there is nothing to tune. prefill: true starts from the file on disk and types only what follows.",
       "scene": {
-        "type": "ide",
+        "type": "workbench",
         "file": "src/styles/tokens.css",
-        "title": "A heading for the scene",
         "lines": ["/* the literal file contents, one string per line */"]
       }
     },
@@ -54,7 +53,7 @@
       "caption": "The change, and its effect",
       "narration": "themeAt is a fraction of the beat: 0.52 flips the pane to dark a little past halfway.",
       "scene": {
-        "type": "ide-split",
+        "type": "workbench-split",
         "file": "src/styles/tokens.css",
         "preview": "app",
         "themeAt": 0.52,
@@ -64,15 +63,26 @@
     {
       "id": "05-transcript",
       "caption": "The command, honestly replayed",
-      "narration": "A log name refers to video/build/logs/<name>.json, written by sandbox.mjs from a real run. Long waits are cut and marked with an ellipsis, never sped up.",
+      "narration": "A log name refers to video/build/logs/<name>.json, written by sandbox.mjs from a real run; vhs.mjs films those commands in a real pty. workspace: scratch starts in an empty dir, from:<beat> carries on from an earlier session, skip drops a step that only the article needs.",
       "scene": {
         "type": "terminal",
         "title": "What the command does",
-        "log": "scaffold"
+        "log": "scaffold",
+        "workspace": "scratch"
       }
     },
     {
-      "id": "06-outro",
+      "id": "06-live-page",
+      "caption": "The page itself, in both themes",
+      "narration": "A preview beat iframes a live page and, with themeAt, switches its theme partway through. path is relative to the served base: a Storybook story, or a route of the demo app.",
+      "scene": {
+        "type": "preview",
+        "path": "iframe.html?id=components-button--docs",
+        "themeAt": 0.55
+      }
+    },
+    {
+      "id": "07-outro",
       "caption": "What the series does next",
       "narration": "The payoff, then where the next part goes.",
       "scene": {

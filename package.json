@@ -113,6 +113,7 @@
     "video:sandbox": "node video/scripts/cli.mjs sandbox",
     "video:audition": "node video/scripts/cli.mjs audition",
     "video:voice": "node video/scripts/cli.mjs voice",
+    "video:terminals": "node video/scripts/cli.mjs vhs",
     "video:record": "node video/scripts/cli.mjs record",
     "video:assemble": "node video/scripts/cli.mjs assemble",
     "video:serve": "node video/scripts/cli.mjs serve",

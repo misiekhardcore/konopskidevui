@@ -94,10 +94,13 @@ for (const beat of episode.beats) {
     '-y',
     '-loglevel',
     'error',
-    '-i',
-    source,
+    /* The seek must come before the input: an output seek leaves the timestamps
+       starting at `head`, and the fade-out then fires `head` seconds early and
+       holds black for the rest of the segment. */
     '-ss',
     String(clip.head),
+    '-i',
+    source,
     '-t',
     String(duration),
     '-vf',
