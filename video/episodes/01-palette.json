@@ -1,17 +1,20 @@
 {
   "id": "01-palette",
   "title": "The palette is the product",
-  "subtitle": "Part 1 of 3 - building @konopskidev/ui",
+  "subtitle": "Part 1 of 3 - the style foundation",
   "output": "01-the-palette-is-the-product",
   "article": "articles/01-one-palette-sixty-three-components.md",
-  "voice": "am_fenrir",
-  "speed": 0.98,
+  "voice": "konopski.dev",
+  "engine": "voicebox",
+  "instruct": "Speak as a calm, experienced software engineer teaching a patient, well-structured lesson. Unhurried and warm, never salesy or excited. Clear articulation, small pauses between ideas.",
+  "personality": false,
+  "speed": 1,
   "tail": 0.45,
   "beats": [
     {
       "id": "01-cold-open",
-      "caption": "The palette is the product",
-      "narration": "Two repositories, one look. The site owns the design. The package has to reproduce it in someone else's application, where there is no body rule I control, no font loader I set up, and no guarantee that Tailwind is even configured the way I configured it. This is how one palette came to cover every component in the library.",
+      "caption": "From an empty folder",
+      "narration": "We have a design, and we have decided to ship it as a library. What we do not have is a repository. So this is where we start: an empty folder, one command at a time, and nothing on screen that we do not actually run. By the end of this part, a Vite app is standing, the design lives in eight stylesheets, three components have come off the registry, and Storybook shows all of it in both themes. Parts two and three take the same project to a package someone can install.",
       "scene": {
         "type": "figure",
         "figure": "01-cover",
@@ -19,9 +22,19 @@
       }
     },
     {
-      "id": "02-two-traps",
+      "id": "02-the-problem",
+      "caption": "One look, two applications",
+      "narration": "Start with the thing we are trying to carry: a site that already has a look. Paper white, a deep blue primary, four type families doing different jobs, one corner radius, and borders instead of shadows. Now we want a component library that looks the same inside somebody else’s application, and that application has its own body rule, its own font loader, its own Tailwind configuration. None of them are ours. The only thing we can ship is the design itself.",
+      "scene": {
+        "type": "figure",
+        "figure": "01-palette",
+        "steps": []
+      }
+    },
+    {
+      "id": "03-two-traps",
       "caption": "Three ways, two traps",
-      "narration": "There are three ways to do that, and two of them are traps. The first is to copy the site's stylesheet into the package. Now there are two copies, and the second one is always the stale one. The second is to ship the components unstyled and tell consumers to match the site. That is not a library, it is a folder of markup. The third way is what this repository does: the palette is declared once, in one file, and everything above it refers to it by name. The package ships that file, so a consuming app gets the look by importing one stylesheet.",
+      "narration": "There are three ways to put that design in a package, and the first two fail slowly. We could copy the site’s stylesheet into the package. Then there are two copies, and the second one goes stale the first time the site changes a radius. We could ship the components unstyled and ask every consumer to match the site, which is not a library, it is a folder of markup with homework. The third way is the one we build: declare the palette once, in one file, and let everything above it refer to those values by name. The package ships that file.",
       "scene": {
         "type": "cards",
         "kicker": "Three ways to share a design",
@@ -36,201 +49,299 @@
           {
             "label": "Trap 2",
             "title": "Ship it unstyled",
-            "body": "\"Match the site\" is not a library. It is a folder of markup.",
+            "body": "“Match the site” is not a library. It is a folder of markup with homework.",
             "tone": "bad"
           },
           {
-            "label": "What this repo does",
+            "label": "What we build",
             "title": "Declare it once",
-            "body": "One token file. Utilities, element rules and components refer to it by name. The package ships it.",
+            "body": "One token file. Everything above it refers to it by name. The package ships it.",
             "tone": "good"
           }
         ]
       }
     },
     {
-      "id": "03-scaffold",
-      "caption": "An ordinary starting point",
-      "narration": "Everything below assumes an ordinary starting point, so let me make one. A Vite app with React and TypeScript, Tailwind version four through its Vite plugin, and a components dot jay son that points the shadcn CLI at our own stylesheet. That is the whole setup. The interesting part is what goes into src slash styles.",
+      "id": "04-the-map",
+      "caption": "Six layers, one direction",
+      "narration": "So before we type anything, here is the whole plan on paper, six layers. At the top, tokens: the values. Below it, the theme: one alias per token, so a value becomes a utility. Then the element rules, the house utilities and the prose styles, all reading those utilities. Then the components, written against that vocabulary. Then a build, which packages what exists without rearranging it. And the tarball, which is what a stranger installs. Every layer may refer to the one above it, and may never redefine it. One direction, all the way down.",
       "scene": {
-        "type": "terminal",
-        "title": "A Vite app, Tailwind v4, and a components.json",
-        "log": "scaffold"
+        "type": "figure",
+        "figure": "01-layers",
+        "steps": []
       }
     },
     {
-      "id": "04-tokens",
-      "caption": "The token file is the contract",
-      "narration": "The token file is the contract. Values live here and nowhere else. Light values in root, dark values in a dark class, and the radius, once: half a rem. Every colour the design uses, background, foreground, primary, border, ring, is a name that components refer to. And here is the rule that keeps it honest: these values are unlayered. Not inside a layer, because a layered declaration loses to an unlayered one, and Tailwind's utilities are unlayered.",
+      "id": "05-scaffold",
+      "caption": "An empty folder, a Vite app",
+      "narration": "First command. One folder, and create-vite fills it with a React and TypeScript app. No framework to argue about, no server we did not ask for, a dev server in one command, and the one thing a library needs from its host: a plain stylesheet pipeline that we control.",
       "scene": {
-        "type": "ide",
-        "file": "src/styles/tokens.css",
-        "title": "One colour, declared once",
-        "type_until": 0.9,
+        "type": "terminal",
+        "title": "A Vite app, from an empty folder",
+        "log": "scaffold",
+        "workspace": "scratch"
+      }
+    },
+    {
+      "id": "06-app-stylesheet",
+      "caption": "Tailwind enters through the app",
+      "narration": "Tailwind version four is a Vite plugin and one import, so the app gets the plugin in its config and then owns the stylesheet. And that ownership is the whole point: the app imports Tailwind, loads the four typefaces, then imports our package. The library never imports Tailwind itself, because a library that imports the framework has decided how the app is built. Below the imports, the app shell: the family variables the design expects, and a body rule, which the library deliberately leaves to whoever hosts it.",
+      "scene": {
+        "type": "workbench",
+        "file": "src/app.css",
         "lines": [
-          "/*",
-          " * 1. Values live unlayered so `.dark` can override them.",
-          " * 2. A colour is declared exactly once, here.",
-          " */",
+          "/* The app owns the Tailwind import; the package owns everything under styles/. */",
+          "@import 'tailwindcss';",
           "",
+          "@import '@fontsource/lato/400.css';",
+          "@import '@fontsource/lato/700.css';",
+          "@import '@fontsource/playfair-display/600.css';",
+          "@import '@fontsource/lora/400.css';",
+          "@import '@fontsource/jetbrains-mono/400.css';",
+          "",
+          "@import './styles/globals.css';",
+          "",
+          "/* The app shell: the library deliberately leaves <body> to the consumer. */",
+          ":root {",
+          "  --font-lato: 'Lato';",
+          "  --font-playfair: 'Playfair Display';",
+          "  --font-lora: 'Lora';",
+          "  --font-jetbrains: 'JetBrains Mono';",
+          "}",
+          "",
+          "body {",
+          "  background: var(--background);",
+          "  color: var(--foreground);",
+          "  font-family: var(--font-sans);"
+        ]
+      }
+    },
+    {
+      "id": "07-tokens",
+      "caption": "The token file is the contract",
+      "narration": "Now the values, and this file is the contract. Values live unlayered, so the dark class can override them later; a layered declaration would lose to the utilities generated from the theme. A colour is declared exactly once, here. And dark mode is a class on an ancestor, which the consuming app owns. So: one radius, the surfaces, the primary and its pair, the secondaries and the muted pair, then the semantic two, borders, the input, and the ring.",
+      "scene": {
+        "type": "workbench",
+        "file": "src/styles/tokens.css",
+        "lines": [
           ":root {",
           "  --radius: 0.5rem;",
           "",
           "  --background: #fbfbfa;",
           "  --foreground: #1d2329;",
           "",
+          "  --card: #ffffff;",
+          "  --card-foreground: #1d2329;",
+          "  --popover: #ffffff;",
+          "  --popover-foreground: #1d2329;",
+          "",
           "  --primary: #1f4fa3;",
           "  --primary-foreground: #ffffff;",
+          "  --secondary: #f2f3f4;",
+          "  --secondary-foreground: #1d2329;",
+          "  --muted: #f2f3f4;",
+          "  --muted-foreground: #5d6670;",
+          "  --accent: #f2f3f4;",
+          "  --accent-foreground: #1d2329;",
           "",
-          "  /* … card, popover, secondary, muted, accent, destructive */",
-          "}",
+          "  --success: #1f7a4d;",
+          "  --success-foreground: #ffffff;",
           "",
-          ".dark {",
-          "  --background: #14181c;",
-          "  --primary: #7aa7ee;",
-          "}"
-        ]
-      }
-    },
-    {
-      "id": "05-unlayered",
-      "caption": "One class, both themes",
-      "narration": "Watch what that buys. The preview is rendering in light. The tokens are unlayered, so putting the dark class on the html element overrides them, and every utility that points at a token follows. No component knows that a theme exists. Two themes, one declaration each. And color scheme is set per theme as well, so form controls and scrollbars come along for free.",
-      "scene": {
-        "type": "ide-split",
-        "file": "src/styles/tokens.css",
-        "preview": "app",
-        "themeAt": 0.52,
-        "lines": [
-          ":root {",
-          "  --background: #fbfbfa;",
-          "  --foreground: #1d2329;",
-          "  --primary: #1f4fa3;",
-          "  --primary-foreground: #ffffff;",
+          "  --destructive: #b4362f;",
+          "  --destructive-foreground: #ffffff;",
+          "",
           "  --border: #e1e4e7;",
-          "}",
-          "",
-          "/* unlayered: `.dark` wins over the utilities */",
-          ".dark {",
-          "  --background: #14181c;",
-          "  --foreground: #e8eaed;",
-          "  --primary: #7aa7ee;",
-          "  --primary-foreground: #10161d;",
-          "  --border: #2a3138;",
-          "}"
+          "  --input: #d8dce0;",
+          "  --ring: #1f4fa3;",
+          ""
         ]
       }
     },
     {
-      "id": "06-theme-inline",
-      "caption": "@theme inline",
-      "narration": "Tokens declare values. The theme file is the only place a token becomes a class. One alias per token, forty-three of them, and the word that matters is inline. With a plain theme block, Tailwind would evaluate the variable once on root. With inline, the reference itself is written into the utility, so the token resolves where it is used, and a dark ancestor wins without this file knowing that dark mode exists. That is the difference between copying the palette into the theme and pointing at it.",
+      "id": "08-dark",
+      "caption": "Dark is the same names, once",
+      "narration": "And here is the part that makes the whole idea work. The dark block does not declare a second design system. It redeclares the same names with darker values, and it stops there: no selector, no utility, no component knows that it changed. Two palettes, one set of names, and everything above this file inherits the switch without a single conditional.",
       "scene": {
-        "type": "ide",
-        "file": "src/styles/theme.css",
-        "title": "Where a token becomes a utility",
+        "type": "workbench",
+        "file": "src/styles/tokens.css",
         "lines": [
+          ".dark {",
+          "  --background: #14181c;",
+          "  --foreground: #e6e9ec;",
+          "",
+          "  --card: #171c21;",
+          "  --card-foreground: #e6e9ec;",
+          "  --popover: #171c21;",
+          "  --popover-foreground: #e6e9ec;",
+          "",
+          "  --primary: #7aa7ee;",
+          "  --primary-foreground: #14181c;",
+          "  --secondary: #1c2227;",
+          "  --secondary-foreground: #e6e9ec;",
+          "  --muted: #1c2227;",
+          "  --muted-foreground: #98a2ac;",
+          "  --accent: #232a31;",
+          "  --accent-foreground: #e6e9ec;",
+          "",
+          "  --success: #42be80;",
+          "  --success-foreground: #14181c;",
+          "",
+          "  --destructive: #e07b73;",
+          "  --destructive-foreground: #14181c;",
+          "",
+          "  --border: #2b333a;",
+          "  --input: #333c44;",
+          "  --ring: #7aa7ee;",
+          "",
+          "  --code: #1b2126;",
+          "  --tok-fg: #e6e9ec;",
+          "  --tok-comment: #848e97;",
+          "  --tok-punct: #98a2ac;",
+          "  --tok-keyword: #7aa7ee;",
+          "  --tok-string: #7fd1a6;",
+          "  --tok-number: #e0a04a;",
+          "  --tok-function: #c4a1f0;",
+          "  --tok-type: #6fc3e0;",
+          "",
+          "  color-scheme: dark;"
+        ],
+        "prefill": true
+      }
+    },
+    {
+      "id": "09-theme",
+      "caption": "@theme inline",
+      "narration": "Theme dot CSS is the only place where a value becomes a class. The dark variant comes first, and then the theme block, where the word that matters is inline. With a plain theme block, Tailwind would read the alias once on root and copy the value; with inline, the reference itself is written into the utility, so the token resolves where it is used, and a dark ancestor wins without this file knowing that dark mode exists. The same block owns the type scale, so a heading size is one number in one place.",
+      "scene": {
+        "type": "workbench",
+        "file": "src/styles/theme.css",
+        "lines": [
+          "/* Dark mode is the `.dark` class on an ancestor; `&:is(.dark *)` is the only",
+          "   form that actually matches every element inside it. The root `color-scheme`",
+          "   still only follows `<html>` — see `tokens.css`. */",
           "@custom-variant dark (&:is(.dark *));",
           "",
           "@theme inline {",
-          "  --font-sans: var(--font-lato, 'Lato'), ui-sans-serif, sans-serif;",
-          "  --font-display: var(--font-playfair, 'Playfair Display'), serif;",
+          "  /*",
+          "   * Type. The `--font-*` variables are set by the consuming app — konopskidev",
+          "   * sets them with `next/font`, anything else can set them however it likes.",
+          "   * The fallbacks matter: the site's original `var(--font-lato)` had none, so",
+          "   * outside a `next/font` app the whole stack was invalid.",
+          "   */",
+          "  --font-sans: var(--font-lato, 'Lato'), ui-sans-serif, system-ui, sans-serif;",
+          "  --font-display: var(--font-playfair, 'Playfair Display'), ui-serif, Georgia, serif;",
+          "  --font-serif: var(--font-lora, 'Lora'), ui-serif, Georgia, serif;",
+          "  --font-mono: var(--font-jetbrains, 'JetBrains Mono'), ui-monospace, monospace;",
           "",
-          "  --color-background: var(--background);",
-          "  --color-foreground: var(--foreground);",
-          "  --color-primary: var(--primary);",
-          "  --color-border: var(--border);",
-          "",
-          "  /* … forty-three aliases in all */",
-          "}",
-          "",
-          "/* generated: */",
-          "/* .bg-primary { background-color: var(--primary) } */"
-        ]
-      }
-    },
-    {
-      "id": "07-scale-and-radius",
-      "caption": "One number, once",
-      "narration": "The same block owns the type scale, so an h2 is one number in one place, and both the base element rules and the text utilities read it. The radius is derived the same way. The smaller step is arithmetic on the one radius, not a second number to keep in sync.",
-      "scene": {
-        "type": "ide",
-        "file": "src/styles/theme.css",
-        "title": "The scale, and the radius by arithmetic",
-        "prefill": "typescale",
-        "lines": [
+          "  /*",
+          "   * Type scale. Body copy is 1rem (the browser default) and every heading step",
+          "   * is a visible jump above it. The base heading rules and the `text-*`",
+          "   * utilities both read these, so a heading size is declared exactly once.",
+          "   */",
+          "  --text-display: clamp(2.25rem, 6vw, 3.5rem);",
+          "  --text-display--line-height: 1.08;",
+          "  --text-lead: 1.25rem;",
+          "  --text-lead--line-height: 1.6;",
           "  --text-h1: clamp(2rem, 4.8vw, 2.75rem);",
           "  --text-h1--line-height: 1.12;",
           "  --text-h2: 1.75rem;",
           "  --text-h2--line-height: 1.2;",
-          "",
-          "  --radius-sm: calc(var(--radius) - 4px);",
-          "  --radius-lg: calc(var(--radius) + 4px);"
-        ]
+          "  --text-h3: 1.375rem;",
+          "  --text-h3--line-height: 1.3;",
+          "  --text-h4: 1.125rem;",
+          "  --text-h4--line-height: 1.4;",
+          "  --text-h5: 1rem;",
+          "  --text-h5--line-height: 1.5;",
+          "  --text-h6: 0.875rem;",
+          "  --text-h6--line-height: 1.5;",
+          ""
+        ],
+        "prefill": true
       }
     },
     {
-      "id": "08-import-graph",
+      "id": "10-globals",
       "caption": "One file, a dependency order",
-      "narration": "What a consumer imports is one file. globals dot css is deliberately nothing but an import graph, and the order is a dependency order, not a preference. Variants and tokens are leaves: one declares the shadcn variants that the registry components are written against, the other declares values. The theme maps those values onto utilities. Base, utilities and prose consume them. Nothing below the theme imports anything above it. And the file refuses to import Tailwind itself, because the app owns that import. A library that imports the framework is a library that decides how the app is built.",
+      "narration": "What a consumer imports is one file, globals, and it is deliberately nothing but an import graph in dependency order. The animation library, the vendored variants and the tokens are leaves. Then the theme maps those values onto utilities, and the element rules, the utilities, the prose and the sonner surface consume them. Eight files, one entry point, and the order in it is the only reason the cascade is predictable.",
       "scene": {
-        "type": "figure",
-        "figure": "01-token-pipeline",
-        "steps": [
-          "globals.css is the only import",
-          "variants + tokens are leaves",
-          "theme maps values to utilities",
-          "base, utilities, prose consume them",
-          "it never imports tailwindcss"
+        "type": "workbench",
+        "file": "src/styles/globals.css",
+        "lines": [
+          "/*",
+          " * @konopskidev/ui — stylesheet entry",
+          " * ==================================",
+          " *",
+          " * This file is the package's `\"./styles.css\"` export. A consuming app imports",
+          " * it *after* Tailwind, and registers this package as a source so the classes",
+          " * used by the components are generated:",
+          " *",
+          " *   @import 'tailwindcss';",
+          " *   @import '@konopskidev/ui/styles.css';",
+          " *   @source '../node_modules/@konopskidev/ui/dist';",
+          " *",
+          " * It deliberately does not import `tailwindcss` itself: the app owns that",
+          " * import order, and importing it here would make the app's own `@source` and",
+          " * `@theme` blocks fight this file's.",
+          " */",
+          "",
+          "/* Every animate-in / fade-in / slide-in-* utility the overlay components use. */",
+          "@import 'tw-animate-css';",
+          "",
+          "/*",
+          " * The data-* variants (data-open, data-checked, …) and the scroll-fade /",
+          " * shimmer / no-scrollbar utilities that current shadcn components rely on.",
+          " * Vendored from shadcn@4: variants and utilities only, no colour tokens, so it",
+          " * composes with the konopskidev palette instead of competing with it.",
+          " */",
+          "@import './variants.css';",
+          "",
+          "@import './tokens.css';",
+          "@import './theme.css';",
+          "@import './utilities.css';",
+          "@import './base.css';",
+          "@import './prose.css';",
+          "@import './sonner.css';"
         ]
       }
     },
     {
-      "id": "09-three-files",
-      "caption": "Three files, three jobs",
-      "narration": "Three files with three different jobs. Base styles elements, not components. Every heading gets the display face and the site's step, so a consumer can drop an h2 inside a card and get it for free. Utilities is the house vocabulary. Eleven of them: container page, card, eyebrow, focus ring. Shipped with the components, so that nobody reinvents the card and gets the radius wrong. And prose is the exception: long-form typography needs descendant selectors, so it stays one class, with links always underlined, because colour alone cannot mark a link.",
+      "id": "11-utilities",
+      "caption": "The house vocabulary",
+      "narration": "One of those files is the vocabulary the components are written in, and the card is the clearest example: one utility, one declaration, the radius, the border and the surface pair. A consumer cannot get the radius wrong because the radius is not theirs to write. The focus treatment is the second: an outline rather than a ring, so it sits outside the box, never shifts layout, and stays visible on every surface the tokens allow.",
       "scene": {
-        "type": "ide-split",
+        "type": "workbench",
         "file": "src/styles/utilities.css",
-        "preview": "app",
-        "scrollTo": 0.42,
         "lines": [
           "@utility card {",
           "  @apply rounded-sm border border-border bg-card text-card-foreground;",
           "}",
           "",
-          "/* An outline, not a ring: outside the box, no layout shift. */",
+          "/*",
+          " * The house focus treatment: an outline, not a ring. It sits outside the box,",
+          " * never shifts layout, and is visible on every surface the tokens allow.",
+          " */",
           "@utility focus-ring {",
-          "  @apply focus-visible:outline-2 focus-visible:outline-offset-2",
-          "         focus-visible:outline-ring;",
-          "}",
-          "",
-          "@utility eyebrow {",
-          "  @apply font-sans text-xs font-medium tracking-[0.08em]",
-          "         text-muted-foreground uppercase;",
-          "}",
-          "",
-          "/* prose.css: descendant selectors, so one class, not utilities */",
-          ".prose-article a {",
-          "  @apply text-primary underline underline-offset-4;",
+          "  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;",
           "}"
-        ]
+        ],
+        "prefill": true
       }
     },
     {
-      "id": "10-registry",
-      "caption": "Pulled, not handwritten",
-      "narration": "I did not write these components by hand. I pulled the radix nova registry through the shadcn CLI and made the result mine. Two things break immediately, and both are predictable. The aliases: the registry writes imports from at slash components, which works in an app and not at all in a published package. And the visual language: rounded extra large surfaces, ring borders, focus rings that shift the layout. Left alone, the package would look like shadcn with a blue primary, which is exactly the two design languages problem I was trying to avoid.",
+      "id": "12-components",
+      "caption": "Three components off the registry",
+      "narration": "With the vocabulary in place, components are mostly a download. The shadcn command line reads components dot json, which points at the stylesheet we just wrote and the alias we registered, and writes three components into the app. Three, not sixty-three: the rest of the library arrives exactly this way, and the interesting work is never the install, it is what happens to the file afterwards.",
       "scene": {
         "type": "terminal",
         "title": "radix-nova, through the CLI",
-        "log": "registry"
+        "log": "registry",
+        "reset": ["src/components/ui"]
       }
     },
     {
-      "id": "11-house-style",
-      "caption": "The contract as a script",
-      "narration": "Translating class strings by hand across every component file is a task you do once and then stop doing, which is how drift starts. So the mechanical half is a script. Imports become relative. Every radius becomes the one radius. Ring borders become real borders. Focus rings become the outline utility. The rules are ordered, because rounded top extra large has to be rewritten before rounded extra large. And the script is idempotent: running it twice changes nothing, so it can run on every pull. Automate what has one correct answer, and review what does not.",
+      "id": "13-house-style",
+      "caption": "Then the files are translated",
+      "narration": "Look at what the registry wrote: a rounded class per corner, alias imports, ring borders. None of that matches the design, and fixing it by hand for every component is how a library drifts. So it is a script, and the script has one correct answer per rule: every radius becomes the one radius, every ring border becomes a real border, every alias import becomes a relative path. Run it twice and the second run reports nothing to change, which is what makes it safe to run on a pull request.",
       "scene": {
         "type": "terminal",
         "title": "scripts/apply-house-style.mjs",
@@ -238,20 +349,20 @@
       }
     },
     {
-      "id": "12-storybook",
-      "caption": "Storybook is the design surface",
-      "narration": "Storybook is where the design is actually reviewed, and that only works if its stylesheet is compiled the way a consumer compiles it: Tailwind first, the package second. The one setting that mattered was docgen. The default extractor cannot see through class variance authority, so every variant degrades to a string and the controls panel becomes a text box. The TypeScript extractor reads the real union, and variant becomes a select over nine values.",
+      "id": "14-storybook",
+      "caption": "Storybook is the review surface",
+      "narration": "Last piece: somewhere to look at this. Storybook compiles the package stylesheet the way a consumer would, Tailwind first and the package second, and the one setting that mattered was the docs extractor. The default one cannot see through class variance authority, so every variant degrades to a string and the controls panel becomes a text box. The TypeScript extractor reads the real union, and now a variant is a select over its actual values, in either theme.",
       "scene": {
         "type": "preview",
         "url": "storybook",
         "path": "iframe.html?id=components-button--docs&viewMode=docs",
-        "themeAt": 0.72
+        "themeAt": 0.7
       }
     },
     {
-      "id": "13-what-it-buys",
-      "caption": "One story, two themes",
-      "narration": "Three things, and they are why the rest of the project went quickly. A colour is declared once, for both themes. A heading is styled once, and a component that needs a different visual step says so without breaking the document outline. And a component pulled from the registry is translated by a script that has one correct answer per rule.",
+      "id": "15-what-it-buys",
+      "caption": "One palette, every surface",
+      "narration": "Three things, and they are why the rest of the project will go quickly. A colour is declared once, for both themes. A heading is styled once, and a component that needs a different visual step says so without breaking the document outline. And a component pulled from the registry is translated by a script that has one correct answer per rule, so the tenth component costs less than the first.",
       "scene": {
         "type": "figure",
         "figure": "01-button-themes",
@@ -259,15 +370,15 @@
       }
     },
     {
-      "id": "14-outro",
-      "caption": "Part 2, then Part 3",
-      "narration": "The palette is the product. Everything else, the build, the tests, the release, exists to deliver this file and the components that read it. Part two is how those components behave. Part three is how all of it becomes one tarball a stranger can install.",
+      "id": "16-outro",
+      "caption": "What comes next",
+      "narration": "That is the style foundation: a palette in one file, a theme that maps it to utilities, an import graph, and three components wearing the house rules. Next, part two starts from this folder again and makes it a repository: the build, the types, a test and a story for every component. Then part three turns the result into one tarball that a stranger can install.",
       "scene": {
         "type": "figure",
         "figure": "01-cover",
         "steps": [],
         "outro": [
-          "Part 2 - The palette is not the product",
+          "Part 2 - The repository, from this folder",
           "Part 3 - The version that typed cleanly"
         ]
       }

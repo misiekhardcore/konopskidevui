@@ -22,12 +22,23 @@ export const paths = {
   out: path.join(root, 'video/out'),
   figures: path.join(root, 'articles/images'),
   storybook: path.join(root, 'video/build/storybook'),
+  bin: path.join(root, 'video/build/bin'),
+  terminals: path.join(root, 'video/build/terminals'),
+  terminalWs: path.join(root, 'video/build/terminals/ws'),
+  fonts: path.join(root, 'video/build/fonts'),
+  fontconfig: path.join(root, 'video/build/fontconfig'),
+  codeServer: path.join(root, 'video/build/code-server'),
+  profile: path.join(root, 'video/vscode'),
 };
 
 /* One 1080p30 series: the stage is laid out for this frame, the recorder films
    it and the assembler encodes it. Kept here rather than in each script so the
    three cannot disagree. */
 export const FRAME = { width: 1920, height: 1080, fps: 30 };
+
+/* The terminal card's inner box. VHS films at exactly this size so the stage
+   never rescales the recording; the card is sized from the same numbers. */
+export const TERMINAL = { width: 1776, height: 660 };
 
 export const log = (message = '') => process.stdout.write(`${message}\n`);
 

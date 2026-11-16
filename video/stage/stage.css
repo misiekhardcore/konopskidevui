@@ -5,6 +5,7 @@
  * written series should look like two views of one artifact - and it is sized in
  * CSS pixels at exactly the recording size, so nothing is ever scaled.
  */
+@import '/overlay.css';
 @import '/nm/@fontsource/lato/400.css';
 @import '/nm/@fontsource/lato/700.css';
 @import '/nm/@fontsource/lato/900.css';
@@ -67,47 +68,8 @@ body {
 
 /* --------------------------------------------------------------- over-caption */
 
-/* Top-left, so it never fights the figure's own generated caption. */
-#caption {
-  position: absolute;
-  left: 64px;
-  right: 64px;
-  top: 34px;
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
-  font-size: 19px;
-  letter-spacing: 0.01em;
-  color: var(--muted-foreground);
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 600ms ease,
-    transform 600ms ease;
-}
-
-#canvas.ready #caption {
-  opacity: 1;
-  transform: none;
-}
-
-#caption .series {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--primary);
-}
-
-#progress {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 3px;
-  width: 0;
-  background: var(--primary);
-  opacity: 0.55;
-}
+/* `#caption` and `#progress` live in overlay.css: the workbench page wears the
+   same two elements, and there must be one definition of them. */
 
 /* -------------------------------------------------------------------- figure */
 
@@ -287,272 +249,6 @@ body {
   color: var(--muted-foreground);
 }
 
-/* ----------------------------------------------------------------------- ide */
-
-/* Sits below the caption bar: 56px is the caption's own height plus air. */
-.ide {
-  position: absolute;
-  inset: 56px 0 0 0;
-  display: grid;
-  grid-template-rows: 44px 1fr 34px;
-  background: var(--editor);
-}
-
-.ide-bar {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 0 20px;
-  background: var(--chrome);
-  border-bottom: 1px solid var(--border);
-  font-size: 15px;
-  color: var(--muted-foreground);
-}
-
-.ide-bar .dots {
-  display: flex;
-  gap: 8px;
-}
-
-.ide-bar .dots i {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #d7dbe0;
-}
-
-.ide-bar .title {
-  margin-inline: auto;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--foreground) 80%, transparent);
-}
-
-.ide-main {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  min-height: 0;
-}
-
-.explorer {
-  border-right: 1px solid var(--border);
-  background: #fafafa;
-  padding: 16px 0;
-  font-size: 15px;
-  color: var(--muted-foreground);
-}
-
-.explorer .root {
-  padding: 0 20px 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-.explorer ul {
-  list-style: none;
-  padding: 0;
-}
-
-.explorer li {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 20px 7px 28px;
-  white-space: nowrap;
-}
-
-.explorer li.dir {
-  padding-left: 14px;
-  color: var(--foreground);
-  font-weight: 600;
-}
-
-.explorer li.active {
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--primary);
-}
-
-.explorer .swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: #c7ccd2;
-}
-
-.explorer li.new {
-  animation: file-in 420ms ease both;
-}
-
-@keyframes file-in {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-}
-
-.editor {
-  display: grid;
-  grid-template-rows: 42px 34px 1fr;
-  min-height: 0;
-  background: var(--editor);
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  background: #f4f6f8;
-}
-
-.tab {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 22px;
-  border-right: 1px solid var(--border);
-  background: var(--editor);
-  font-size: 15px;
-  border-top: 2px solid transparent;
-}
-
-.tab.active {
-  border-top-color: var(--primary);
-  font-weight: 600;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 26px;
-  font-size: 14px;
-  color: var(--muted-foreground);
-}
-
-.code {
-  padding: 18px 0 40px;
-  overflow: hidden;
-  font-family: var(--mono);
-  font-size: 23px;
-  line-height: 1.62;
-}
-
-.code .line {
-  position: relative;
-  display: flex;
-  gap: 26px;
-  padding-right: 40px;
-}
-
-.code .gutter {
-  width: 62px;
-  flex: none;
-  text-align: right;
-  color: var(--editor-gutter);
-  opacity: 0.55;
-  font-size: 17px;
-  line-height: 1.62;
-}
-
-.code .src {
-  position: relative;
-  white-space: pre;
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path 60ms linear;
-}
-
-.code .src.done {
-  clip-path: inset(0 0 0 0);
-}
-
-.code .line.hot .gutter {
-  color: var(--primary);
-  opacity: 1;
-}
-
-.code .line.hot {
-  background: color-mix(in srgb, var(--primary) 6%, transparent);
-}
-
-.caret {
-  display: inline-block;
-  width: 3px;
-  height: 1.05em;
-  margin-left: 1px;
-  translate: 0 3px;
-  background: var(--primary);
-}
-
-.caret.blink {
-  animation: blink 1s steps(1) infinite;
-}
-
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.ide-status {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 0 20px;
-  background: var(--chrome);
-  border-top: 1px solid var(--border);
-  font-size: 13px;
-  color: var(--muted-foreground);
-}
-
-.ide-status .spacer {
-  margin-inline: auto;
-}
-
-.ide-status .branch {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* --------------------------------------------------------------- ide + preview */
-
-.split {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 26px;
-  padding: 74px 26px 128px;
-  background: var(--background);
-}
-
-.split .ide {
-  position: relative;
-  inset: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 26px 60px -48px rgba(29, 35, 41, 0.7);
-}
-
-.split .ide-main {
-  grid-template-columns: 210px 1fr;
-}
-
-.split .code {
-  font-size: 19px;
-}
-
-.split .explorer {
-  font-size: 14px;
-}
-
-.split .ide-main .code .gutter {
-  width: 46px;
-  font-size: 15px;
-}
-
 /* -------------------------------------------------------------------- browser */
 
 .browser {
@@ -657,78 +353,20 @@ body {
   font-weight: 600;
 }
 
+/* The card is only a frame: what is inside it is a VHS recording of a real
+   pty, window bar and all, filmed at exactly this size so nothing is rescaled. */
 .term {
-  border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
   background: #fffffe;
-  box-shadow: 0 30px 70px -52px rgba(29, 35, 41, 0.75);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 30px 70px -52px rgba(29, 35, 41, 0.75);
+  line-height: 0;
 }
 
-.term-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  height: 48px;
-  padding: 0 18px;
-  background: var(--chrome);
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--muted-foreground);
-}
-
-.term-bar .dots {
-  display: flex;
-  gap: 7px;
-}
-
-.term-bar .dots i {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #d7dbe0;
-}
-
-.term-body {
-  min-height: 600px;
-  padding: 24px 28px 34px;
-  font-family: var(--mono);
-  font-size: 21px;
-  line-height: 1.6;
-  color: #2b3138;
-}
-
-.term-body .row {
-  display: flex;
-  gap: 12px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  opacity: 0;
-  transform: translateY(4px);
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease;
-}
-
-.term-body .row.on {
-  opacity: 1;
-  transform: none;
-}
-
-.term-body .row .prompt {
-  color: var(--primary);
-  font-weight: 700;
-}
-
-.term-body .row.dim {
-  color: var(--muted-foreground);
-}
-
-.term-body .row.ok {
-  color: var(--success);
-}
-
-.term-body .row.cut {
-  color: #9aa3ac;
-  font-style: italic;
+.term video {
+  display: block;
+  width: 100%;
+  height: auto;
 }

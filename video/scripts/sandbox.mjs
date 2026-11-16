@@ -18,6 +18,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
@@ -98,9 +99,14 @@ if (!existsSync(path.join(ws, 'node_modules/tailwindcss'))) {
   );
 }
 
-/* The stylesheets are the repository's own files, copied rather than retyped. */
-log('copying src/styles from the repository');
+/* The library files are the repository's own, copied rather than retyped: the
+   tour scenes open them, so an older registry pull here would be a different
+   component than the one the narration describes. */
+log('copying src/styles, src/components, src/lib and src/hooks from the repository');
 cpSync(path.join(root, 'src/styles'), path.join(ws, 'src/styles'), { recursive: true });
+for (const directory of ['components', 'lib', 'hooks']) {
+  cpSync(path.join(root, 'src', directory), path.join(ws, 'src', directory), { recursive: true });
+}
 cpSync(
   path.join(root, 'scripts/apply-house-style.mjs'),
   path.join(ws, 'scripts/apply-house-style.mjs'),
@@ -317,80 +323,101 @@ export function App() {
 
 /* ---------------------------------------------------------------- transcripts */
 
-/* The transcript is captured from a throwaway scaffold, so it is a genuine
-   first install rather than this machine's warm cache answering instantly. */
+/*
+ * Each transcript is captured in a throwaway copy, never in the demo app: a
+ * capture is a real run of the real commands, and the demo has to survive it to
+ * serve the next beat. The copies share the demo's `node_modules` through a
+ * symlink, so a capture costs the network only where the video would too.
+ */
+const CAPTURE = path.join(paths.build, '_capture');
+
+function captureCopy(name, { seed = true } = {}) {
+  const copy = path.join(CAPTURE, name);
+  rmSync(copy, { recursive: true, force: true });
+  mkdirSync(copy, { recursive: true });
+
+  if (seed) {
+    cpSync(ws, copy, {
+      recursive: true,
+      filter: (entry) =>
+        !['node_modules', 'dist', '.git', 'src/components/ui'].includes(path.basename(entry)),
+    });
+    mkdirSync(path.join(copy, 'src/components/ui'), { recursive: true });
+    symlinkSync(path.join(ws, 'node_modules'), path.join(copy, 'node_modules'));
+  }
+
+  return copy;
+}
+
+/* The scaffold is a genuine first install in an empty directory, so the video
+   shows create-vite's own output rather than this machine's warm cache. */
 const scaffold = [];
-const scratch = path.join(paths.build, '_scaffold');
-rmSync(scratch, { recursive: true, force: true });
-mkdirSync(scratch, { recursive: true });
+const scratch = captureCopy('scaffold', { seed: false });
 
 scaffold.push(
-  step('pnpm create vite palette-demo --template react-ts', {
+  /* `--no-interactive`: on a tty, create-vite asks about a linter, and the
+     video is typed into a real tty. Off a tty it never asked. */
+  step('pnpm create vite palette-demo --template react-ts --no-interactive', {
     cwd: scratch,
     head: 5,
     tail: 3,
     note: 'real run, abridged',
   }),
 );
-scaffold.push(step('cd palette-demo && pnpm install', { cwd: scratch, head: 3, tail: 2 }));
+/* One shell in the video, so the `cd` is part of the transcript and everything
+   after it runs from inside the app, exactly as it would on screen. */
+const app = path.join(scratch, 'palette-demo');
+scaffold.push(step('cd palette-demo', { cwd: scratch, head: 2 }));
+scaffold.push(step('pnpm install', { cwd: app, head: 3, tail: 2 }));
 scaffold.push(
-  step('cd palette-demo && pnpm add tailwindcss @tailwindcss/vite', {
-    cwd: scratch,
+  step('pnpm add tailwindcss @tailwindcss/vite', {
+    cwd: app,
     head: 4,
     tail: 2,
   }),
 );
+writeLog('scaffold', 'An empty folder becomes a Vite app on Tailwind v4', scaffold);
 rmSync(scratch, { recursive: true, force: true });
-
-scaffold.push(step('ls src/styles', { head: 9 }));
-writeLog('scaffold', 'A Vite app, Tailwind v4, and a components.json', scaffold);
 
 /* -------------------------------------------------------------- the registry */
 
 const registry = [];
-const componentsDir = path.join(ws, 'src/components/ui');
-
-if (!existsSync(componentsDir) || readdirSync(componentsDir).length === 0) {
-  registry.push(step('pnpm dlx shadcn@latest add button card badge --yes', { head: 8, tail: 4 }));
-}
-
-if (!existsSync(componentsDir) || readdirSync(componentsDir).length === 0) {
-  /* The registry was unreachable: fall back to the files this repository
-     actually shipped, and say so in the transcript rather than pretending. */
-  mkdirSync(componentsDir, { recursive: true });
-  const source = path.join(root, 'src/components/ui');
-  for (const name of ['button', 'card', 'badge', 'input', 'label']) {
-    for (const ext of ['.tsx', '.test.tsx', '.stories.tsx']) {
-      const file = path.join(source, `${name}${ext}`);
-      if (existsSync(file)) cpSync(file, path.join(componentsDir, `${name}${ext}`));
-    }
-  }
-  registry.push({
-    cmd: 'cp src/components/ui/*.tsx src/components/ui/',
-    out: ['copied 5 components from the repository (registry unreachable)'],
-    status: 1,
-    note: 'fallback',
-  });
-}
-
-registry.push(step('ls src/components/ui', { head: 5 }));
-/* The count that matters is the repository's, not this demo's handful. */
+const registryApp = captureCopy('registry');
 registry.push(
-  step('ls src/components/ui/*.tsx | grep -v -e stories -e test | wc -l', { cwd: root, head: 1 }),
+  step('pnpm dlx shadcn@latest add button card badge --yes', {
+    cwd: registryApp,
+    head: 6,
+    tail: 4,
+  }),
+);
+registry.push(step('ls src/components/ui', { cwd: registryApp, head: 8 }));
+registry.push(
+  step('ls src/components/ui/*.tsx | grep -v -e stories -e test | wc -l', {
+    cwd: registryApp,
+    head: 1,
+  }),
 );
 writeLog('registry', 'radix-nova, through the CLI', registry);
+rmSync(registryApp, { recursive: true, force: true });
 
 /* ------------------------------------------------------------ the style script */
 
 /* Short, real output: whole class lists are unreadable at video size. */
 const radii = "grep -o 'rounded-[a-z0-9-]*' src/components/ui/button.tsx | sort -u | head -6";
+const styleApp = captureCopy('style');
 const style = [];
-style.push(step(radii, { head: 6 }));
-style.push(step('node scripts/apply-house-style.mjs', { head: 2 }));
-style.push(step(radii, { head: 6 }));
+style.push(step(radii, { cwd: styleApp, head: 6 }));
+style.push(step('node scripts/apply-house-style.mjs', { cwd: styleApp, head: 2 }));
+style.push(step(radii, { cwd: styleApp, head: 6 }));
 style.push(
-  step('node scripts/apply-house-style.mjs', { head: 2, note: 'idempotent: nothing to change' }),
+  step('node scripts/apply-house-style.mjs', {
+    cwd: styleApp,
+    head: 2,
+    note: 'idempotent: nothing to change',
+  }),
 );
 writeLog('style', 'scripts/apply-house-style.mjs', style);
+rmSync(styleApp, { recursive: true, force: true });
+rmSync(CAPTURE, { recursive: true, force: true });
 
 log(`\nsandbox ready: ${path.relative(root, ws)}`);

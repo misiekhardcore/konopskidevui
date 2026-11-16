@@ -4,6 +4,7 @@
  *   /                 the stage (video/stage)
  *   /api/beat/:id     the beat, its highlighted code, its log, and the URLs
  *   /figures/*        the article figures
+ *   /terminals/*      the VHS recordings a terminal beat plays
  *   /nm/*             node_modules, for the @fontsource typefaces
  *   /storybook/*      the real static Storybook build
  *
@@ -19,6 +20,7 @@ import path from 'node:path';
 
 import { codeToTokens } from 'shiki';
 
+import { startWorkbench } from './workbench.mjs';
 import {
   die,
   episodeIds,
@@ -29,6 +31,7 @@ import {
   readTimeline,
   root,
   run,
+  TERMINAL,
   waitForHttp,
 } from './lib.mjs';
 
@@ -45,6 +48,8 @@ const TYPES = {
   '.woff': 'font/woff',
   '.map': 'application/json; charset=utf-8',
   '.ico': 'image/x-icon',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
 };
 
 function send(response, status, body, type = 'text/plain; charset=utf-8') {
@@ -52,13 +57,14 @@ function send(response, status, body, type = 'text/plain; charset=utf-8') {
   response.end(body);
 }
 
-function file(response, target) {
+function file(response, target, headers = {}) {
   if (!existsSync(target) || statSync(target).isDirectory())
     return send(response, 404, 'not found');
 
   response.writeHead(200, {
     'content-type': TYPES[path.extname(target)] ?? 'application/octet-stream',
     'cache-control': 'no-store',
+    ...headers,
   });
   createReadStream(target).pipe(response);
 }
@@ -126,6 +132,11 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
   const previewUrl = `http://127.0.0.1:${previewPort}`;
   await waitForHttp(previewUrl, { timeout: 60_000 });
 
+  /* The real editor, only for an episode that shows one. It is a whole VS Code
+     workbench, so starting it for a figure-only episode would be waste. */
+  const needsEditor = episode.beats.some((beat) => beat.scene.type.startsWith('workbench'));
+  const workbench = needsEditor ? await startWorkbench({ folder: paths.workspace }) : null;
+
   const cache = new Map();
 
   async function beatPayload(id) {
@@ -156,6 +167,13 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
       payload.log = JSON.parse(readFileSync(file, 'utf8'));
     }
 
+    /* The terminal beat plays a recording of the real session, not its text. */
+    if (scene.type === 'terminal') {
+      const clip = path.join(paths.terminals, `${beat.id}.mp4`);
+      if (!existsSync(clip)) die(`no terminal clip ${clip} — run the vhs stage first`);
+      payload.terminal = { url: `/terminals/${beat.id}.mp4`, ...TERMINAL };
+    }
+
     cache.set(id, payload);
     return payload;
   }
@@ -176,8 +194,16 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
       return file(response, path.join(paths.figures, route.replace('/figures/', '')));
     }
 
+    if (route.startsWith('/terminals/')) {
+      return file(response, path.join(paths.terminals, route.replace('/terminals/', '')));
+    }
+
+    /* The workbench page is a different origin, so the typefaces it inherits
+       from the stage need a CORS header rather than a second install. */
     if (route.startsWith('/nm/')) {
-      return file(response, path.join(root, 'node_modules', route.replace('/nm/', '')));
+      return file(response, path.join(root, 'node_modules', route.replace('/nm/', '')), {
+        'access-control-allow-origin': '*',
+      });
     }
 
     if (route.startsWith('/storybook')) {
@@ -207,8 +233,10 @@ export async function startServers({ episodeId, port = 4517, previewPort = 5174 
   return {
     url,
     previewUrl,
+    workbench: workbench?.url ?? null,
     async close() {
       await new Promise((resolve) => server.close(resolve));
+      await workbench?.close();
       try {
         process.kill(-preview.pid, 'SIGTERM');
       } catch {

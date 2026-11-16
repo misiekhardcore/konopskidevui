@@ -4,6 +4,7 @@
  *   node video/scripts/cli.mjs sandbox                  # build the demo app + transcripts
  *   node video/scripts/cli.mjs audition                 # first beat, in one voice
  *   node video/scripts/cli.mjs voice   --episode 01-palette
+ *   node video/scripts/cli.mjs vhs     --episode 01-palette [--only 03-scaffold]
  *   node video/scripts/cli.mjs record  --episode 01-palette [--only 05-unlayered]
  *   node video/scripts/cli.mjs assemble --episode 01-palette
  *   node video/scripts/cli.mjs all     --episode 01-palette
@@ -26,6 +27,7 @@ const STAGES = {
   sandbox: ['sandbox.mjs', () => args],
   audition: ['voice.mjs', () => ['--audition', ...episodeArgs()]],
   voice: ['voice.mjs', () => episodeArgs()],
+  vhs: ['vhs.mjs', () => episodeArgs()],
   record: ['record.mjs', () => episodeArgs()],
   assemble: ['assemble.mjs', () => episodeArgs()],
   serve: ['serve.mjs', () => episodeArgs()],
@@ -46,11 +48,13 @@ function run(script, argv) {
 }
 
 if (command === 'all') {
-  log('\n== 1/3 voice\n');
+  log('\n== 1/4 voice\n');
   run('voice.mjs', episodeArgs());
-  log('\n== 2/3 record\n');
+  log('\n== 2/4 terminals\n');
+  run('vhs.mjs', episodeArgs());
+  log('\n== 3/4 record\n');
   run('record.mjs', episodeArgs());
-  log('\n== 3/3 assemble\n');
+  log('\n== 4/4 assemble\n');
   run('assemble.mjs', episodeArgs());
 } else if (command === 'clean') {
   /* Everything under build/ is derived: audio, clips, the demo app, the model
@@ -74,9 +78,10 @@ if (command === 'all') {
       '  sandbox    build the demo app and the terminal transcripts',
       '  audition   the first beat in one voice (--voice am_onyx)',
       '  voice      synthesise narration for every beat',
+      '  vhs        film every terminal beat as a real shell session',
       '  record     record one clip per beat',
       '  assemble   cut, concat, mux and caption the final video',
-      '  all        voice, record, assemble',
+      '  all        voice, terminals, record, assemble',
       '  serve      serve the stage for manual inspection',
       '  new        draft a beat sheet from an article',
       '  clean      delete video/build (and video/out unless --keep-output)',
