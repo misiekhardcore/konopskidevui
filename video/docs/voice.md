@@ -10,7 +10,7 @@ machine surprising.
 
 ## Voices
 
-The series reads in a male, mid-thirties voice. `am_michael` is the default: calm, even, and it
+The series reads in a male, mid-thirties voice. `am_fenrir` is the default: calm, even, and it
 holds a press through a seven-minute read. The alternatives worth hearing are `am_fenrir`
 (brighter, a little more expressive) and `am_onyx` (lower and older). `am_puck` is the youngest of
 the set. `speed` is 0.98 for episode 1 — Kokoro's default read is a touch brisk for a technical
@@ -18,7 +18,7 @@ sentence.
 
 ```sh
 node video/scripts/cli.mjs audition --episode 01-palette
-open video/build/audition/am_michael.wav     # then am_fenrir / am_onyx
+open video/build/audition/am_fenrir.wav     # then am_fenrir / am_onyx
 ```
 
 Changing voice or speed re-renders audio, which changes every beat's duration, which means the

@@ -127,7 +127,7 @@ const episode = {
   subtitle: 'Draft from article',
   output: slug,
   article: path.relative(root, articlePath),
-  voice: 'am_michael',
+  voice: 'am_fenrir',
   speed: 0.98,
   fps: 30,
   size: [1920, 1080],
