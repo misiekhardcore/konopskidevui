@@ -176,7 +176,7 @@ if (args.audition) {
   process.exit(0);
 }
 
-const voice = args.voice ?? episode.voice ?? 'am_michael';
+const voice = args.voice ?? episode.voice ?? 'am_fenrir';
 const speed = Number(args.speed ?? episode.speed ?? 1);
 const timeline = { episode: episode.id, voice, beats: [] };
 
