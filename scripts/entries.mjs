@@ -26,7 +26,7 @@ export const SRC = fileURLToPath(new URL('../src', import.meta.url));
  */
 export const ESM_ONLY_MODULES = ['lib/highlighter', 'hooks/use-highlighted-code'];
 
-const EXCLUDED = [/\.test\.tsx?$/, /\.stories\.tsx?$/];
+const EXCLUDED = [/\.d\.ts$/, /\.test\.tsx?$/, /\.stories\.tsx?$/];
 
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
