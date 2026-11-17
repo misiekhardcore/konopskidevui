@@ -24,7 +24,7 @@ jobs:
     name: Chromatic
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
         if: env.CHROMATIC_PROJECT_TOKEN != ''
         with:
           # TurboSnap compares against the base commit, which needs the history.
@@ -33,7 +33,7 @@ jobs:
 
       - name: Install pnpm and Node.js
         if: env.CHROMATIC_PROJECT_TOKEN != ''
-        uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v2.0.0
+        uses: pnpm/setup@v3.1.1
         with:
           version: 12.11.2
           runtime: node@24
@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Chromatic
         if: env.CHROMATIC_PROJECT_TOKEN != ''
-        uses: chromaui/action@v18
+        uses: chromaui/action@v18.14.5
         with:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           buildScriptName: build:storybook

@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the branch and every tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           # git-cliff renders the whole changelog from the tag history, so a
           # shallow clone would silently produce an empty one.
@@ -54,7 +54,7 @@ jobs:
           exit 1
 
       - name: Install pnpm and Node.js
-        uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v2.0.0
+        uses: pnpm/setup@v3.1.1
         with:
           # Pinned here rather than in package.json: pnpm 12 rewrites
           # pnpm-lock.yaml to embed its own binaries when `packageManager` is
@@ -89,7 +89,7 @@ jobs:
       # so the notes never list their own "chore: release" commit. Regenerating
       # the file in full keeps older releases instead of overwriting them.
       - name: Generate the changelog
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@v4.9.1
         with:
           config: cliff.toml
           args: --verbose --tag "v${{ steps.version.outputs.version || '0.0.0-preview' }}"
@@ -97,7 +97,7 @@ jobs:
           OUTPUT: CHANGELOG.md
 
       - name: Render the release notes
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@v4.9.1
         with:
           config: cliff.toml
           args: --tag "v${{ steps.version.outputs.version || '0.0.0-preview' }}" --unreleased --strip header
@@ -142,7 +142,7 @@ jobs:
       # that is not on the registry.
       - name: Create the GitHub release
         if: ${{ !inputs.dry_run }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.6.2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           body_path: .release-notes.md

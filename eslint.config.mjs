@@ -20,6 +20,7 @@ export default defineConfig([
     'lint-staged.config.mjs',
     'scripts/**',
     '.storybook/vite.config.ts',
+    'articles/**',
   ]),
 
   js.configs.recommended,
