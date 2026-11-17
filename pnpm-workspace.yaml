@@ -1,5 +1,8 @@
 allowBuilds:
   esbuild: true
+  # kokoro-js (video narration) reaches the CPU backend through these.
+  onnxruntime-node: true
+  protobufjs: true
   '@tailwindcss/oxide': true
   sharp: true
   unrs-resolver: true

@@ -1,0 +1,96 @@
+{
+  "id": "NN-slug",
+  "title": "The episode title, as the video opens",
+  "subtitle": "Part N of 3 - building @konopskidev/ui",
+  "output": "NN-slug",
+  "article": "articles/NN-slug.md",
+  "voice": "am_fenrir",
+  "speed": 0.98,
+  "tail": 0.45,
+  "beats": [
+    {
+      "id": "01-cold-open",
+      "caption": "One line, the chapter title",
+      "narration": "One idea, spoken. About 60 words is 25 seconds. Spell out what must not be misread - 'dot css', 'src slash styles' - and never read code aloud.",
+      "scene": {
+        "type": "figure",
+        "figure": "NN-cover",
+        "steps": []
+      }
+    },
+    {
+      "id": "02-argument",
+      "caption": "The claim of the beat",
+      "narration": "Scene types: figure (a generated diagram), cards (three claims), terminal (a real shell session), workbench (a file typed in the real VS Code), workbench-split (a change beside its effect), preview (a live page, such as Storybook).",
+      "scene": {
+        "type": "cards",
+        "kicker": "UPPERCASE KICKER",
+        "title": "The sentence the cards argue",
+        "cards": [
+          { "label": "First", "title": "Claim", "body": "One sentence.", "tone": "bad" },
+          { "label": "Second", "title": "Claim", "body": "One sentence.", "tone": "bad" },
+          {
+            "label": "What this repo does",
+            "title": "Claim",
+            "body": "One sentence.",
+            "tone": "good"
+          }
+        ]
+      }
+    },
+    {
+      "id": "03-typed-file",
+      "caption": "The file, typed",
+      "narration": "The real workbench types the file; the pace is the beat duration divided by the character count, so there is nothing to tune. prefill: true starts from the file on disk and types only what follows.",
+      "scene": {
+        "type": "workbench",
+        "file": "src/styles/tokens.css",
+        "lines": ["/* the literal file contents, one string per line */"]
+      }
+    },
+    {
+      "id": "04-change-and-effect",
+      "caption": "The change, and its effect",
+      "narration": "themeAt is a fraction of the beat: 0.52 flips the pane to dark a little past halfway.",
+      "scene": {
+        "type": "workbench-split",
+        "file": "src/styles/tokens.css",
+        "preview": "app",
+        "themeAt": 0.52,
+        "lines": ["/* what changes */"]
+      }
+    },
+    {
+      "id": "05-transcript",
+      "caption": "The command, honestly replayed",
+      "narration": "A log name refers to video/build/logs/<name>.json, written by sandbox.mjs from a real run; vhs.mjs films those commands in a real pty. workspace: scratch starts in an empty dir, from:<beat> carries on from an earlier session, skip drops a step that only the article needs.",
+      "scene": {
+        "type": "terminal",
+        "title": "What the command does",
+        "log": "scaffold",
+        "workspace": "scratch"
+      }
+    },
+    {
+      "id": "06-live-page",
+      "caption": "The page itself, in both themes",
+      "narration": "A preview beat iframes a live page and, with themeAt, switches its theme partway through. path is relative to the served base: a Storybook story, or a route of the demo app.",
+      "scene": {
+        "type": "preview",
+        "path": "iframe.html?id=components-button--docs",
+        "themeAt": 0.55
+      }
+    },
+    {
+      "id": "07-outro",
+      "caption": "What the series does next",
+      "narration": "The payoff, then where the next part goes.",
+      "scene": {
+        "type": "figure",
+        "figure": "NN-cover",
+        "steps": [],
+        "outro": ["Part N+1 - the next title"]
+      }
+    }
+  ]
+}

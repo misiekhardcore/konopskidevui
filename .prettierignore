@@ -5,3 +5,7 @@ src/styles/variants.css
 CHANGELOG.md
 .release-notes.md
 package.json
+# video pipeline artifacts and the article drafts it reads
+video/build
+video/out
+articles
