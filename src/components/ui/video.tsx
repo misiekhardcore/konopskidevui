@@ -1,9 +1,41 @@
 'use client';
 
-import { useCreateTextTrack } from '@videojs/react';
-import { Video as VideoElement, VideoPlayer, VideoSkin, usePlayer } from '@videojs/react/video';
+import {
+  CaptionsButton,
+  Container,
+  Controls,
+  FullscreenButton,
+  Gesture,
+  Hotkey,
+  Menu,
+  MuteButton,
+  PiPButton,
+  PlayButton,
+  Poster,
+  Time,
+  TimeSlider,
+  VolumePopover,
+  VolumeSlider,
+  useCreateTextTrack,
+} from '@videojs/react';
+import { Video as VideoElement, VideoPlayer, usePlayer } from '@videojs/react/video';
 import { cn } from 'cn';
-import { ChevronDownIcon } from 'lucide-react';
+import {
+  CaptionsIcon,
+  CaptionsOffIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MaximizeIcon,
+  MinimizeIcon,
+  PauseIcon,
+  PictureInPicture2Icon,
+  PlayIcon,
+  Settings2Icon,
+  Volume1Icon,
+  Volume2Icon,
+  VolumeXIcon,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -19,16 +51,9 @@ import {
   type VideoRendition,
 } from '../../lib/video';
 import { Button } from './button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from './dropdown-menu';
 
 export interface VideoProps {
-  /** The player's accessible name, and the title the skin shows. */
+  /** The player's accessible name. */
   title: string;
   /** Every encoded file of the video; Auto picks one from the environment. */
   renditions: readonly VideoRendition[];
@@ -39,8 +64,8 @@ export interface VideoProps {
 }
 
 /**
- * A 16:9 video player on Video.js 10, styled by the design tokens. Deep-import
- * it, and load `@videojs/react/video/skin.css` once alongside it.
+ * A 16:9 video player on Video.js 10, with a control bar built from the design
+ * tokens. Deep-import it; no Video.js stylesheet is needed.
  */
 function Video({ title, renditions, poster, chapters, captionTrack, className }: VideoProps) {
   // Client-only by design: the server renders `UNKNOWN_ENVIRONMENT`, and the
@@ -52,6 +77,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
   );
   const [quality, setQuality] = React.useState<string>(AUTO_QUALITY);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const pendingPlaybackRef = React.useRef<PendingPlayback | null>(null);
 
   const options = React.useMemo(() => qualityOptions(renditions), [renditions]);
   const activeRendition = React.useMemo(
@@ -59,12 +85,25 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
     [renditions, quality, environment],
   );
 
+  useRestoredPlayhead(videoRef, activeRendition?.src ?? null, pendingPlaybackRef);
+
   if (!activeRendition) return null;
+
+  const selectQuality = (value: string) => {
+    if (value === quality) return;
+
+    const element = videoRef.current;
+    pendingPlaybackRef.current = {
+      position: element?.currentTime ?? 0,
+      wasPlaying: element ? !element.paused : false,
+    };
+    setQuality(value);
+  };
 
   return (
     <div data-slot="video" className={cn('flex w-full min-w-0 flex-col gap-1.5', className)}>
       <VideoPlayer title={title} poster={poster}>
-        <VideoSkin className="aspect-video w-full overflow-hidden rounded-sm border border-border bg-black">
+        <Container className="relative aspect-video w-full overflow-hidden rounded-sm border border-border bg-black">
           <VideoElement
             ref={videoRef}
             aria-label={title}
@@ -72,6 +111,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
             poster={poster}
             playsInline
             preload={environment === UNKNOWN_ENVIRONMENT ? 'none' : 'metadata'}
+            className="absolute inset-0 size-full object-contain"
           >
             {captionTrack ? (
               <track
@@ -83,22 +123,225 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
               />
             ) : null}
           </VideoElement>
-        </VideoSkin>
+          <Poster.Root className="pointer-events-none absolute inset-0 transition-opacity not-data-visible:opacity-0 [&_img]:size-full [&_img]:object-cover">
+            <Poster.Image />
+          </Poster.Root>
+          <VideoControls options={options} quality={quality} onQualityChange={selectQuality} />
+          <VideoBehaviors />
+        </Container>
         <ChapterTrack chapters={chapters} />
-        <VideoFooter
-          videoRef={videoRef}
-          chapterList={chapters}
-          options={options}
-          quality={quality}
-          activeSource={activeRendition.src}
-          onQualityChange={setQuality}
-        />
+        <VideoFooter chapterList={chapters} />
       </VideoPlayer>
     </div>
   );
 }
 
-/** Registers the chapter list as the player's chapters track, which the skin draws. */
+/** The control bar, and the settings menu the quality choice lives in. */
+function VideoControls({
+  options,
+  quality,
+  onQualityChange,
+}: {
+  options: QualityOption[];
+  quality: string;
+  onQualityChange: (quality: string) => void;
+}) {
+  return (
+    <Controls.Root>
+      <Controls.Backdrop className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent transition-opacity duration-200 not-data-visible:opacity-0" />
+      <Controls.Content className="absolute inset-x-2 bottom-2 z-20 flex flex-col gap-1 rounded-sm border border-border bg-popover/95 p-1 text-popover-foreground backdrop-blur transition-[opacity,translate] duration-200 not-data-visible:pointer-events-none not-data-visible:invisible not-data-visible:translate-y-1 not-data-visible:opacity-0">
+        <TimeSlider.Root className="group/slider relative flex h-4 w-full cursor-pointer items-center">
+          <TimeSlider.Chapters className="absolute inset-0" renderChapter={renderChapter} />
+          <TimeSlider.Thumb className="pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ring bg-white opacity-0 transition-opacity group-focus-visible/slider:opacity-100" />
+          <TimeSlider.Preview className="pointer-events-none absolute bottom-full mb-2 hidden rounded-sm border border-border bg-popover px-2 py-1 text-xs whitespace-nowrap group-data-interactive/slider:block">
+            <TimeSlider.ChapterTitle className="block font-medium" />
+            <TimeSlider.Value type="pointer" className="block text-muted-foreground tabular-nums" />
+          </TimeSlider.Preview>
+        </TimeSlider.Root>
+
+        <div className="flex items-center gap-0.5">
+          <PlayButton
+            render={(props, state) => (
+              <Button {...props} variant="ghost" size="icon-sm">
+                {state.paused ? <PlayIcon /> : <PauseIcon />}
+              </Button>
+            )}
+          />
+          <VolumeControl />
+          <Time.Group className="flex items-center gap-1 px-1 text-xs text-muted-foreground tabular-nums">
+            <Time.Value type="current" />
+            <Time.Separator />
+            <Time.Value type="duration" />
+          </Time.Group>
+          <span className="flex-1" />
+          <CaptionsButton
+            render={(props, state) => (
+              <Button {...props} variant="ghost" size="icon-sm">
+                {state.subtitlesShowing ? <CaptionsIcon /> : <CaptionsOffIcon />}
+              </Button>
+            )}
+          />
+          {options.length > 0 ? (
+            <VideoSettingsMenu
+              options={options}
+              quality={quality}
+              onQualityChange={onQualityChange}
+            />
+          ) : null}
+          <PiPButton
+            render={(props) => (
+              <Button {...props} variant="ghost" size="icon-sm">
+                <PictureInPicture2Icon />
+              </Button>
+            )}
+          />
+          <FullscreenButton
+            render={(props, state) => (
+              <Button {...props} variant="ghost" size="icon-sm">
+                {state.fullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
+              </Button>
+            )}
+          />
+        </div>
+      </Controls.Content>
+    </Controls.Root>
+  );
+}
+
+/** One chapter segment on the timeline, filled up to the playhead. */
+function renderChapter(
+  props: Omit<React.HTMLProps<HTMLElement>, 'ref'>,
+  chapter: { startPercent: string; width?: string; height?: string },
+) {
+  return (
+    <div
+      {...props}
+      data-slot="video-chapter"
+      className="absolute inset-y-0 flex items-center px-px"
+      style={{ ...props.style, left: chapter.startPercent, width: chapter.width ?? chapter.height }}
+    >
+      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: 'var(--media-slider-chapter-fill)' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Mute, and a vertical volume slider when the media has a volume level. */
+function VolumeControl() {
+  return (
+    <VolumePopover.Root openOnHover side="top">
+      <VolumePopover.Trigger
+        render={
+          <MuteButton
+            render={(props, state) => (
+              <Button {...props} variant="ghost" size="icon-sm">
+                <VolumeIcon level={state.volumeLevel} />
+              </Button>
+            )}
+          />
+        }
+      />
+      <VolumePopover.Popup
+        className="flex h-28 w-9 items-center justify-center rounded-sm border border-border bg-popover p-2"
+        style={{ '--media-popover-side-offset': '8px' } as React.CSSProperties}
+      >
+        <VolumeSlider.Root orientation="vertical" className="relative h-full w-1 cursor-pointer">
+          <VolumeSlider.Track className="absolute inset-0 rounded-full bg-muted" />
+          <VolumeSlider.Fill
+            className="absolute inset-x-0 bottom-0 rounded-full bg-primary"
+            style={{ height: 'var(--media-slider-fill)' }}
+          />
+          <VolumeSlider.Thumb
+            className="absolute left-1/2 size-3 -translate-x-1/2 translate-y-1/2 rounded-full border border-ring bg-white"
+            style={{ bottom: 'var(--media-slider-fill)' }}
+          />
+        </VolumeSlider.Root>
+      </VolumePopover.Popup>
+    </VolumePopover.Root>
+  );
+}
+
+function VolumeIcon({ level }: { level: MuteButton.State['volumeLevel'] }) {
+  if (level === 'off') return <VolumeXIcon />;
+  if (level === 'high') return <Volume2Icon />;
+
+  return <Volume1Icon />;
+}
+
+/** The gear in the control bar; quality is a submenu of its settings. */
+function VideoSettingsMenu({
+  options,
+  quality,
+  onQualityChange,
+}: {
+  options: QualityOption[];
+  quality: string;
+  onQualityChange: (quality: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const currentLabel = quality === AUTO_QUALITY ? 'Auto' : `${quality}p`;
+
+  const pickQuality = (value: string) => {
+    onQualityChange(value);
+    setOpen(false);
+  };
+
+  return (
+    <Menu.Root side="top" align="end" open={open} onOpenChange={setOpen}>
+      <Menu.Trigger render={<Button variant="ghost" size="icon-sm" />} aria-label="Settings">
+        <Settings2Icon />
+      </Menu.Trigger>
+      <Menu.Popup className="z-30 w-44 rounded-sm border border-border bg-popover p-1 text-popover-foreground">
+        <Menu.Content aria-label="Settings" className="flex flex-col">
+          <Menu.Root>
+            <Menu.Trigger className={MENU_ITEM_CLASS}>
+              <span className="flex-1">Quality</span>
+              <span className="text-xs text-muted-foreground">{currentLabel}</span>
+              <ChevronRightIcon className="size-4 text-muted-foreground" />
+            </Menu.Trigger>
+            <Menu.Content className="flex flex-col">
+              <Menu.Item className={MENU_ITEM_CLASS}>
+                <ChevronLeftIcon className="size-4" />
+                Quality
+              </Menu.Item>
+              <Menu.Separator className="my-1 h-px bg-border" />
+              <Menu.RadioGroup
+                className="flex flex-col"
+                value={quality}
+                onValueChange={pickQuality}
+                aria-label="Quality"
+              >
+                {options.map((option) => (
+                  <Menu.RadioItem
+                    key={option.value}
+                    value={option.value}
+                    className={cn(MENU_ITEM_CLASS, 'pr-8')}
+                  >
+                    {option.label}
+                    <span className="pointer-events-none absolute right-2 flex items-center justify-center">
+                      <Menu.ItemIndicator>
+                        <CheckIcon className="size-4" />
+                      </Menu.ItemIndicator>
+                    </span>
+                  </Menu.RadioItem>
+                ))}
+              </Menu.RadioGroup>
+            </Menu.Content>
+          </Menu.Root>
+        </Menu.Content>
+      </Menu.Popup>
+    </Menu.Root>
+  );
+}
+
+const MENU_ITEM_CLASS =
+  'relative flex cursor-pointer items-center gap-1.5 rounded-sm px-1.5 py-1 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4';
+
+/** Registers the chapter list as the player's chapters track, which the timeline draws. */
 function ChapterTrack({ chapters }: { chapters?: readonly VideoChapter[] }) {
   const track = React.useMemo(
     () => ({ kind: 'chapters' as const, label: 'Chapters', cues: chapterCues(chapters ?? []) }),
@@ -110,32 +353,58 @@ function ChapterTrack({ chapters }: { chapters?: readonly VideoChapter[] }) {
   return null;
 }
 
-/** The chapter under the playhead, and the quality menu when there is a choice. */
-function VideoFooter({
-  videoRef,
-  chapterList,
-  options,
-  quality,
-  activeSource,
-  onQualityChange,
-}: {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  chapterList?: readonly VideoChapter[];
-  options: QualityOption[];
-  quality: string;
-  activeSource: string;
-  onQualityChange: (quality: string) => void;
-}) {
+/** The chapter under the playhead, so a reader always knows where they are. */
+function VideoFooter({ chapterList }: { chapterList?: readonly VideoChapter[] }) {
   const currentTime = usePlayer((state) => state.currentTime);
   const chapter = findChapterAtTime(chapterList ?? [], currentTime);
-  const pendingPlayback = React.useRef<{ position: number; wasPlaying: boolean } | null>(null);
 
+  if (!chapter) return null;
+
+  return (
+    <div data-slot="video-footer" className="flex min-h-8 min-w-0 items-center">
+      <p className="min-w-0 truncate text-xs text-muted-foreground">{chapter.title}</p>
+    </div>
+  );
+}
+
+/** Play on a tap, seek on a double tap, and the shortcuts a video player owes a keyboard. */
+function VideoBehaviors() {
+  return (
+    <>
+      <Gesture type="tap" action="togglePaused" pointer="mouse" region="center" />
+      <Gesture type="tap" action="toggleControls" pointer="touch" />
+      <Gesture type="doubletap" action="seekStep" region="left" />
+      <Gesture type="doubletap" action="toggleFullscreen" region="center" />
+      <Gesture type="doubletap" action="seekStep" region="right" />
+      <Hotkey keys="Space" action="togglePaused" />
+      <Hotkey keys="k" action="togglePaused" />
+      <Hotkey keys="m" action="toggleMuted" />
+      <Hotkey keys="f" action="toggleFullscreen" />
+      <Hotkey keys="c" action="toggleSubtitles" />
+      <Hotkey keys="ArrowLeft" action="seekStep" />
+      <Hotkey keys="ArrowRight" action="seekStep" />
+    </>
+  );
+}
+
+interface PendingPlayback {
+  position: number;
+  wasPlaying: boolean;
+}
+
+/** Puts the playhead back, and resumes playback, once a new source has metadata. */
+function useRestoredPlayhead(
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  activeSource: string | null,
+  pendingPlaybackRef: React.RefObject<PendingPlayback | null>,
+) {
   React.useEffect(() => {
     const element = videoRef.current;
-    const saved = pendingPlayback.current;
-    if (!saved || !element) return;
+    const saved = pendingPlaybackRef.current;
 
-    pendingPlayback.current = null;
+    if (!saved || !element || !activeSource) return;
+
+    pendingPlaybackRef.current = null;
 
     const restore = () => {
       element.currentTime = saved.position;
@@ -149,70 +418,7 @@ function VideoFooter({
 
     element.addEventListener('loadedmetadata', restore, { once: true });
     return () => element.removeEventListener('loadedmetadata', restore);
-  }, [activeSource, videoRef]);
-
-  if (!chapter && options.length === 0) return null;
-
-  const selectQuality = (value: string) => {
-    if (value === quality) return;
-
-    const element = videoRef.current;
-    pendingPlayback.current = {
-      position: element?.currentTime ?? 0,
-      wasPlaying: element ? !element.paused : false,
-    };
-    onQualityChange(value);
-  };
-
-  return (
-    <div
-      data-slot="video-footer"
-      className="flex min-h-8 min-w-0 items-center justify-between gap-3"
-    >
-      <p className="min-w-0 truncate text-xs text-muted-foreground">{chapter?.title}</p>
-      {options.length > 0 ? (
-        <QualityMenu options={options} quality={quality} onQualityChange={selectQuality} />
-      ) : null}
-    </div>
-  );
-}
-
-function QualityMenu({
-  options,
-  quality,
-  onQualityChange,
-}: {
-  options: QualityOption[];
-  quality: string;
-  onQualityChange: (quality: string) => void;
-}) {
-  const currentLabel = quality === AUTO_QUALITY ? 'Auto' : `${quality}p`;
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label={`Quality: ${currentLabel}`}
-          className="shrink-0"
-        >
-          {currentLabel}
-          <ChevronDownIcon data-icon="inline-end" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup value={quality} onValueChange={onQualityChange}>
-          {options.map((option) => (
-            <DropdownMenuRadioItem key={option.value} value={option.value}>
-              {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  }, [activeSource, pendingPlaybackRef, videoRef]);
 }
 
 /** What Auto assumes before the client has read the screen and the connection. */

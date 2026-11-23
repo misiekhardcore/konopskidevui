@@ -1,5 +1,3 @@
-import '@videojs/react/video/skin.css';
-
 import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
 import captionsUrl from '../../stories/assets/captions.vtt?url';
@@ -40,7 +38,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A 16:9 player built on Video.js 10, styled by the design tokens. Auto starts on the file the viewport and connection can use, the chapter list becomes segments on the timeline, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component and load `@videojs/react/video/skin.css` once.',
+          'A 16:9 player built on Video.js 10, with a control bar drawn from the design tokens: play/pause, volume, time, a chapter-segmented timeline, captions, a settings menu holding the quality choice, picture-in-picture and fullscreen. Auto starts on the file the viewport and connection can use, the chapter list becomes segments on the timeline, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component; it needs no Video.js stylesheet.',
       },
     },
   },
@@ -97,8 +95,6 @@ export const Default: Story = {
     const captions = Array.from(video.textTracks).find((track) => track.kind === 'captions');
     await waitFor(() => expect(captions?.cues).toHaveLength(4));
 
-    // The skin hides its control bar until playback starts, so its buttons are
-    // asserted as rendered rather than as visible controls.
     for (const label of [
       'Play',
       'Mute',
@@ -111,17 +107,18 @@ export const Default: Story = {
 
     // Two chapters in a four-second file: one segment each, once metadata loads.
     await waitFor(() =>
-      expect(canvasElement.querySelectorAll('.media-time-slider-chapter')).toHaveLength(2),
+      expect(canvasElement.querySelectorAll('[data-slot="video-chapter"]')).toHaveLength(2),
     );
 
-    await userEvent.click(canvas.getByRole('button', { name: 'Quality: Auto' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /quality/i }));
     await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
 
-    await expect(await canvas.findByRole('button', { name: 'Quality: 720p' })).toBeInTheDocument();
+    await waitFor(() => expect(video.getAttribute('src')).toContain('rendition=720'));
   },
 };
 
-/** A single rendition has no choice to offer, so no quality menu is drawn. */
+/** A single rendition has no choice to offer, so no settings menu is drawn. */
 export const SingleRendition: Story = {
   args: { renditions: [{ src: videoSample, height: 720 }] },
   render: Default.render,
@@ -129,7 +126,7 @@ export const SingleRendition: Story = {
     const canvas = within(canvasElement);
 
     await canvas.findByText('Introduction');
-    expect(canvas.queryByRole('button', { name: /quality/i })).toBeNull();
+    expect(canvas.queryByRole('button', { name: 'Settings' })).toBeNull();
   },
 };
 
@@ -140,19 +137,19 @@ export const WithoutChapters: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    await canvas.findByRole('button', { name: 'Quality: Auto' });
+    await canvas.findByRole('button', { name: 'Settings' });
     expect(canvas.queryByText('Introduction')).toBeNull();
   },
 };
 
-/** Without a caption descriptor the skin draws no captions button. */
+/** Without a caption descriptor the bar draws no captions button. */
 export const WithoutCaptions: Story = {
   args: { captionTrack: undefined },
   render: Default.render,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    await canvas.findByRole('button', { name: 'Quality: Auto' });
+    await canvas.findByRole('button', { name: 'Settings' });
     expect(canvasElement.querySelector('button[aria-label$="captions"]')).toBeNull();
   },
 };

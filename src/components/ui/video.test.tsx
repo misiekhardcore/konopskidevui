@@ -32,6 +32,14 @@ function videoElement(container: HTMLElement) {
   return container.querySelector('video') as HTMLVideoElement;
 }
 
+// The player's popups use the native `popover` attribute, which jsdom does not
+// implement, so Testing Library treats their contents as hidden.
+async function chooseQuality(label: string) {
+  await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await userEvent.click(await screen.findByRole('menuitem', { name: /quality/i, hidden: true }));
+  await userEvent.click(await screen.findByRole('menuitemradio', { name: label, hidden: true }));
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   Reflect.deleteProperty(navigator, 'connection');
@@ -85,56 +93,57 @@ describe('Video', () => {
     expect(screen.getByText('Introduction')).toBeInTheDocument();
   });
 
-  it('shows no quality menu and no chapter line without chapters when there is one rendition', () => {
+  it('shows no settings menu and no chapter line when there is one rendition', () => {
     const { container } = renderVideo({ renditions: [{ src: '/only.mp4', height: 720 }] });
 
-    expect(screen.queryByRole('button', { name: /quality/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
     expect(container.querySelector('[data-slot="video-footer"]')).toBeNull();
   });
 
-  it('names the chapter without a quality menu when there is one rendition', () => {
+  it('names the chapter without a settings menu when there is one rendition', () => {
     renderVideo({ renditions: [{ src: '/only.mp4', height: 720 }], chapters });
 
     expect(screen.getByText('Introduction')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /quality/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
   });
 
-  it('offers the quality menu without a chapter line', () => {
+  it('offers the settings menu without a chapter line', () => {
     const { container } = renderVideo();
 
-    expect(screen.getByRole('button', { name: 'Quality: Auto' })).toBeInTheDocument();
-    expect(container.querySelector('[data-slot="video-footer"]')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+    expect(container.querySelector('[data-slot="video-footer"]')).toBeNull();
   });
 
-  it('offers Auto, 1080p and 720p and names the menu after its value', async () => {
+  it('keeps the quality choice in the settings menu', async () => {
     renderVideo();
 
-    const trigger = screen.getByRole('button', { name: 'Quality: Auto' });
-    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
-    const menu = within(await screen.findByRole('menu'));
-    expect(menu.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual([
-      'Auto',
-      '1080p',
-      '720p',
-    ]);
+    const settings = within(await screen.findByRole('menu', { hidden: true }));
+    const qualityRow = settings.getByRole('menuitem', { name: /quality/i, hidden: true });
+    expect(qualityRow).toBeInTheDocument();
+    expect(settings.queryByRole('menuitemradio', { hidden: true })).toBeNull();
+
+    await userEvent.click(qualityRow);
+
+    await screen.findByRole('menuitemradio', { name: 'Auto', hidden: true });
+    expect(
+      screen.getAllByRole('menuitemradio', { hidden: true }).map((item) => item.textContent),
+    ).toEqual(['Auto', '1080p', '720p']);
   });
 
   it('swaps the source when a quality is chosen and does not switch back', async () => {
     const { container } = renderVideo();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quality: Auto' }));
-    await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
+    await chooseQuality('720p');
 
-    expect(screen.getByRole('button', { name: 'Quality: 720p' })).toBeInTheDocument();
     expect(videoElement(container)).toHaveAttribute('src', '/video-720.mp4');
   });
 
   it('stays on the chosen quality when the viewport changes', async () => {
     const { container, rerender } = renderVideo();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quality: Auto' }));
-    await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
+    await chooseQuality('720p');
 
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1600 });
     rerender(<Video title={title} renditions={renditions} poster="/poster.jpg" />);
@@ -145,8 +154,7 @@ describe('Video', () => {
   it('does nothing when the current quality is chosen again', async () => {
     const { container } = renderVideo();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quality: Auto' }));
-    await userEvent.click(await screen.findByRole('menuitemradio', { name: 'Auto' }));
+    await chooseQuality('Auto');
 
     expect(videoElement(container)).toHaveAttribute('src', '/video-1080.mp4');
   });
@@ -161,8 +169,7 @@ describe('Video', () => {
     });
     video.currentTime = 12;
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quality: Auto' }));
-    await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
+    await chooseQuality('720p');
 
     expect(video.currentTime).toBe(12);
   });
@@ -176,8 +183,7 @@ describe('Video', () => {
     vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);
     video.currentTime = 42;
 
-    await userEvent.click(screen.getByRole('button', { name: 'Quality: Auto' }));
-    await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
+    await chooseQuality('720p');
     fireEvent(video, new Event('loadedmetadata'));
 
     expect(video.currentTime).toBe(42);
@@ -190,7 +196,7 @@ describe('Video', () => {
     const { container } = renderVideo();
 
     expect(videoElement(container)).toHaveAttribute('src', '/video-720.mp4');
-    expect(screen.getByRole('button', { name: 'Quality: Auto' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });
 
   it('starts Auto on the smaller file when save-data is on', () => {

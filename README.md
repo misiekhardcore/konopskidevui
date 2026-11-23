@@ -178,7 +178,6 @@ build, so the component is ESM-only and deep-import only. A player takes a poste
 quality, and the chapter and caption data an editor attached:
 
 ```tsx
-import '@videojs/react/video/skin.css';
 import { Video } from '@konopskidev/ui/components/video';
 
 export function Tutorial() {
@@ -200,15 +199,16 @@ export function Tutorial() {
 }
 ```
 
-The one stylesheet import belongs to the app. The package does not bundle the skin, so an app that
-never renders a player never resolves Video.js.
+No Video.js stylesheet is involved: the control bar is built from the design tokens, so a player
+installed this way looks like the rest of the library in both themes. The dependency stays an
+optional peer, so an app that never renders a player never resolves Video.js.
 
 Auto starts on the lowest rendition on a viewport under 768px, when save-data is on, or on a
 `slow-2g`, `2g` or `3g` connection, and on the highest otherwise. It stays on that rendition; picking
-720p or 1080p swaps the source, keeps the playback position and resumes if the video was playing. A
-video with one rendition gets no quality menu. Chapters become the player's chapters track, which
-draws the segments on the timeline and names the chapter under the scrubber; the line under the
-player names the chapter at the playhead.
+720p or 1080p from the settings menu swaps the source, keeps the playback position and resumes if
+the video was playing. A video with one rendition gets no settings menu. Chapters become the
+player's chapters track, which draws the segments on the timeline and names the chapter under the
+scrubber; the line under the player names the chapter at the playhead.
 
 Every module that calls a hook, or wraps a primitive with no client boundary of its own, carries
 `'use client'`, so it renders inside a React Server Component tree. Two kinds of module stay
