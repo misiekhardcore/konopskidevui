@@ -2,11 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.7.0] - 2026-11-23
+
+### Chores
+
+- **deps:** Upgrade all dependencies to latest (#15)
+
+
+### Features
+
+- **video:** Ship a Video.js 10 player as a deep import (#16)
+
 ## [0.6.0] - 2026-11-12
 
 ### Bug Fixes
 
 - **ui:** Draw outline variants with a label-coloured border (#13)
+
+
+### Chores
+
+- Release v0.6.0
 
 ## [0.5.1] - 2026-11-04
 
