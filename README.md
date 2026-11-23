@@ -206,7 +206,8 @@ optional peer, so an app that never renders a player never resolves Video.js.
 Auto starts on the lowest rendition on a viewport under 768px, when save-data is on, or on a
 `slow-2g`, `2g` or `3g` connection, and on the highest otherwise. It stays on that rendition; picking
 720p or 1080p from the settings menu swaps the source, keeps the playback position and resumes if
-the video was playing. A video with one rendition gets no settings menu. Chapters become the
+the video was playing. The same menu holds the playback speed and the caption language, so it stays
+useful when the video has one rendition and no quality choice. Chapters become the
 player's chapters track, which draws the segments on the timeline and names the chapter under the
 scrubber; the line under the player names the chapter at the playhead.
 

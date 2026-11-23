@@ -38,7 +38,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A 16:9 player built on Video.js 10, with a control bar drawn from the design tokens: play/pause, volume, time, a chapter-segmented timeline, captions, a settings menu holding the quality choice, picture-in-picture and fullscreen. Auto starts on the file the viewport and connection can use, the chapter list becomes segments on the timeline, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component; it needs no Video.js stylesheet.',
+          'A 16:9 player built on Video.js 10, with a control bar drawn from the design tokens: play/pause, volume, time, a chapter-segmented timeline, captions, a settings menu holding quality, speed and the caption language, picture-in-picture and fullscreen. Auto starts on the file the viewport and connection can use, the chapter list becomes segments on the timeline, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component; it needs no Video.js stylesheet.',
       },
     },
   },
@@ -115,10 +115,29 @@ export const Default: Story = {
     await userEvent.click(await screen.findByRole('menuitemradio', { name: '720p' }));
 
     await waitFor(() => expect(video.getAttribute('src')).toContain('rendition=720'));
+
+    // Speed and the caption language share the same settings menu.
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /speed/i }));
+    await userEvent.click(await screen.findByRole('menuitemradio', { name: /1\.5/ }));
+
+    await waitFor(() => expect(video.playbackRate).toBe(1.5));
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /captions/i }));
+    await userEvent.click(await screen.findByRole('menuitemradio', { name: 'Off' }));
+
+    await waitFor(() => expect(captions?.mode).toBe('disabled'));
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /captions/i }));
+    await userEvent.click(await screen.findByRole('menuitemradio', { name: 'English' }));
+
+    await waitFor(() => expect(captions?.mode).toBe('showing'));
   },
 };
 
-/** A single rendition has no choice to offer, so no settings menu is drawn. */
+/** A single rendition has no quality choice, but speed and captions remain. */
 export const SingleRendition: Story = {
   args: { renditions: [{ src: videoSample, height: 720 }] },
   render: Default.render,
@@ -126,7 +145,11 @@ export const SingleRendition: Story = {
     const canvas = within(canvasElement);
 
     await canvas.findByText('Introduction');
-    expect(canvas.queryByRole('button', { name: 'Settings' })).toBeNull();
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+
+    const settings = within(await screen.findByRole('menu'));
+    expect(settings.queryByRole('menuitem', { name: /quality/i })).toBeNull();
+    expect(settings.getByRole('menuitem', { name: /speed/i })).toBeInTheDocument();
   },
 };
 
@@ -151,5 +174,9 @@ export const WithoutCaptions: Story = {
 
     await canvas.findByRole('button', { name: 'Settings' });
     expect(canvasElement.querySelector('button[aria-label$="captions"]')).toBeNull();
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+    const settings = within(await screen.findByRole('menu'));
+    expect(settings.queryByRole('menuitem', { name: /captions/i })).toBeNull();
   },
 };

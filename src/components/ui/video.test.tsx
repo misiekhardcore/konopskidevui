@@ -93,18 +93,17 @@ describe('Video', () => {
     expect(screen.getByText('Introduction')).toBeInTheDocument();
   });
 
-  it('shows no settings menu and no chapter line when there is one rendition', () => {
+  it('draws no chapter line when there is one rendition', () => {
     const { container } = renderVideo({ renditions: [{ src: '/only.mp4', height: 720 }] });
 
-    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+    expect(videoElement(container)).toHaveAttribute('src', '/only.mp4');
     expect(container.querySelector('[data-slot="video-footer"]')).toBeNull();
   });
 
-  it('names the chapter without a settings menu when there is one rendition', () => {
+  it('names the chapter when there is one rendition', () => {
     renderVideo({ renditions: [{ src: '/only.mp4', height: 720 }], chapters });
 
     expect(screen.getByText('Introduction')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
   });
 
   it('offers the settings menu without a chapter line', () => {

@@ -16,7 +16,9 @@ import {
   TimeSlider,
   VolumePopover,
   VolumeSlider,
+  useCaptionsOptions,
   useCreateTextTrack,
+  usePlaybackRateOptions,
 } from '@videojs/react';
 import { Video as VideoElement, VideoPlayer, usePlayer } from '@videojs/react/video';
 import { cn } from 'cn';
@@ -181,13 +183,11 @@ function VideoControls({
               </Button>
             )}
           />
-          {options.length > 0 ? (
-            <VideoSettingsMenu
-              options={options}
-              quality={quality}
-              onQualityChange={onQualityChange}
-            />
-          ) : null}
+          <VideoSettingsMenu
+            options={options}
+            quality={quality}
+            onQualityChange={onQualityChange}
+          />
           <PiPButton
             render={(props) => (
               <Button {...props} variant="ghost" size="icon-sm">
@@ -233,7 +233,7 @@ function renderChapter(
 /** Mute, and a vertical volume slider when the media has a volume level. */
 function VolumeControl() {
   return (
-    <VolumePopover.Root openOnHover side="top">
+    <VolumePopover.Root openOnHover side="top" delay={100} closeDelay={250}>
       <VolumePopover.Trigger
         render={
           <MuteButton
@@ -245,10 +245,7 @@ function VolumeControl() {
           />
         }
       />
-      <VolumePopover.Popup
-        className="flex h-28 w-9 items-center justify-center rounded-sm border border-border bg-popover p-2"
-        style={{ '--media-popover-side-offset': '8px' } as React.CSSProperties}
-      >
+      <VolumePopover.Popup className="flex h-28 w-9 items-center justify-center rounded-sm border border-border bg-popover p-2 pb-4">
         <VolumeSlider.Root orientation="vertical" className="relative h-full w-1 cursor-pointer">
           <VolumeSlider.Track className="absolute inset-0 rounded-full bg-muted" />
           <VolumeSlider.Fill
@@ -272,7 +269,10 @@ function VolumeIcon({ level }: { level: MuteButton.State['volumeLevel'] }) {
   return <Volume1Icon />;
 }
 
-/** The gear in the control bar; quality is a submenu of its settings. */
+/**
+ * The gear in the control bar. Quality, speed and the caption language are
+ * submenus, so the bar keeps one settings button rather than three controls.
+ */
 function VideoSettingsMenu({
   options,
   quality,
@@ -282,11 +282,18 @@ function VideoSettingsMenu({
   quality: string;
   onQualityChange: (quality: string) => void;
 }) {
+  const playbackRate = usePlaybackRateOptions();
+  const captions = useCaptionsOptions();
   const [open, setOpen] = React.useState(false);
-  const currentLabel = quality === AUTO_QUALITY ? 'Auto' : `${quality}p`;
 
-  const pickQuality = (value: string) => {
-    onQualityChange(value);
+  const speed = playbackRate?.hidden === false ? playbackRate : null;
+  const captionChoice = captions?.hidden === false ? captions : null;
+  const currentQualityLabel = quality === AUTO_QUALITY ? 'Auto' : `${quality}p`;
+
+  if (options.length === 0 && !speed && !captionChoice) return null;
+
+  const pick = (apply: () => void) => {
+    apply();
     setOpen(false);
   };
 
@@ -297,44 +304,106 @@ function VideoSettingsMenu({
       </Menu.Trigger>
       <Menu.Popup className="z-30 w-44 rounded-sm border border-border bg-popover p-1 text-popover-foreground">
         <Menu.Content aria-label="Settings" className="flex flex-col">
-          <Menu.Root>
-            <Menu.Trigger className={MENU_ITEM_CLASS}>
-              <span className="flex-1">Quality</span>
-              <span className="text-xs text-muted-foreground">{currentLabel}</span>
-              <ChevronRightIcon className="size-4 text-muted-foreground" />
-            </Menu.Trigger>
-            <Menu.Content className="flex flex-col">
-              <Menu.Item className={MENU_ITEM_CLASS}>
-                <ChevronLeftIcon className="size-4" />
-                Quality
-              </Menu.Item>
-              <Menu.Separator className="my-1 h-px bg-border" />
-              <Menu.RadioGroup
-                className="flex flex-col"
+          {options.length > 0 ? (
+            <SettingsSubmenu label="Quality" value={currentQualityLabel}>
+              <SettingsRadioGroup
+                label="Quality"
                 value={quality}
-                onValueChange={pickQuality}
-                aria-label="Quality"
-              >
-                {options.map((option) => (
-                  <Menu.RadioItem
-                    key={option.value}
-                    value={option.value}
-                    className={cn(MENU_ITEM_CLASS, 'pr-8')}
-                  >
-                    {option.label}
-                    <span className="pointer-events-none absolute right-2 flex items-center justify-center">
-                      <Menu.ItemIndicator>
-                        <CheckIcon className="size-4" />
-                      </Menu.ItemIndicator>
-                    </span>
-                  </Menu.RadioItem>
-                ))}
-              </Menu.RadioGroup>
-            </Menu.Content>
-          </Menu.Root>
+                onValueChange={(value) => pick(() => onQualityChange(value))}
+                options={options}
+              />
+            </SettingsSubmenu>
+          ) : null}
+          {speed ? (
+            <SettingsSubmenu label="Speed" value={speed.selectedLabel}>
+              <SettingsRadioGroup
+                label="Playback rate"
+                value={speed.value}
+                onValueChange={(value) => pick(() => speed.setValue(value))}
+                options={speed.options}
+              />
+            </SettingsSubmenu>
+          ) : null}
+          {captionChoice ? (
+            <SettingsSubmenu label="Captions" value={captionChoice.selectedLabel}>
+              <SettingsRadioGroup
+                label="Captions"
+                value={captionChoice.value}
+                onValueChange={(value) => pick(() => captionChoice.setValue(value))}
+                options={captionChoice.options}
+              />
+            </SettingsSubmenu>
+          ) : null}
         </Menu.Content>
       </Menu.Popup>
     </Menu.Root>
+  );
+}
+
+/** A settings row that opens a submenu, labelled with its current value. */
+function SettingsSubmenu({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Menu.Root>
+      <Menu.Trigger className={MENU_ITEM_CLASS}>
+        <span className="flex-1">{label}</span>
+        <span className="text-xs text-muted-foreground">{value}</span>
+        <ChevronRightIcon className="size-4 text-muted-foreground" />
+      </Menu.Trigger>
+      <Menu.Content className="absolute inset-0 z-10 overflow-y-auto rounded-sm bg-popover p-1 aria-hidden:hidden">
+        <Menu.Item className={MENU_ITEM_CLASS}>
+          <ChevronLeftIcon className="size-4" />
+          {label}
+        </Menu.Item>
+        <Menu.Separator className="my-1 h-px bg-border" />
+        {children}
+      </Menu.Content>
+    </Menu.Root>
+  );
+}
+
+/** The radio items of one settings submenu, checked on the right like `dropdown-menu`. */
+function SettingsRadioGroup({
+  label,
+  value,
+  onValueChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: readonly { value: string; label: string }[];
+}) {
+  return (
+    <Menu.RadioGroup
+      className="flex flex-col"
+      value={value}
+      onValueChange={onValueChange}
+      aria-label={label}
+    >
+      {options.map((option) => (
+        <Menu.RadioItem
+          key={option.value}
+          value={option.value}
+          className={cn(MENU_ITEM_CLASS, 'pr-8')}
+        >
+          {option.label}
+          <Menu.ItemIndicator
+            checked={value === option.value}
+            className="pointer-events-none absolute right-2 flex items-center justify-center"
+          >
+            <CheckIcon className="size-4" />
+          </Menu.ItemIndicator>
+        </Menu.RadioItem>
+      ))}
+    </Menu.RadioGroup>
   );
 }
 
