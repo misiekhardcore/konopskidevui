@@ -3,7 +3,7 @@
 The konopskidev design system: every component the shadcn registry ships, rendered in the exact
 visual language of the [konopskidev](../konopskidev) site, on Tailwind CSS v4 and React 19.
 
-- **65 components** — the full `radix-nova` registry, plus the hand-written house primitives.
+- **66 components** — the full `radix-nova` registry, plus the hand-written house primitives.
 - **One style source** — tokens, theme, base layers and prose live in [`src/styles`](src/styles), so
   every app imports the same stylesheet instead of re-deriving the palette.
 - **ESM and CommonJS** — both formats ship, with declarations for each, so `import`, `require` and a
@@ -32,21 +32,22 @@ Some components are built on a heavy library. Those are **optional peers**: they
 with the package, and you add the one a component needs — the manual half of what `shadcn add` does
 for a copied component.
 
-| Component                                       | Install alongside                 |
-| ----------------------------------------------- | --------------------------------- |
-| `chart`                                         | `pnpm add recharts`               |
-| `carousel`                                      | `pnpm add embla-carousel-react`   |
-| `drawer`                                        | `pnpm add vaul`                   |
-| `calendar`                                      | `pnpm add react-day-picker`       |
-| `resizable`                                     | `pnpm add react-resizable-panels` |
-| `command`                                       | `pnpm add cmdk`                   |
-| `sonner`                                        | `pnpm add sonner`                 |
-| `input-otp`                                     | `pnpm add input-otp`              |
-| `combobox`                                      | `pnpm add @base-ui/react`         |
-| `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`          |
-| `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)       |
+| Component                                       | Install alongside                    |
+| ----------------------------------------------- | ------------------------------------ |
+| `chart`                                         | `pnpm add recharts`                  |
+| `carousel`                                      | `pnpm add embla-carousel-react`      |
+| `drawer`                                        | `pnpm add vaul`                      |
+| `calendar`                                      | `pnpm add react-day-picker`          |
+| `resizable`                                     | `pnpm add react-resizable-panels`    |
+| `command`                                       | `pnpm add cmdk`                      |
+| `sonner`                                        | `pnpm add sonner`                    |
+| `input-otp`                                     | `pnpm add input-otp`                 |
+| `combobox`                                      | `pnpm add @base-ui/react`            |
+| `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`             |
+| `video`                                         | `pnpm add @videojs/react` (ESM only) |
+| `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)          |
 
-Those eleven components are **not** in the root barrel, because a barrel that re-exported them would
+Those twelve components are **not** in the root barrel, because a barrel that re-exported them would
 make every consumer resolve `recharts` on `import { Button } from '@konopskidev/ui'`. Import them
 from their subpath:
 
@@ -169,6 +170,45 @@ export function PublishButton() {
   return <Button onClick={() => toast.success('Article published')}>Publish</Button>;
 }
 ```
+
+### Video
+
+`video` is built on [Video.js 10](https://videojs.org) (`@videojs/react`). That peer has no CommonJS
+build, so the component is ESM-only and deep-import only. A player takes a poster, one rendition per
+quality, and the chapter and caption data an editor attached:
+
+```tsx
+import '@videojs/react/video/skin.css';
+import { Video } from '@konopskidev/ui/components/video';
+
+export function Tutorial() {
+  return (
+    <Video
+      title="Installing the design system"
+      poster="/media/poster.jpg"
+      renditions={[
+        { src: '/media/tutorial-1080.mp4', height: 1080 },
+        { src: '/media/tutorial-720.mp4', height: 720 },
+      ]}
+      chapters={[
+        { startTime: 0, title: 'Introduction' },
+        { startTime: 65, title: 'Installing' },
+      ]}
+      captionTrack={{ src: '/media/tutorial.vtt', label: 'English', language: 'en' }}
+    />
+  );
+}
+```
+
+The one stylesheet import belongs to the app. The package does not bundle the skin, so an app that
+never renders a player never resolves Video.js.
+
+Auto starts on the lowest rendition on a viewport under 768px, when save-data is on, or on a
+`slow-2g`, `2g` or `3g` connection, and on the highest otherwise. It stays on that rendition; picking
+720p or 1080p swaps the source, keeps the playback position and resumes if the video was playing. A
+video with one rendition gets no quality menu. Chapters become the player's chapters track, which
+draws the segments on the timeline and names the chapter under the scrubber; the line under the
+player names the chapter at the playhead.
 
 Every module that calls a hook, or wraps a primitive with no client boundary of its own, carries
 `'use client'`, so it renders inside a React Server Component tree. Two kinds of module stay

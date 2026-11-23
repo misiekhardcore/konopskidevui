@@ -126,6 +126,14 @@ assert.equal(typeof require('@konopskidev/ui/hooks/use-mobile').useIsMobile, 'fu
 
 // A component whose peer is not installed stays out of the barrel…
 assert.equal(ui.ChartContainer, undefined, 'chart must not be re-exported from the root');
+assert.equal(ui.Video, undefined, 'video must not be re-exported from the root');
+
+// …and an ESM-only component has no CommonJS subpath to resolve.
+assert.throws(
+  () => require('@konopskidev/ui/components/video'),
+  /not defined by "exports"/,
+  'video must not pretend to have a CommonJS build',
+);
 
 // …and asks for that peer only when its deep import is used.
 assert.throws(

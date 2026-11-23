@@ -1,0 +1,13 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.000
+Every component ships from one package.
+
+00:00:04.000 --> 00:00:10.000
+Install it once and import what you need.
+
+00:00:10.000 --> 00:00:20.000
+Tokens carry colour, spacing and type.
+
+00:00:20.000 --> 00:00:29.000
+Chapters and quality arrive as props.

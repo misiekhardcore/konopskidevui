@@ -31,6 +31,7 @@ const OPTIONAL_PEER_COMPONENTS = [
   'questionnaire', // @shadcn/react
   'resizable', // react-resizable-panels
   'sonner', // sonner
+  'video', // @videojs/react
 ];
 
 const names = readdirSync(UI_DIR)

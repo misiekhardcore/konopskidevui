@@ -61,6 +61,13 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.releasePointerCapture = vi.fn();
 }
 
+// jsdom exposes `audioTracks` as a plain array, which no browser does. Video.js
+// binds its track feature to it, throws, and skips every feature after it.
+Object.defineProperty(HTMLMediaElement.prototype, 'audioTracks', {
+  configurable: true,
+  get: () => undefined,
+});
+
 if (!window.DOMRect) {
   // recharts and the carousel measure elements with DOMRect in the browser.
   // @ts-expect-error -- minimal stand-in, only the properties Radix reads.

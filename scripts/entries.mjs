@@ -20,11 +20,15 @@ export const SRC = fileURLToPath(new URL('../src', import.meta.url));
 
 /**
  * Modules that can only ship as ESM, so the CommonJS pass skips them and the
- * `exports` map lists them without a `require` condition. `shiki` has no
- * CommonJS build (`main` is `dist/index.mjs`), so a `.cjs` copy would throw the
+ * `exports` map lists them without a `require` condition. `shiki` and
+ * `@videojs/react` have no CommonJS build, so a `.cjs` copy would throw the
  * moment a consumer required it.
  */
-export const ESM_ONLY_MODULES = ['lib/highlighter', 'hooks/use-highlighted-code'];
+export const ESM_ONLY_MODULES = [
+  'components/ui/video',
+  'lib/highlighter',
+  'hooks/use-highlighted-code',
+];
 
 const EXCLUDED = [/\.d\.ts$/, /\.test\.tsx?$/, /\.stories\.tsx?$/];
 
