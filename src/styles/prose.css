@@ -102,4 +102,22 @@
   .prose-article blockquote p:last-child {
     @apply mb-0;
   }
+
+  /*
+   * Tables. GFM tables render as <table>/<thead>/<tbody>/<tr>/<th>/<td>, but
+   * only the block rhythm above was styled; without these rules a markdown
+   * table shows up as bare rows with no borders, padding or header fill.
+   */
+  .prose-article table {
+    @apply my-[1.15em] w-full border-collapse;
+  }
+
+  .prose-article th,
+  .prose-article td {
+    @apply border border-border px-3 py-2 text-sm;
+  }
+
+  .prose-article th {
+    @apply bg-muted font-medium text-primary;
+  }
 }
