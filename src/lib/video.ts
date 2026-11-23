@@ -140,6 +140,31 @@ export function chapterCues(chapters: readonly VideoChapter[]): ChapterCue[] {
     }));
 }
 
+/** The line value a cue carries when its author left the position to the browser. */
+const DEFAULT_CUE_LINE = 'auto';
+
+/** Where a caption's bottom sits, as a percentage of the player's height, when unpositioned. */
+const RAISED_CAPTION_LINE = 88;
+
+/**
+ * Lifts the captions an author left unpositioned clear of the player's bottom
+ * edge. Cues that carry their own line are untouched.
+ */
+export function raiseDefaultCaptionLine(cues: Iterable<TextTrackCue>): void {
+  for (const cue of cues) {
+    if (!isPositionedCue(cue) || cue.line !== DEFAULT_CUE_LINE) continue;
+
+    cue.snapToLines = false;
+    cue.line = RAISED_CAPTION_LINE;
+    cue.lineAlign = 'end';
+  }
+}
+
+/** Only a WebVTT cue carries a line; other track kinds' cues have no position. */
+function isPositionedCue(cue: TextTrackCue): cue is VTTCue {
+  return 'line' in cue;
+}
+
 /** The chapter covering a playback position, or null before the first one. */
 export function findChapterAtTime(
   chapters: readonly VideoChapter[],

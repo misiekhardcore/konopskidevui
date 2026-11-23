@@ -8,6 +8,7 @@ import {
   formatWatchTime,
   prefersSmallRendition,
   qualityOptions,
+  raiseDefaultCaptionLine,
   resolveRendition,
 } from './video';
 
@@ -143,6 +144,36 @@ describe('chapterCues', () => {
 
   it('has no cues without chapters', () => {
     expect(chapterCues([])).toEqual([]);
+  });
+});
+
+describe('raiseDefaultCaptionLine', () => {
+  function cue(line: number | 'auto') {
+    return { line, lineAlign: 'start', snapToLines: true } as unknown as VTTCue;
+  }
+
+  it('lifts captions the author left unpositioned, anchored by their bottom edge', () => {
+    const cues = [cue('auto'), cue('auto')];
+
+    raiseDefaultCaptionLine(cues);
+
+    expect(cues.map((entry) => entry.line)).toEqual([88, 88]);
+    expect(cues.map((entry) => entry.snapToLines)).toEqual([false, false]);
+    expect(cues.map((entry) => entry.lineAlign)).toEqual(['end', 'end']);
+  });
+
+  it('leaves an authored line untouched', () => {
+    const authored = cue(20);
+
+    raiseDefaultCaptionLine([authored]);
+
+    expect(authored.line).toBe(20);
+    expect(authored.snapToLines).toBe(true);
+    expect(authored.lineAlign).toBe('start');
+  });
+
+  it('has nothing to lift without cues', () => {
+    expect(() => raiseDefaultCaptionLine([])).not.toThrow();
   });
 });
 

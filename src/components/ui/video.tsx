@@ -45,6 +45,7 @@ import {
   chapterCues,
   findChapterAtTime,
   qualityOptions,
+  raiseDefaultCaptionLine,
   resolveRendition,
   type QualityOption,
   type VideoCaptionTrack,
@@ -79,6 +80,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
   );
   const [quality, setQuality] = React.useState<string>(AUTO_QUALITY);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const captionTrackRef = React.useRef<HTMLTrackElement>(null);
   const pendingPlaybackRef = React.useRef<PendingPlayback | null>(null);
 
   const options = React.useMemo(() => qualityOptions(renditions), [renditions]);
@@ -88,6 +90,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
   );
 
   useRestoredPlayhead(videoRef, activeRendition?.src ?? null, pendingPlaybackRef);
+  useRaisedCaptions(captionTrackRef, captionTrack?.src ?? null);
 
   if (!activeRendition) return null;
 
@@ -117,6 +120,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
           >
             {captionTrack ? (
               <track
+                ref={captionTrackRef}
                 kind="captions"
                 src={captionTrack.src}
                 label={captionTrack.label}
@@ -151,7 +155,7 @@ function VideoControls({
   return (
     <Controls.Root>
       <Controls.Backdrop className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent transition-opacity duration-200 not-data-visible:opacity-0" />
-      <Controls.Content className="absolute inset-x-2 bottom-2 z-20 flex flex-col gap-1 rounded-sm border border-border bg-popover/95 p-1 text-popover-foreground backdrop-blur transition-[opacity,translate] duration-200 not-data-visible:pointer-events-none not-data-visible:invisible not-data-visible:translate-y-1 not-data-visible:opacity-0">
+      <Controls.Content className="absolute inset-x-2 bottom-2 z-20 flex flex-col gap-1 rounded-sm border border-border bg-popover/70 p-1 text-popover-foreground backdrop-blur transition-[opacity,translate] duration-200 not-data-visible:pointer-events-none not-data-visible:invisible not-data-visible:translate-y-1 not-data-visible:opacity-0">
         <TimeSlider.Root className="group/slider relative flex h-4 w-full cursor-pointer items-center">
           <TimeSlider.Chapters className="absolute inset-0" renderChapter={renderChapter} />
           <TimeSlider.Thumb className="pointer-events-none absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ring bg-white opacity-0 transition-opacity group-focus-visible/slider:opacity-100" />
@@ -459,6 +463,24 @@ function VideoBehaviors() {
 interface PendingPlayback {
   position: number;
   wasPlaying: boolean;
+}
+
+/** Lifts the browser-drawn captions clear of the player's bottom edge. */
+function useRaisedCaptions(
+  trackRef: React.RefObject<HTMLTrackElement | null>,
+  source: string | null,
+) {
+  React.useEffect(() => {
+    const element = trackRef.current;
+    if (!element || !source) return;
+
+    const raise = () => raiseDefaultCaptionLine(element.track?.cues ?? []);
+
+    raise();
+    element.addEventListener('load', raise);
+
+    return () => element.removeEventListener('load', raise);
+  }, [trackRef, source]);
 }
 
 /** Puts the playhead back, and resumes playback, once a new source has metadata. */
