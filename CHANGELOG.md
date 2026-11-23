@@ -2,11 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.8.0] - 2026-11-23
+
+### Features
+
+- **ui:** Add GFM table styling to prose-article (#17)
+
 ## [0.7.0] - 2026-11-23
 
 ### Chores
 
 - **deps:** Upgrade all dependencies to latest (#15)
+- Release v0.7.0
 
 
 ### Features
