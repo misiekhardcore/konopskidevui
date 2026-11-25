@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.0] - 2026-11-25
+
+### Features
+
+- **video:** List chapters under the player (#18)
+
 ## [0.8.0] - 2026-11-23
+
+### Chores
+
+- Release v0.8.0
+
 
 ### Features
 
