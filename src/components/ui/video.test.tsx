@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -93,11 +93,39 @@ describe('Video', () => {
     expect(screen.getByText('Introduction')).toBeInTheDocument();
   });
 
-  it('draws no chapter line when there is one rendition', () => {
+  it('lists every chapter and seeks to the one clicked', async () => {
+    const { container } = renderVideo({ chapters });
+
+    await userEvent.click(screen.getByRole('button', { name: /Installing/ }));
+
+    expect(videoElement(container).currentTime).toBe(30);
+  });
+
+  it('marks the chapter at the playhead', async () => {
+    const { container } = renderVideo({ chapters });
+    const video = videoElement(container);
+
+    expect(screen.getByRole('button', { name: /Introduction/ })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+
+    video.currentTime = 31;
+    fireEvent(video, new Event('timeupdate'));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Installing/ })).toHaveAttribute(
+        'aria-current',
+        'true',
+      ),
+    );
+  });
+
+  it('draws no chapter list without chapters', () => {
     const { container } = renderVideo({ renditions: [{ src: '/only.mp4', height: 720 }] });
 
     expect(videoElement(container)).toHaveAttribute('src', '/only.mp4');
-    expect(container.querySelector('[data-slot="video-footer"]')).toBeNull();
+    expect(container.querySelector('[data-slot="video-chapters"]')).toBeNull();
   });
 
   it('names the chapter when there is one rendition', () => {
@@ -106,11 +134,11 @@ describe('Video', () => {
     expect(screen.getByText('Introduction')).toBeInTheDocument();
   });
 
-  it('offers the settings menu without a chapter line', () => {
+  it('offers the settings menu without a chapter list', () => {
     const { container } = renderVideo();
 
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
-    expect(container.querySelector('[data-slot="video-footer"]')).toBeNull();
+    expect(container.querySelector('[data-slot="video-chapters"]')).toBeNull();
   });
 
   it('keeps the quality choice in the settings menu', async () => {

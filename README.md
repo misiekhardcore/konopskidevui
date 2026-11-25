@@ -209,7 +209,7 @@ Auto starts on the lowest rendition on a viewport under 768px, when save-data is
 the video was playing. The same menu holds the playback speed and the caption language, so it stays
 useful when the video has one rendition and no quality choice. Chapters become the
 player's chapters track, which draws the segments on the timeline and names the chapter under the
-scrubber; the line under the player names the chapter at the playhead.
+scrubber; the list under the player jumps to any chapter and marks the current one.
 
 Every module that calls a hook, or wraps a primitive with no client boundary of its own, carries
 `'use client'`, so it renders inside a React Server Component tree. Two kinds of module stay
