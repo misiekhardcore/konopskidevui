@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.1] - 2026-11-25
+
+### Chores
+
+- Bump deps (#19)
+
 ## [0.9.0] - 2026-11-25
+
+### Chores
+
+- Release v0.9.0
+
 
 ### Features
 
