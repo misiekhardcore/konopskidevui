@@ -38,7 +38,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A 16:9 player built on Video.js 10, with a control bar drawn from the design tokens: play/pause, volume, time, a chapter-segmented timeline, captions, a settings menu holding quality, speed and the caption language, picture-in-picture and fullscreen. Auto starts on the file the viewport and connection can use, the chapter list becomes segments on the timeline, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component; it needs no Video.js stylesheet.',
+          'A 16:9 player built on Video.js 10, with a control bar drawn from the design tokens: play/pause, volume, time, a chapter-segmented timeline, captions, a settings menu holding quality, speed and the caption language, picture-in-picture and fullscreen. Auto starts on the file the viewport and connection can use, the chapters become segments on the timeline and a list under the player, and a caption descriptor becomes a selectable WebVTT track. Deep-import the component; it needs no Video.js stylesheet.',
       },
     },
   },
@@ -52,7 +52,7 @@ const meta = {
     },
     chapters: {
       control: false,
-      description: 'Named time ranges, drawn as segments on the timeline.',
+      description: 'Named time ranges, drawn as timeline segments and a chapter list.',
       table: { category: 'Content' },
     },
     captionTrack: {
@@ -109,6 +109,10 @@ export const Default: Story = {
     await waitFor(() =>
       expect(canvasElement.querySelectorAll('[data-slot="video-chapter"]')).toHaveLength(2),
     );
+
+    const chapterList = canvas.getByRole('list', { name: 'Chapters' });
+    await userEvent.click(within(chapterList).getByRole('button', { name: /Installing/ }));
+    await waitFor(() => expect(video.currentTime).toBeGreaterThanOrEqual(2));
 
     await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: /quality/i }));

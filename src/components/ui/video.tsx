@@ -44,6 +44,7 @@ import {
   AUTO_QUALITY,
   chapterCues,
   findChapterAtTime,
+  formatWatchTime,
   qualityOptions,
   raiseDefaultCaptionLine,
   resolveRendition,
@@ -105,6 +106,11 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
     setQuality(value);
   };
 
+  const seekTo = (startTime: number) => {
+    const element = videoRef.current;
+    if (element) element.currentTime = startTime;
+  };
+
   return (
     <div data-slot="video" className={cn('flex w-full min-w-0 flex-col gap-1.5', className)}>
       <VideoPlayer title={title} poster={poster}>
@@ -136,7 +142,7 @@ function Video({ title, renditions, poster, chapters, captionTrack, className }:
           <VideoBehaviors />
         </Container>
         <ChapterTrack chapters={chapters} />
-        <VideoFooter chapterList={chapters} />
+        <ChapterList chapters={chapters} onSeek={seekTo} />
       </VideoPlayer>
     </div>
   );
@@ -426,17 +432,35 @@ function ChapterTrack({ chapters }: { chapters?: readonly VideoChapter[] }) {
   return null;
 }
 
-/** The chapter under the playhead, so a reader always knows where they are. */
-function VideoFooter({ chapterList }: { chapterList?: readonly VideoChapter[] }) {
+/** The chapter list under the player: the current chapter marked, any entry seeks. */
+function ChapterList({
+  chapters,
+  onSeek,
+}: {
+  chapters?: readonly VideoChapter[];
+  onSeek: (startTime: number) => void;
+}) {
   const currentTime = usePlayer((state) => state.currentTime);
-  const chapter = findChapterAtTime(chapterList ?? [], currentTime);
+  const currentChapter = findChapterAtTime(chapters ?? [], currentTime);
 
-  if (!chapter) return null;
+  if (!chapters || chapters.length === 0) return null;
 
   return (
-    <div data-slot="video-footer" className="flex min-h-8 min-w-0 items-center">
-      <p className="min-w-0 truncate text-xs text-muted-foreground">{chapter.title}</p>
-    </div>
+    <ol aria-label="Chapters" data-slot="video-chapters" className="flex flex-wrap gap-1.5">
+      {chapters.map((chapter) => (
+        <li key={`${chapter.startTime}-${chapter.title}`}>
+          <button
+            type="button"
+            aria-current={chapter === currentChapter ? 'true' : undefined}
+            className="flex items-baseline gap-1.5 rounded-sm border border-border px-2 py-1 font-sans text-xs text-muted-foreground focus-ring transition-colors hover:text-foreground aria-[current=true]:border-primary aria-[current=true]:text-foreground"
+            onClick={() => onSeek(chapter.startTime)}
+          >
+            <span className="tabular-nums">{formatWatchTime(chapter.startTime)}</span>
+            {chapter.title}
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }
 
