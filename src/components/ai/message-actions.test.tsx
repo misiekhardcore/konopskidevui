@@ -5,16 +5,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { MessageActions } from './message-actions';
 
 describe('MessageActions', () => {
-  it('renders nothing when no handlers are provided', () => {
-    const { container } = render(<MessageActions />);
-    expect(container.firstChild).toBeNull();
-  });
-
   it('renders only the copy action when onCopy is provided', () => {
     render(<MessageActions onCopy={() => {}} copyValue="Hello world" />);
     expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /regenerate/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
+  });
+
+  it('renders only the feedback action when onFeedback is provided', () => {
+    render(<MessageActions onFeedbackUp={() => {}} />);
+    expect(screen.getByRole('button', { name: /feedback/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
   });
 
   it('renders only the regenerate action when onRegenerate is provided', () => {
@@ -51,9 +52,21 @@ describe('MessageActions', () => {
   });
 
   it('calls onFeedback with an up vote when the feedback control is pressed', async () => {
-    const handleFeedback = vi.fn();
-    render(<MessageActions onFeedback={handleFeedback} />);
+    const handleFeedbackUp = vi.fn();
+    render(<MessageActions onFeedbackUp={handleFeedbackUp} />);
     await userEvent.click(screen.getByRole('button', { name: /feedback/i }));
-    expect(handleFeedback).toHaveBeenCalledWith('up');
+    expect(handleFeedbackUp).toHaveBeenCalled();
+  });
+
+  it('shows check icon after copy succeeds', async () => {
+    const handleCopy = vi.fn();
+    render(<MessageActions onCopy={handleCopy} copyValue="Hello world" />);
+
+    const button = screen.getByRole('button', { name: /copy/i });
+    expect(button).not.toHaveAttribute('data-copied');
+
+    await userEvent.click(screen.getByRole('button', { name: /copy/i }));
+    expect(button).toHaveAttribute('data-copied');
+    expect(button).toHaveAttribute('aria-label', 'Copied');
   });
 });

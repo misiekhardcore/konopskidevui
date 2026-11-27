@@ -3,20 +3,21 @@ import { MessageActions } from './message-actions';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const meta = {
-  title: 'Components/MessageActions',
+  title: 'AI/MessageActions',
   component: MessageActions,
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'A per-message action row that appears only for the actions the app wires up: copy, feedback, regenerate and edit. Handlers are optional; with none provided nothing renders.',
+          'A per-message action row for AI chats: copy, feedback, regenerate and edit. Handlers are optional; with none provided nothing renders.',
       },
     },
   },
   argTypes: {
     onCopy: { control: false, table: { category: 'Handlers' } },
-    onFeedback: { control: false, table: { category: 'Handlers' } },
+    onFeedbackUp: { control: false, table: { category: 'Handlers' } },
+    onFeedbackDown: { control: false, table: { category: 'Handlers' } },
     onRegenerate: { control: false, table: { category: 'Handlers' } },
     onEdit: { control: false, table: { category: 'Handlers' } },
     className: { control: false, table: { category: 'Styling' } },
@@ -32,7 +33,8 @@ export const Default: Story = {
   parameters: { chromatic: { disableSnapshot: false } },
   args: {
     onCopy: () => {},
-    onFeedback: () => {},
+    onFeedbackUp: () => {},
+    onFeedbackDown: () => {},
     onRegenerate: () => {},
     onEdit: () => {},
   },
@@ -49,6 +51,6 @@ export const CopyOnly: Story = {
 export const CopyAndFeedback: Story = {
   args: {
     onCopy: () => {},
-    onFeedback: () => {},
+    onFeedbackUp: () => {},
   },
 };
