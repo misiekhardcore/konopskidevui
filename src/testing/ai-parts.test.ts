@@ -69,7 +69,7 @@ describe('AI part fixtures', () => {
     expect(textParts.done.state).toBe('done');
     expect(reasoningParts.streaming.state).toBe('streaming');
     expect(reasoningParts.done.state).toBe('done');
-    expect(filePart.mediaType).toBe('image/png');
+    expect(filePart.mediaType).toBe('image/svg+xml');
     expect(dataPart.type).toBe('data-weather');
     expect(stepStartPart.type).toBe('step-start');
   });

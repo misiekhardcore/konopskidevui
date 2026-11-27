@@ -1,7 +1,15 @@
 'use client';
 
 import { cn } from 'cn';
-import { DownloadIcon, ExternalLinkIcon, FileIcon } from 'lucide-react';
+import {
+  DownloadIcon,
+  ExternalLinkIcon,
+  FileIcon,
+  PauseIcon,
+  PlayIcon,
+  Volume2Icon,
+  VolumeXIcon,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -14,6 +22,7 @@ import {
   AttachmentTitle,
 } from '../ui/attachment';
 import { Button } from '../ui/button';
+import { Slider } from '../ui/slider';
 
 import type { FileUIPart } from 'ai';
 
@@ -36,6 +45,16 @@ export type FilePartLabels = {
   download: string;
   /** The description under a file that arrived without data. */
   missing: string;
+  /** The audio play button's accessible name; `{name}` is where the file's name goes. */
+  play: string;
+  /** The audio pause button's accessible name. */
+  pause: string;
+  /** The audio seek slider's accessible name. */
+  seek: string;
+  /** The audio mute button's accessible name. */
+  mute: string;
+  /** The audio unmute button's accessible name. */
+  unmute: string;
 };
 
 const DEFAULT_LABELS: FilePartLabels = {
@@ -46,6 +65,11 @@ const DEFAULT_LABELS: FilePartLabels = {
   open: 'Open {name}',
   download: 'Download {name}',
   missing: 'File data is missing',
+  play: 'Play {name}',
+  pause: 'Pause {name}',
+  seek: 'Seek {name}',
+  mute: 'Mute {name}',
+  unmute: 'Unmute {name}',
 };
 
 // `part` is also a DOM attribute, so it has to leave the forwarded props or the
@@ -158,6 +182,115 @@ function useOpenableUrl(url: string): string {
   return object?.source === url ? object.url : url;
 }
 
+/** Seconds as `m:ss`, so the clock keeps one width while it counts. */
+function clockOf(seconds: number): string {
+  const total = Number.isFinite(seconds) && seconds > 0 ? Math.floor(seconds) : 0;
+
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/**
+ * The audio bar: play and pause, a seek slider, the clock and mute, drawn from
+ * the same buttons, slider and icons as the rest of the components. The native
+ * `<audio>` element still does the playing; only its chrome is ours.
+ */
+function AudioPlayer({ src, name, labels }: { src: string; name: string; labels: FilePartLabels }) {
+  const media = React.useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = React.useState(false);
+  const [muted, setMuted] = React.useState(false);
+  const [position, setPosition] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+
+  const togglePlayback = () => {
+    const element = media.current;
+
+    if (!element) return;
+
+    if (!element.paused) {
+      element.pause();
+
+      return;
+    }
+
+    // A browser that blocks playback rejects here; the reader can press play
+    // again, and jsdom's `play` answers with nothing at all.
+    const playback: Promise<void> | undefined = element.play();
+
+    playback?.catch(() => {});
+  };
+
+  const seek = ([seconds]: number[]) => {
+    const element = media.current;
+
+    if (!element) return;
+
+    element.currentTime = seconds ?? 0;
+    setPosition(element.currentTime);
+  };
+
+  const toggleMuted = () => {
+    const element = media.current;
+
+    if (!element) return;
+
+    element.muted = !element.muted;
+    setMuted(element.muted);
+  };
+
+  return (
+    <div
+      data-slot="file-part-audio"
+      className="flex w-full max-w-md items-center gap-1 rounded-sm border border-input bg-muted/40 p-1"
+    >
+      <audio
+        ref={media}
+        data-slot="file-part-media"
+        src={src}
+        preload="metadata"
+        aria-label={name}
+        className="sr-only"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => {
+          setPlaying(false);
+          setPosition(0);
+        }}
+        onTimeUpdate={(event) => setPosition(event.currentTarget.currentTime)}
+        onDurationChange={(event) => setDuration(event.currentTarget.duration)}
+        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
+      />
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={actionLabelOf(playing ? labels.pause : labels.play, name)}
+        onClick={togglePlayback}
+      >
+        {playing ? <PauseIcon aria-hidden="true" /> : <PlayIcon aria-hidden="true" />}
+      </Button>
+      <Slider
+        aria-label={actionLabelOf(labels.seek, name)}
+        min={0}
+        max={duration || 1}
+        value={[Math.min(position, duration || 1)]}
+        onValueChange={seek}
+        disabled={duration === 0}
+        className="flex-1"
+      />
+      <span className="px-1 text-xs text-muted-foreground tabular-nums">
+        {clockOf(position)} / {clockOf(duration)}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={actionLabelOf(muted ? labels.unmute : labels.mute, name)}
+        onClick={toggleMuted}
+      >
+        {muted ? <VolumeXIcon aria-hidden="true" /> : <Volume2Icon aria-hidden="true" />}
+      </Button>
+    </div>
+  );
+}
+
 /** Open and download, as ordinary links: the app owns where the file goes. */
 function FileActions({
   href,
@@ -189,9 +322,10 @@ function FileActions({
 /**
  * A file the model produced, rendered by its media type.
  *
- * An image is shown inline, an audio or video file plays through the browser's
- * own controls, and anything else is an attachment row. The part is data in and
- * events out: open and download are ordinary links, and the app owns the file.
+ * An image is shown inline, an audio part plays in a control bar drawn from the
+ * design tokens, a video part keeps the browser's own controls, and anything
+ * else is an attachment row. The part is data in and events out: open and
+ * download are ordinary links, and the app owns the file.
  */
 function FilePart({ part, labels, className, ...props }: FilePartProps) {
   const text = { ...DEFAULT_LABELS, ...labels };
@@ -278,14 +412,7 @@ function FilePart({ part, labels, className, ...props }: FilePartProps) {
             className="max-w-full rounded-sm border border-input"
           />
         ) : (
-          <audio
-            data-slot="file-part-media"
-            src={href}
-            controls
-            preload="metadata"
-            aria-label={name}
-            className="w-full max-w-md"
-          />
+          <AudioPlayer src={href} name={name} labels={text} />
         )}
         <figcaption
           data-slot="file-part-name"

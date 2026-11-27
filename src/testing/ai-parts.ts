@@ -1,3 +1,7 @@
+import audioSample from '../stories/assets/forecast-briefing.mp3?url';
+import chartSample from '../stories/assets/forecast-chart.png?url';
+import videoSample from '../stories/assets/video-sample.mp4?url';
+
 import type {
   DataUIPart,
   DynamicToolUIPart,
@@ -87,36 +91,51 @@ export const sourceParts = {
   },
 } as const satisfies { url: SourceUrlUIPart; document: SourceDocumentUIPart };
 
+/**
+ * A small chart drawn inline, so the embedded fixture is a picture a reader can
+ * actually see. It is a plain (non-base64) SVG payload, which is the other half
+ * of the data-URL decoding a hosted file never exercises.
+ */
+const embeddedChart =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180">' +
+      '<rect width="320" height="180" fill="#f8fafc"/>' +
+      '<polyline points="28,140 84,120 140,132 196,88 252,64 292,72" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>',
+  );
+
 export const filePart = {
   type: 'file',
-  mediaType: 'image/png',
-  filename: 'forecast-chart.png',
-  url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+  mediaType: 'image/svg+xml',
+  filename: 'forecast-chart.svg',
+  url: embeddedChart,
 } as const satisfies FileUIPart;
 
 /**
  * One model-produced file per media family, so a suite or story never builds a
  * part inline. `filePart` above stays the embedded image the message fixtures
- * carry; these point at hosted files, which is what an app normally renders.
+ * carry; these point at the sample files in `stories/assets`, so a story and a
+ * suite render the same media instead of a URL that answers 404.
  */
 export const fileParts = {
   image: {
     type: 'file',
     mediaType: 'image/png',
     filename: 'forecast-chart.png',
-    url: 'https://example.com/forecast-chart.png',
+    url: chartSample,
   },
   audio: {
     type: 'file',
     mediaType: 'audio/mpeg',
     filename: 'forecast-briefing.mp3',
-    url: 'https://example.com/forecast-briefing.mp3',
+    url: audioSample,
   },
   video: {
     type: 'file',
     mediaType: 'video/mp4',
     filename: 'forecast-loop.mp4',
-    url: 'https://example.com/forecast-loop.mp4',
+    url: videoSample,
   },
   document: {
     type: 'file',

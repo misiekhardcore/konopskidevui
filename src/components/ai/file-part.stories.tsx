@@ -1,4 +1,4 @@
-import { expect, within } from 'storybook/test';
+import { expect, waitFor, within } from 'storybook/test';
 
 import { filePart, fileParts } from '../../testing/ai-parts';
 import { FilePart } from './file-part';
@@ -16,7 +16,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A file the model produced, rendered by its media type: an image inline with open and download, audio and video through the browser’s own controls, and anything else as a read-only attachment. A part that arrived without data still shows its name instead of an empty frame.',
+          'A file the model produced, rendered by its media type: an image inline with open and download, audio in a control bar built from the design tokens, video through the browser’s own controls, and anything else as a read-only attachment. A part that arrived without data still shows its name instead of an empty frame.',
       },
     },
   },
@@ -67,15 +67,30 @@ export const NamelessImage: Story = {
   },
 };
 
-/** An audio part plays through the browser's native, keyboard-operable controls. */
+/**
+ * An audio part plays in a control bar of our own: play and pause, a seek
+ * slider, the clock and mute, all keyboard operable.
+ */
 export const Audio: Story = {
   args: { part: fileParts.audio },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const audio = canvas.getByLabelText('forecast-briefing.mp3');
+    const audio = canvasElement.querySelector('audio') as HTMLAudioElement;
 
-    await expect(audio.tagName).toBe('AUDIO');
-    await expect(audio).toHaveAttribute('controls');
+    await expect(
+      canvas.getByRole('button', { name: 'Play forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
+
+    // The sample in `stories/assets/forecast-briefing.mp3` really loads: the
+    // duration it reports is what turns the seek slider on.
+    await waitFor(() =>
+      expect(audio.readyState).toBeGreaterThanOrEqual(HTMLMediaElement.HAVE_METADATA),
+    );
+
+    await expect(canvas.getByRole('slider', { name: 'Seek forecast-briefing.mp3' })).toBeEnabled();
+    await expect(
+      canvas.getByRole('button', { name: 'Mute forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
   },
 };
 
@@ -84,10 +99,16 @@ export const Video: Story = {
   args: { part: fileParts.video },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const video = canvas.getByLabelText('forecast-loop.mp4');
+    const video = canvas.getByLabelText('forecast-loop.mp4') as HTMLVideoElement;
 
     await expect(video.tagName).toBe('VIDEO');
     await expect(video).toHaveAttribute('controls');
+
+    // The sample in `stories/assets/video-sample.mp4` is a real file, not a URL
+    // that answers 404.
+    await waitFor(() =>
+      expect(video.readyState).toBeGreaterThanOrEqual(HTMLMediaElement.HAVE_METADATA),
+    );
   },
 };
 
@@ -124,9 +145,9 @@ export const Embedded: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    await expect(canvas.getByRole('img', { name: 'forecast-chart.png' })).toBeInTheDocument();
+    await expect(canvas.getByRole('img', { name: 'forecast-chart.svg' })).toBeInTheDocument();
 
-    const open = canvas.getByRole('link', { name: 'Open forecast-chart.png' });
+    const open = canvas.getByRole('link', { name: 'Open forecast-chart.svg' });
 
     await expect(open.getAttribute('href')?.startsWith('blob:')).toBe(true);
   },
