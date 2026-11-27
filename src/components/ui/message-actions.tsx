@@ -1,13 +1,13 @@
 import { cn } from 'cn';
-import { CheckIcon, CopyIcon, ThumbsUpIcon } from 'lucide-react';
+import { CopyIcon, ThumbsUpIcon } from 'lucide-react';
 import * as React from 'react';
 
 /**
  * Copies the given value to the system clipboard and announces the result.
  * The onCopy callback is called; if it returns a Promise, we wait for it.
  */
-async function performCopy(value: string, onCopy: () => void | Promise<void>) {
-  await onCopy?.();
+async function performCopy(value: string, onCopy: (value: string) => void | Promise<void>) {
+  await onCopy?.(value);
 
   // Announce confirmation to assistive technology
   const announcement = document.createElement('div');
@@ -33,7 +33,7 @@ export function MessageActions({
   ...props
 }: {
   onCopy?: (value: string) => void | Promise<void>;
-  onFeedback?: (vote: 'up' | 'down') => void;
+  onFeedback?: (vote: 'up' | 'down' | null) => void;
   onRegenerate?: () => void | Promise<void>;
   onEdit?: () => void | Promise<void>;
   copyValue?: string;
@@ -41,19 +41,18 @@ export function MessageActions({
 } & React.ComponentProps<'div'>) {
   const hasActions =
     Boolean(onCopy) || Boolean(onFeedback) || Boolean(onRegenerate) || Boolean(onEdit);
+  // Feedback state: use a local controlled component to manage the pressed state
+  const [feedbackPressed, setFeedbackPressed] = React.useState<'up' | 'down' | null>(
+    initialFeedback ?? null,
+  );
 
   if (!hasActions) return null;
-
-  // Feedback state: use a local controlled component to manage the pressed state
-  const [feedbackPressed, setFeedbackPressed] = React.useState<
-    'up' | 'down' | null
-  >(initialFeedback ?? null);
 
   return (
     <div
       data-slot="message-actions"
       className={cn(
-        'flex min-w-0 max-w-full flex-wrap items-center gap-2',
+        'flex max-w-full min-w-0 flex-wrap items-center gap-2',
         'data-[state=pending]:pointer-events-none data-[state=pending]:opacity-50',
         props.className,
       )}
@@ -67,7 +66,7 @@ export function MessageActions({
           aria-label={`Copy ${copyValue ?? 'message'} message`}
           aria-live="polite"
           className={cn(
-            'inline-flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+            'inline-flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
           )}
           onClick={async () => {
             if (onCopy && copyValue) await performCopy(copyValue, onCopy);
@@ -85,7 +84,7 @@ export function MessageActions({
           aria-label={feedbackPressed === 'up' ? 'Remove feedback' : 'Give feedback'}
           aria-pressed={feedbackPressed === 'up'}
           className={cn(
-            'inline-flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+            'inline-flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
             feedbackPressed === 'up' && 'bg-primary text-primary-foreground',
           )}
           onClick={() => {
@@ -106,7 +105,7 @@ export function MessageActions({
           data-slot="message-regenerate"
           aria-label="Regenerate message"
           className={cn(
-            'inline-flex h-7 items-center justify-center gap-2 rounded-sm px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+            'inline-flex h-7 items-center justify-center gap-2 rounded-sm px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
           )}
           onClick={onRegenerate}
         >
@@ -121,7 +120,7 @@ export function MessageActions({
           data-slot="message-edit"
           aria-label="Edit message"
           className={cn(
-            'inline-flex h-7 items-center justify-center gap-2 rounded-sm px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+            'inline-flex h-7 items-center justify-center gap-2 rounded-sm px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
           )}
           onClick={onEdit}
         >
