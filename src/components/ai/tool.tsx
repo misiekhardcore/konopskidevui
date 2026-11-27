@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { formatPayload } from '../../lib/format-payload';
 import { CodeBlock, CodeBlockContent, CodeBlockHeader, CodeBlockTitle } from '../ui/code-block';
 import {
   Trace,
@@ -75,11 +76,16 @@ function toolNameOf(part: ToolPart, fallback: string): string {
   return name || fallback;
 }
 
-/** JSON for anything structured, so a payload reads as data rather than `[object Object]`. */
+/**
+ * JSON for anything structured, so a payload reads as data rather than
+ * `[object Object]`. A value JSON cannot serialise — a BigInt, a cycle, a
+ * failing `toJSON` — is summarised by the shared formatter instead of throwing
+ * through the message's render.
+ */
 function jsonText(value: unknown): string | null {
   if (value === undefined || value === null) return null;
 
-  const text = JSON.stringify(value, null, 2);
+  const text = formatPayload(value);
 
   return !text || text === '{}' ? null : text;
 }

@@ -1,6 +1,7 @@
 import { cn } from 'cn';
 import * as React from 'react';
 
+import { formatPayload } from '../../lib/format-payload';
 import { CodeBlock, CodeBlockContent, CodeBlockHeader, CodeBlockTitle } from '../ui/code-block';
 
 import type { DataUIPart } from 'ai';
@@ -55,58 +56,6 @@ function humaniseNameOf(type: string): string {
 }
 
 /**
- * JSON's replacer makes the values JSON cannot express readable rather than
- * fatal: a BigInt becomes its digits, a function is named, a symbol keeps its
- * description, and a reference back up the tree is marked where it closes. The
- * cycle is found by walking the ancestors back to the holder the replacer is
- * called on, which is the only parent chain JSON.stringify exposes.
- */
-function readableValue(this: unknown, _key: string, value: unknown, ancestors: unknown[]) {
-  if (typeof value === 'bigint') return value.toString();
-  if (typeof value === 'function') return `[Function ${value.name || 'anonymous'}]`;
-  if (typeof value === 'symbol') return value.toString();
-
-  if (typeof value === 'object' && value !== null) {
-    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) ancestors.pop();
-
-    if (ancestors.includes(value)) return '[Circular]';
-
-    ancestors.push(value);
-  }
-
-  return value;
-}
-
-/**
- * The payload as JSON, or a sentence when even that is not possible — a
- * `toJSON` that throws, say. A message never fails to render because one part
- * carried something JSON cannot describe.
- */
-function payloadTextOf(data: unknown, labels: DataPartLabels): string {
-  const ancestors: unknown[] = [];
-
-  try {
-    const json = JSON.stringify(
-      data,
-      // A plain function, not an arrow: the replacer's `this` is the object
-      // holding the value, which is how the cycle check walks the parent chain.
-      function (this: unknown, key: string, value: unknown) {
-        return readableValue.call(this, key, value, ancestors);
-      },
-      2,
-    );
-
-    if (json !== undefined) return json;
-  } catch {
-    return labels.unreadable;
-  }
-
-  // JSON.stringify only answers `undefined` for a payload that is itself
-  // `undefined`, which still reads as a word rather than a blank frame.
-  return String(data);
-}
-
-/**
  * Data the app defines, shown as JSON under a name derived from the part.
  *
  * The SDK lets an app attach its own data parts to a message; this is the
@@ -115,6 +64,10 @@ function payloadTextOf(data: unknown, labels: DataPartLabels): string {
  * object never widens or lengthens the message. An app that has a presentation
  * of its own passes `render` and gets the whole part back, with no wrapper and
  * no default around it.
+ *
+ * The payload goes through `formatPayload`, so a value JSON cannot describe is
+ * summarised rather than fatal — the same formatter a tool's input and output
+ * use.
  */
 function DataPart<TData = unknown>({
   part,
@@ -129,6 +82,7 @@ function DataPart<TData = unknown>({
 
   const text = { ...DEFAULT_LABELS, ...labels };
   const name = humaniseNameOf(part.type) || text.data;
+  const payload = formatPayload(part.data) ?? text.unreadable;
 
   return (
     <div
@@ -145,7 +99,7 @@ function DataPart<TData = unknown>({
           The code block already scrolls; the height cap is what keeps a long
           payload inside the message instead of pushing the transcript down.
         */}
-        <CodeBlockContent className="max-h-80">{payloadTextOf(part.data, text)}</CodeBlockContent>
+        <CodeBlockContent className="max-h-80">{payload}</CodeBlockContent>
       </CodeBlock>
     </div>
   );

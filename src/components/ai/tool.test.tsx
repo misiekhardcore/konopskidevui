@@ -155,6 +155,41 @@ describe('Tool', () => {
     expect(screen.getByText('The weather service did not answer.')).toBeInTheDocument();
   });
 
+  it('renders an input JSON cannot express instead of throwing', async () => {
+    const part = {
+      type: 'tool-getWeather',
+      toolCallId: 'call_revision',
+      state: 'input-available',
+      input: { location: 'Kraków', revision: 12n },
+    } as unknown as ToolPart;
+
+    render(<Tool part={part} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /getWeather/ }));
+
+    expect(screen.getByText(/"revision": "12"/)).toBeInTheDocument();
+  });
+
+  it('marks where a self-referencing output closes instead of throwing', async () => {
+    const output: Record<string, unknown> = { temperatureC: 21 };
+
+    output.self = output;
+
+    const part = {
+      type: 'tool-getWeather',
+      toolCallId: 'call_getWeather',
+      state: 'output-available',
+      input: { location: 'Kraków' },
+      output,
+    } as unknown as ToolPart;
+
+    render(<Tool part={part} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /getWeather/ }));
+
+    expect(screen.getByText(/"self": "\[Circular\]"/)).toBeInTheDocument();
+  });
+
   it('names a dynamic tool by its runtime-provided name', () => {
     render(<Tool part={dynamicToolParts['input-available']} />);
 
