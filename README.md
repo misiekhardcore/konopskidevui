@@ -233,6 +233,43 @@ directive, so a new component cannot silently regress the rule:
 pnpm test src/client-directive.test.ts
 ```
 
+### AI citations
+
+An AI answer cites pages and documents, and the citation family renders the same sources twice: as the
+numbered markers inside the prose, and as the list under the answer. Both read the message's parts, so
+both number from one in arrival order and collapse a source the provider streams twice.
+
+```tsx
+import { Sources } from '@konopskidev/ui/components/ai/citations';
+import { getCitations } from '@konopskidev/ui/lib/citations';
+
+// The resolver is plain JavaScript, so a server component can call it too.
+const citations = getCitations(message.parts);
+
+export function Answer({ message }: { message: UIMessage }) {
+  return (
+    <>
+      <AnswerProse parts={message.parts} citations={citations} />
+      <Sources
+        parts={message.parts}
+        documentHref={(citation) => `/documents/${encodeURIComponent(citation.sourceId)}`}
+      />
+    </>
+  );
+}
+```
+
+A `source-url` part carries the page, so its marker is a link to it and previews the title and the URL
+on hover and on keyboard focus. A `source-document` part carries only a name, a media type and an
+optional filename, so its marker is a note — focusable for the preview, never a dead link.
+`documentHref` is how an app says where it serves those files: each document marker then becomes an
+`<a download>` pointing at what the resolver returns, and a citation the resolver leaves `undefined`
+stays a note. A page citation is never turned into a download, whatever the resolver answers.
+
+`renderMarker` replaces a marker entirely, for an app's own router link or analytics wrapper; `labels`
+translates the heading; and the list renders nothing at all for an answer that cited nothing, so it can
+be mounted under every message.
+
 ## The style contract
 
 The registry ships its own look (rounded-xl surfaces, ring borders, h-8 controls). Everything in
