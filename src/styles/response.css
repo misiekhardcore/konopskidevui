@@ -1,0 +1,176 @@
+/*
+ * A streamed answer
+ * =================
+ *
+ * Chat prose, not article prose: the same GFM blocks as `prose-article`, on the
+ * chat's sans scale, with the motion a text part needs while it grows
+ * ([ADR 0015](../docs/adr/0015-streaming-motion.md)).
+ *
+ * Everything motion-related is CSS only: no measurement, no timer, and no state
+ * beyond the part's own `data-state`. That is what keeps the component
+ * presentational.
+ */
+
+@layer components {
+  .prose-response {
+    @apply text-sm leading-relaxed;
+  }
+
+  /* Blocks are spaced by the response's flex gap, so a block owns no outer margin. */
+  .prose-response :is(h1, h2, h3, h4, h5, h6) {
+    @apply font-sans font-semibold tracking-tight;
+  }
+
+  .prose-response h1 {
+    @apply text-lg;
+  }
+
+  .prose-response h2 {
+    @apply text-base;
+  }
+
+  .prose-response :is(h3, h4, h5, h6) {
+    @apply text-sm;
+  }
+
+  .prose-response strong {
+    @apply font-semibold;
+  }
+
+  /* The marker's trigger is a link too; the prose link treatment is not its own. */
+  .prose-response a:not([data-slot='citation-marker-trigger']) {
+    @apply font-medium text-primary underline underline-offset-4;
+  }
+
+  .prose-response ul,
+  .prose-response ol {
+    @apply flex flex-col gap-1 ps-5;
+  }
+
+  .prose-response ul {
+    @apply list-disc;
+  }
+
+  .prose-response ol {
+    @apply list-decimal;
+  }
+
+  .prose-response li::marker {
+    @apply text-muted-foreground;
+  }
+
+  .prose-response li > p {
+    @apply mb-1;
+  }
+
+  .prose-response :is(p, li, td, th, blockquote) > code {
+    @apply rounded-sm border border-border bg-code px-[0.35em] py-[0.1em] font-mono text-[0.85em];
+  }
+
+  .prose-response blockquote {
+    @apply border-s-2 border-primary/40 ps-4 text-muted-foreground;
+  }
+
+  .prose-response blockquote p:last-child {
+    @apply mb-0;
+  }
+
+  .prose-response hr {
+    @apply border-border;
+  }
+
+  .prose-response img {
+    @apply rounded-sm border border-border;
+  }
+
+  .prose-response table {
+    @apply w-full border-collapse;
+  }
+
+  .prose-response th,
+  .prose-response td {
+    @apply border border-border px-3 py-1.5 text-start align-top;
+  }
+
+  .prose-response th {
+    @apply bg-muted font-medium;
+  }
+
+  .prose-response del {
+    @apply text-muted-foreground;
+  }
+
+  /* A GFM task list's checkbox belongs with the item's text, not above it. */
+  .prose-response input[type='checkbox'] {
+    @apply me-1.5 align-middle;
+  }
+
+  /*
+   * While the part streams, a block that is inserted fades in and rises a hair.
+   * `@starting-style` runs only for an element that has just been created, so a
+   * block already on the page just updates its text and never re-animates. The
+   * first block is left still: the wait before it belongs to the typing
+   * indicator, and a fade there would be an animation about nothing.
+   */
+  .prose-response[data-state='streaming'] > * {
+    transition:
+      opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      translate 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @starting-style {
+    .prose-response[data-state='streaming'] > *:not(:first-child) {
+      opacity: 0;
+      translate: 0 0.25rem;
+    }
+  }
+
+  /*
+   * The box eases towards its new height where the engine can interpolate an
+   * intrinsic size, and jumps where it cannot — the appended block's fade is the
+   * floor either way. `calc-size(auto, size)` is what makes the intrinsic height
+   * an interpolable value; the plain `auto` above it is the declaration an engine
+   * without the function keeps.
+   */
+  @supports (interpolate-size: allow-keywords) {
+    .prose-response[data-state='streaming'] {
+      interpolate-size: allow-keywords;
+      height: auto;
+      height: calc-size(auto, size);
+      transition: height 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+
+  /*
+   * The caret is painted, not typed: a pseudo-element is not in the DOM, so it
+   * cannot be selected, copied or read out with the answer. It lives on the last
+   * block, which is where the stream is currently writing.
+   */
+  .prose-response[data-state='streaming'] > :last-child::after {
+    content: '';
+    display: inline-block;
+    inline-size: 0.5em;
+    block-size: 1em;
+    margin-inline-start: 0.125em;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    animation: caret-blink 1.25s ease-out infinite;
+  }
+
+  /* Reduced motion keeps the caret, still: it marks the end without moving. */
+  @media (prefers-reduced-motion: reduce) {
+    .prose-response[data-state='streaming'] > * {
+      transition: none;
+    }
+
+    @supports (interpolate-size: allow-keywords) {
+      .prose-response[data-state='streaming'] {
+        transition: none;
+      }
+    }
+
+    .prose-response[data-state='streaming'] > :last-child::after {
+      animation: none;
+    }
+  }
+}

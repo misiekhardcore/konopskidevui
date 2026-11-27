@@ -136,8 +136,10 @@
     "react": "^19.0.0",
     "react-day-picker": "^10.0.2",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.15.0",
     "recharts": "3.8.0",
+    "remark-gfm": "^4.0.1",
     "shiki": "^4.5.0",
     "sonner": "^2.0.8",
     "tailwindcss": "^4.0.0",
@@ -171,10 +173,16 @@
     "react-day-picker": {
       "optional": true
     },
+    "react-markdown": {
+      "optional": true
+    },
     "react-resizable-panels": {
       "optional": true
     },
     "recharts": {
+      "optional": true
+    },
+    "remark-gfm": {
       "optional": true
     },
     "shiki": {
@@ -243,8 +251,10 @@
     "react": "^19.3.1",
     "react-day-picker": "^10.0.2",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.24.1",
     "recharts": "3.11.1",
+    "remark-gfm": "^4.0.1",
     "shadcn": "^4.23.0",
     "shiki": "^4.6.0",
     "sonner": "^2.0.8",

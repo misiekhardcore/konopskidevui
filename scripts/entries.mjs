@@ -28,6 +28,8 @@ export const ESM_ONLY_MODULES = [
   'components/ui/video',
   // Reaches `@videojs/react` through the `Video` player it renders.
   'components/ai/file-part',
+  // `react-markdown` and `remark-gfm` are ESM only, so there is no `.cjs` copy.
+  'components/ai/response',
   'lib/highlighter',
   'hooks/use-highlighted-code',
 ];
