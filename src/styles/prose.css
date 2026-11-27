@@ -1,23 +1,99 @@
 /*
- * Long-form prose
- * ===============
+ * Prose
+ * =====
  *
- * Long-form typography needs descendant selectors, so it is a component class
- * rather than a utility. Specificity stays low so a converter can override.
+ * Two surfaces render markdown: a long-form article, set in the serif reading
+ * face, and the answer a model streams, set on the chat's sans scale with the
+ * motion a growing text part needs ([ADR 0015](../docs/adr/0015-streaming-motion.md)).
+ *
+ * Both get the same elements from the parser, so the block styling they agree on
+ * is written once, against both classes. Everything that differs — face, scale,
+ * rhythm, motion — stays with its own surface.
+ *
+ * Long-form typography needs descendant selectors, so these are component
+ * classes rather than utilities. Specificity stays low so a converter can
+ * override.
  *
  * `font-serif` is set here, unlike on the site where `<body>` supplied it: a
  * library cannot assume anything about the app shell around it.
  */
 
 @layer components {
+  /*
+   * Shared blocks
+   * -------------
+   * A declaration belongs here only when article and chat prose want exactly the
+   * same thing; a rule that differs at all stays with its surface.
+   */
+
+  .prose-article strong,
+  .prose-response strong {
+    @apply font-semibold;
+  }
+
+  /*
+   * Always underlined: primary-on-body text is 2.04:1 against the surrounding
+   * copy, so colour alone cannot mark these as links (WCAG 1.4.1). A citation
+   * marker is a link too, but it is a chip in the sentence rather than prose, so
+   * the response leaves it to its own component.
+   */
+  .prose-article a,
+  .prose-response a:not([data-slot='citation-marker-trigger']) {
+    @apply text-primary underline underline-offset-4;
+  }
+
+  .prose-article ul,
+  .prose-response ul {
+    @apply list-disc;
+  }
+
+  .prose-article ol,
+  .prose-response ol {
+    @apply list-decimal;
+  }
+
+  /*
+   * Inline code only. Highlighted blocks also render a <code> element (inside
+   * their own wrapper), so this must not match every code descendant.
+   */
+  .prose-article :is(p, li, td, th, blockquote) > code,
+  .prose-response :is(p, li, td, th, blockquote) > code {
+    @apply rounded-sm border border-border bg-code px-[0.35em] py-[0.1em] font-mono text-[0.85em];
+  }
+
+  /*
+   * Tables. GFM tables render as <table>/<thead>/<tbody>/<tr>/<th>/<td>, and the
+   * browser styles none of them: without these rules a markdown table shows up
+   * as bare rows with no borders, padding or header fill.
+   */
+  .prose-article table,
+  .prose-response table {
+    @apply w-full border-collapse;
+  }
+
+  .prose-article th,
+  .prose-article td,
+  .prose-response th,
+  .prose-response td {
+    @apply border border-border px-3;
+  }
+
+  .prose-article blockquote p:last-child,
+  .prose-response blockquote p:last-child {
+    @apply mb-0;
+  }
+
+  /*
+   * Article prose
+   * -------------
+   * Size and face come from the global heading scale; prose only owns the rhythm
+   * between blocks, so the two cannot drift apart.
+   */
+
   .prose-article {
     @apply font-serif text-base leading-[1.75];
   }
 
-  /*
-   * Descendant, not child: rich-text renderers wrap their output in their own
-   * container, so paragraphs are never direct children of this class.
-   */
   .prose-article p {
     @apply mb-[1.15em];
   }
@@ -26,10 +102,6 @@
     @apply mb-0;
   }
 
-  /*
-   * Size and face come from the global heading scale; prose only owns the
-   * rhythm between blocks, so the two cannot drift apart.
-   */
   .prose-article h2 {
     @apply mt-[2.2em] mb-[0.6em] scroll-mt-24;
   }
@@ -42,41 +114,13 @@
     @apply mt-[1.6em] mb-[0.4em] scroll-mt-24;
   }
 
-  .prose-article strong {
-    @apply font-semibold;
-  }
-
-  /*
-   * Always underlined: primary-on-body text is 2.04:1 against the surrounding
-   * copy, so colour alone cannot mark these as links (WCAG 1.4.1).
-   */
-  .prose-article a {
-    @apply text-primary underline underline-offset-4;
-  }
-
   .prose-article ul,
   .prose-article ol {
     @apply my-[1.15em] pl-6;
   }
 
-  .prose-article ul {
-    @apply list-disc;
-  }
-
-  .prose-article ol {
-    @apply list-decimal;
-  }
-
   .prose-article li {
     @apply mb-[0.4em];
-  }
-
-  /*
-   * Inline code only. Highlighted blocks also render a <code> element (inside
-   * their own wrapper), so this must not match every code descendant.
-   */
-  .prose-article :is(p, li, td, blockquote) > code {
-    @apply rounded-sm border border-border bg-code px-[0.35em] py-[0.1em] font-mono text-[0.85em];
   }
 
   .prose-article hr {
@@ -99,25 +143,162 @@
     @apply my-[1.4em] border-l-2 border-primary/40 pl-5 text-muted-foreground italic;
   }
 
-  .prose-article blockquote p:last-child {
-    @apply mb-0;
-  }
-
-  /*
-   * Tables. GFM tables render as <table>/<thead>/<tbody>/<tr>/<th>/<td>, but
-   * only the block rhythm above was styled; without these rules a markdown
-   * table shows up as bare rows with no borders, padding or header fill.
-   */
   .prose-article table {
-    @apply my-[1.15em] w-full border-collapse;
+    @apply my-[1.15em];
   }
 
   .prose-article th,
   .prose-article td {
-    @apply border border-border px-3 py-2 text-sm;
+    @apply py-2 text-sm;
   }
 
   .prose-article th {
     @apply bg-muted font-medium text-primary;
+  }
+
+  /*
+   * Chat prose
+   * ----------
+   * The answer a model streams: the chat's sans scale, and blocks spaced by the
+   * response's flex gap rather than by margins, because a block arrives while the
+   * ones above it stay put.
+   */
+
+  .prose-response {
+    @apply text-sm leading-relaxed;
+  }
+
+  .prose-response :is(h1, h2, h3, h4, h5, h6) {
+    @apply font-sans font-semibold tracking-tight;
+  }
+
+  .prose-response h1 {
+    @apply text-lg;
+  }
+
+  .prose-response h2 {
+    @apply text-base;
+  }
+
+  .prose-response :is(h3, h4, h5, h6) {
+    @apply text-sm;
+  }
+
+  /* The link treatment above is shared; chat prose sets its links a little heavier. */
+  .prose-response a:not([data-slot='citation-marker-trigger']) {
+    @apply font-medium;
+  }
+
+  .prose-response ul,
+  .prose-response ol {
+    @apply flex flex-col gap-1 ps-5;
+  }
+
+  .prose-response li::marker {
+    @apply text-muted-foreground;
+  }
+
+  .prose-response li > p {
+    @apply mb-1;
+  }
+
+  .prose-response blockquote {
+    @apply border-s-2 border-primary/40 ps-4 text-muted-foreground;
+  }
+
+  .prose-response hr {
+    @apply border-border;
+  }
+
+  .prose-response img {
+    @apply rounded-sm border border-border;
+  }
+
+  .prose-response th,
+  .prose-response td {
+    @apply py-1.5 text-start align-top;
+  }
+
+  .prose-response th {
+    @apply bg-muted font-medium;
+  }
+
+  .prose-response del {
+    @apply text-muted-foreground;
+  }
+
+  /* A GFM task list's checkbox belongs with the item's text, not above it. */
+  .prose-response input[type='checkbox'] {
+    @apply me-1.5 align-middle;
+  }
+
+  /*
+   * While the part streams, a block that is inserted fades in and rises a hair.
+   * `@starting-style` runs only for an element that has just been created, so a
+   * block already on the page just updates its text and never re-animates. The
+   * first block is left still: the wait before it belongs to the typing
+   * indicator, and a fade there would be an animation about nothing.
+   */
+
+  .prose-response[data-state='streaming'] > * {
+    transition:
+      opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      translate 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @starting-style {
+    .prose-response[data-state='streaming'] > *:not(:first-child) {
+      opacity: 0;
+      translate: 0 0.25rem;
+    }
+  }
+
+  /*
+   * The box eases towards its new height where the engine can interpolate an
+   * intrinsic size, and jumps where it cannot — the appended block's fade is the
+   * floor either way. `calc-size(auto, size)` is what makes the intrinsic height
+   * an interpolable value; the plain `auto` above it is the declaration an engine
+   * without the function keeps.
+   */
+  @supports (interpolate-size: allow-keywords) {
+    .prose-response[data-state='streaming'] {
+      interpolate-size: allow-keywords;
+      height: auto;
+      height: calc-size(auto, size);
+      transition: height 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+
+  /*
+   * The caret is painted, not typed: a pseudo-element is not in the DOM, so it
+   * cannot be selected, copied or read out with the answer. It lives on the last
+   * block, which is where the stream is currently writing.
+   */
+  .prose-response[data-state='streaming'] > :last-child::after {
+    content: '';
+    display: inline-block;
+    inline-size: 0.5em;
+    block-size: 1em;
+    margin-inline-start: 0.125em;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    animation: caret-blink 1.25s ease-out infinite;
+  }
+
+  /* Reduced motion keeps the caret, still: it marks the end without moving. */
+  @media (prefers-reduced-motion: reduce) {
+    .prose-response[data-state='streaming'] > * {
+      transition: none;
+    }
+
+    @supports (interpolate-size: allow-keywords) {
+      .prose-response[data-state='streaming'] {
+        transition: none;
+      }
+    }
+
+    .prose-response[data-state='streaming'] > :last-child::after {
+      animation: none;
+    }
   }
 }
