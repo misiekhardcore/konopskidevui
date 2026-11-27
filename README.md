@@ -46,13 +46,16 @@ for a copied component.
 | `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`             |
 | `video`                                         | `pnpm add @videojs/react` (ESM only) |
 | `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)          |
+| `components/ai/*`                               | `pnpm add ai@^6` (types only)        |
 
-Those twelve components are **not** in the root barrel, because a barrel that re-exported them would
-make every consumer resolve `recharts` on `import { Button } from '@konopskidev/ui'`. Import them
-from their subpath:
+Those twelve components, and the AI family, are **not** in the root barrel: a barrel that re-exported
+them would make every consumer resolve `recharts` on `import { Button } from '@konopskidev/ui'`, and
+the AI family types against `ai@^6`, a peer a `Button` consumer should never resolve. Import them from
+their subpath:
 
 ```tsx
 import { ChartContainer } from '@konopskidev/ui/components/chart';
+import { ToolApproval } from '@konopskidev/ui/components/ai/tool-approval';
 ```
 
 > **Just released?** pnpm quarantines packages published in the last 24 hours. While you are the one
