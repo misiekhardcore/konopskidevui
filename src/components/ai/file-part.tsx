@@ -240,7 +240,7 @@ function AudioPlayer({ src, name, labels }: { src: string; name: string; labels:
   return (
     <div
       data-slot="file-part-audio"
-      className="flex w-full max-w-md items-center gap-1 rounded-sm border border-input bg-muted/40 p-1"
+      className="flex w-full max-w-md items-center gap-1 rounded-sm border border-border bg-popover/70 p-1 text-popover-foreground backdrop-blur"
     >
       <audio
         ref={media}
@@ -267,6 +267,9 @@ function AudioPlayer({ src, name, labels }: { src: string; name: string; labels:
       >
         {playing ? <PauseIcon aria-hidden="true" /> : <PlayIcon aria-hidden="true" />}
       </Button>
+      {/* The slider's own track is the same muted tone as the bar, so the
+          scrubber would read as a floating thumb; the border token is the track
+          colour a surface of this tone needs. */}
       <Slider
         aria-label={actionLabelOf(labels.seek, name)}
         min={0}
@@ -274,7 +277,7 @@ function AudioPlayer({ src, name, labels }: { src: string; name: string; labels:
         value={[Math.min(position, duration || 1)]}
         onValueChange={seek}
         disabled={duration === 0}
-        className="flex-1"
+        className="flex-1 [&_[data-slot=slider-track]]:bg-border"
       />
       <span className="px-1 text-xs text-muted-foreground tabular-nums">
         {clockOf(position)} / {clockOf(duration)}
@@ -374,7 +377,7 @@ function FilePart({ part, labels, className, ...props }: FilePartProps) {
           data-slot="file-part-image"
           src={href}
           alt={name}
-          className="max-h-96 max-w-full rounded-sm border border-input object-contain"
+          className="max-h-96 max-w-full self-start rounded-sm border border-input object-contain"
         />
         <figcaption className="flex min-w-0 items-center gap-2">
           <span
@@ -409,7 +412,7 @@ function FilePart({ part, labels, className, ...props }: FilePartProps) {
             controls
             preload="metadata"
             aria-label={name}
-            className="max-w-full rounded-sm border border-input"
+            className="max-h-96 max-w-full self-start rounded-sm border border-input object-contain"
           />
         ) : (
           <AudioPlayer src={href} name={name} labels={text} />

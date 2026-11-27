@@ -1,6 +1,6 @@
 import audioSample from '../stories/assets/forecast-briefing.mp3?url';
 import chartSample from '../stories/assets/forecast-chart.png?url';
-import videoSample from '../stories/assets/video-sample.mp4?url';
+import videoSample from '../stories/assets/forecast-loop.mp4?url';
 
 import type {
   DataUIPart,

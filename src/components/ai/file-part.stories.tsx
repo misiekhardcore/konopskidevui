@@ -94,6 +94,32 @@ export const Audio: Story = {
   },
 };
 
+/**
+ * A long filename stays in the caption, where it truncates, so the bar keeps its
+ * controls in reach however long the model names the file.
+ */
+export const LongName: Story = {
+  args: {
+    part: {
+      ...fileParts.audio,
+      filename: 'quarterly-forecast-briefing-for-the-northern-region-and-coast.mp3',
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(
+      canvas.getByRole('button', { name: /^Play quarterly-forecast-briefing/ }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('slider', { name: /^Seek quarterly-forecast-briefing/ }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('button', { name: /^Mute quarterly-forecast-briefing/ }),
+    ).toBeInTheDocument();
+  },
+};
+
 /** A video part gets the same native controls, at its own aspect ratio. */
 export const Video: Story = {
   args: { part: fileParts.video },
