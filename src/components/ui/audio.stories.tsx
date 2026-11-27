@@ -81,25 +81,28 @@ export const Narrow: Story = {
   },
 };
 
-/** Every control name is a label, so an app can translate the bar. */
-export const Translated: Story = {
+/** Every control name is a label, so an app can reword the bar. */
+export const CustomLabels: Story = {
   args: {
     labels: {
-      play: 'Odtwórz forecast-briefing.mp3',
-      pause: 'Wstrzymaj forecast-briefing.mp3',
-      seek: 'Przewiń forecast-briefing.mp3',
-      mute: 'Wycisz forecast-briefing.mp3',
-      unmute: 'Włącz dźwięk',
+      play: 'Listen to forecast-briefing.mp3',
+      pause: 'Hold forecast-briefing.mp3',
+      seek: 'Move through forecast-briefing.mp3',
+      mute: 'Silence forecast-briefing.mp3',
+      unmute: 'Bring the sound back',
     },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
     await expect(
-      canvas.getByRole('button', { name: 'Odtwórz forecast-briefing.mp3' }),
+      canvas.getByRole('button', { name: 'Listen to forecast-briefing.mp3' }),
     ).toBeInTheDocument();
     await expect(
-      canvas.getByRole('slider', { name: 'Przewiń forecast-briefing.mp3' }),
+      canvas.getByRole('slider', { name: 'Move through forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('button', { name: 'Silence forecast-briefing.mp3' }),
     ).toBeInTheDocument();
   },
 };

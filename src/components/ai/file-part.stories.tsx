@@ -180,21 +180,24 @@ export const Embedded: Story = {
   },
 };
 
-/** Every string the part shows is a label, so an app can translate it. */
-export const Translated: Story = {
+/** Every string the part shows is a label, so an app can reword it. */
+export const CustomLabels: Story = {
   args: {
     part: fileParts.document,
     labels: {
-      open: 'Otwórz {name}',
-      download: 'Pobierz {name}',
-      missing: 'Brak danych',
+      open: 'View {name}',
+      download: 'Save {name}',
+      missing: 'No file data was sent',
     },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
     await expect(
-      canvas.getByRole('link', { name: 'Otwórz forecast-report.pdf' }),
+      canvas.getByRole('link', { name: 'View forecast-report.pdf' }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('link', { name: 'Save forecast-report.pdf' }),
     ).toBeInTheDocument();
   },
 };

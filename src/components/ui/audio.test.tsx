@@ -121,19 +121,19 @@ describe('Audio', () => {
     expect(audio.muted).toBe(false);
   });
 
-  it('takes every control name from a label, so an app can translate the bar', () => {
+  it('takes every control name from a label, so an app can reword the bar', () => {
     renderAudio({
       labels: {
-        play: 'Odtwórz briefing',
-        pause: 'Wstrzymaj briefing',
-        seek: 'Przewiń briefing',
-        mute: 'Wycisz briefing',
-        unmute: 'Włącz dźwięk',
+        play: 'Listen to the briefing',
+        pause: 'Hold the briefing',
+        seek: 'Move through the briefing',
+        mute: 'Silence the briefing',
+        unmute: 'Bring the sound back',
       },
     });
 
-    expect(screen.getByRole('button', { name: 'Odtwórz briefing' })).toBeInTheDocument();
-    expect(screen.getByRole('slider', { name: 'Przewiń briefing' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Wycisz briefing' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Listen to the briefing' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Move through the briefing' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Silence the briefing' })).toBeInTheDocument();
   });
 });

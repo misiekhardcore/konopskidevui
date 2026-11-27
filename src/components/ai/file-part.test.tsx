@@ -147,42 +147,42 @@ describe('FilePart', () => {
     expect(createObjectURL).toHaveBeenCalledTimes(2);
   });
 
-  it('translates every string it shows', () => {
+  it('takes every string it shows from a label', () => {
     render(
       <FilePart
         part={fileParts.document}
-        labels={{ open: 'Otwórz {name}', download: 'Pobierz {name}', missing: 'Brak danych' }}
+        labels={{ open: 'View {name}', download: 'Save {name}', missing: 'No file data was sent' }}
       />,
     );
 
-    expect(screen.getByRole('link', { name: 'Otwórz forecast-report.pdf' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Pobierz forecast-report.pdf' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View forecast-report.pdf' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Save forecast-report.pdf' })).toBeInTheDocument();
   });
 
-  it('translates the audio controls with the file name where the label asks for it', () => {
+  it('takes the audio control names from labels, with the file name where the label asks', () => {
     render(
       <FilePart
         part={fileParts.audio}
-        labels={{ play: 'Odtwórz {name}', seek: 'Przewiń {name}', mute: 'Wycisz {name}' }}
+        labels={{ play: 'Listen to {name}', seek: 'Move through {name}', mute: 'Silence {name}' }}
       />,
     );
 
     expect(
-      screen.getByRole('button', { name: 'Odtwórz forecast-briefing.mp3' }),
+      screen.getByRole('button', { name: 'Listen to forecast-briefing.mp3' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('slider', { name: 'Przewiń forecast-briefing.mp3' }),
+      screen.getByRole('slider', { name: 'Move through forecast-briefing.mp3' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Wycisz forecast-briefing.mp3' }),
+      screen.getByRole('button', { name: 'Silence forecast-briefing.mp3' }),
     ).toBeInTheDocument();
   });
 
-  it('translates the noun a nameless file is called by', () => {
+  it('takes the noun a nameless file is called by from a label', () => {
     const part = { ...fileParts.image, filename: undefined } as FilePartData;
 
-    render(<FilePart part={part} labels={{ image: 'Obraz' }} />);
+    render(<FilePart part={part} labels={{ image: 'Picture' }} />);
 
-    expect(screen.getByRole('img', { name: 'PNG obraz' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'PNG picture' })).toBeInTheDocument();
   });
 });
