@@ -1,15 +1,7 @@
 'use client';
 
 import { cn } from 'cn';
-import {
-  DownloadIcon,
-  ExternalLinkIcon,
-  FileIcon,
-  PauseIcon,
-  PlayIcon,
-  Volume2Icon,
-  VolumeXIcon,
-} from 'lucide-react';
+import { DownloadIcon, ExternalLinkIcon, FileIcon } from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -21,8 +13,9 @@ import {
   AttachmentMedia,
   AttachmentTitle,
 } from '../ui/attachment';
+import { Audio } from '../ui/audio';
 import { Button } from '../ui/button';
-import { Slider } from '../ui/slider';
+import { Video } from '../ui/video';
 
 import type { FileUIPart } from 'ai';
 
@@ -79,6 +72,13 @@ export type FilePartProps = Omit<React.ComponentProps<'figure'>, 'children' | 'p
   /** Override the strings shown, one at a time. */
   labels?: Partial<FilePartLabels>;
 };
+
+/**
+ * A file part is one file with no quality ladder. The player reads a rendition's
+ * height only to name a quality, and a single rendition offers no menu, so the
+ * part names none rather than inventing a resolution for the model's file.
+ */
+const NO_RENDITION_HEIGHT = 0;
 
 /** Which renderer a media type asks for; everything not media falls back. */
 type MediaKind = 'image' | 'audio' | 'video' | 'file';
@@ -182,118 +182,6 @@ function useOpenableUrl(url: string): string {
   return object?.source === url ? object.url : url;
 }
 
-/** Seconds as `m:ss`, so the clock keeps one width while it counts. */
-function clockOf(seconds: number): string {
-  const total = Number.isFinite(seconds) && seconds > 0 ? Math.floor(seconds) : 0;
-
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
-}
-
-/**
- * The audio bar: play and pause, a seek slider, the clock and mute, drawn from
- * the same buttons, slider and icons as the rest of the components. The native
- * `<audio>` element still does the playing; only its chrome is ours.
- */
-function AudioPlayer({ src, name, labels }: { src: string; name: string; labels: FilePartLabels }) {
-  const media = React.useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = React.useState(false);
-  const [muted, setMuted] = React.useState(false);
-  const [position, setPosition] = React.useState(0);
-  const [duration, setDuration] = React.useState(0);
-
-  const togglePlayback = () => {
-    const element = media.current;
-
-    if (!element) return;
-
-    if (!element.paused) {
-      element.pause();
-
-      return;
-    }
-
-    // A browser that blocks playback rejects here; the reader can press play
-    // again, and jsdom's `play` answers with nothing at all.
-    const playback: Promise<void> | undefined = element.play();
-
-    playback?.catch(() => {});
-  };
-
-  const seek = ([seconds]: number[]) => {
-    const element = media.current;
-
-    if (!element) return;
-
-    element.currentTime = seconds ?? 0;
-    setPosition(element.currentTime);
-  };
-
-  const toggleMuted = () => {
-    const element = media.current;
-
-    if (!element) return;
-
-    element.muted = !element.muted;
-    setMuted(element.muted);
-  };
-
-  return (
-    <div
-      data-slot="file-part-audio"
-      className="flex w-full max-w-md items-center gap-1 rounded-sm border border-border bg-popover/70 p-1 text-popover-foreground backdrop-blur"
-    >
-      <audio
-        ref={media}
-        data-slot="file-part-media"
-        src={src}
-        preload="metadata"
-        aria-label={name}
-        className="sr-only"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
-          setPlaying(false);
-          setPosition(0);
-        }}
-        onTimeUpdate={(event) => setPosition(event.currentTarget.currentTime)}
-        onDurationChange={(event) => setDuration(event.currentTarget.duration)}
-        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
-      />
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={actionLabelOf(playing ? labels.pause : labels.play, name)}
-        onClick={togglePlayback}
-      >
-        {playing ? <PauseIcon aria-hidden="true" /> : <PlayIcon aria-hidden="true" />}
-      </Button>
-      {/* The slider's own track is the same muted tone as the bar, so the
-          scrubber would read as a floating thumb; the border token is the track
-          colour a surface of this tone needs. */}
-      <Slider
-        aria-label={actionLabelOf(labels.seek, name)}
-        min={0}
-        max={duration || 1}
-        value={[Math.min(position, duration || 1)]}
-        onValueChange={seek}
-        disabled={duration === 0}
-        className="flex-1 [&_[data-slot=slider-track]]:bg-border"
-      />
-      <span className="px-1 text-xs text-muted-foreground tabular-nums">
-        {clockOf(position)} / {clockOf(duration)}
-      </span>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={actionLabelOf(muted ? labels.unmute : labels.mute, name)}
-        onClick={toggleMuted}
-      >
-        {muted ? <VolumeXIcon aria-hidden="true" /> : <Volume2Icon aria-hidden="true" />}
-      </Button>
-    </div>
-  );
-}
-
 /** Open and download, as ordinary links: the app owns where the file goes. */
 function FileActions({
   href,
@@ -325,10 +213,10 @@ function FileActions({
 /**
  * A file the model produced, rendered by its media type.
  *
- * An image is shown inline, an audio part plays in a control bar drawn from the
- * design tokens, a video part keeps the browser's own controls, and anything
- * else is an attachment row. The part is data in and events out: open and
- * download are ordinary links, and the app owns the file.
+ * An image is shown inline, an audio part plays in the `Audio` bar and a video
+ * part in the `Video` player, and anything else is an attachment row. The part
+ * is data in and events out: open and download are ordinary links, and the app
+ * owns the file.
  */
 function FilePart({ part, labels, className, ...props }: FilePartProps) {
   const text = { ...DEFAULT_LABELS, ...labels };
@@ -406,16 +294,19 @@ function FilePart({ part, labels, className, ...props }: FilePartProps) {
         {...props}
       >
         {kind === 'video' ? (
-          <video
-            data-slot="file-part-media"
-            src={href}
-            controls
-            preload="metadata"
-            aria-label={name}
-            className="max-h-96 max-w-full self-start rounded-sm border border-input object-contain"
-          />
+          <Video title={name} renditions={[{ src: href, height: NO_RENDITION_HEIGHT }]} />
         ) : (
-          <AudioPlayer src={href} name={name} labels={text} />
+          <Audio
+            title={name}
+            src={href}
+            labels={{
+              play: actionLabelOf(text.play, name),
+              pause: actionLabelOf(text.pause, name),
+              seek: actionLabelOf(text.seek, name),
+              mute: actionLabelOf(text.mute, name),
+              unmute: actionLabelOf(text.unmute, name),
+            }}
+          />
         )}
         <figcaption
           data-slot="file-part-name"

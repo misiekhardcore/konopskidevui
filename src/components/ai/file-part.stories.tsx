@@ -16,7 +16,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A file the model produced, rendered by its media type: an image inline with open and download, audio in a control bar built from the design tokens, video through the browser’s own controls, and anything else as a read-only attachment. A part that arrived without data still shows its name instead of an empty frame.',
+          'A file the model produced, rendered by its media type: an image inline with open and download, audio in the `Audio` bar and video in the `Video` player, and anything else as a read-only attachment. A part that arrived without data still shows its name instead of an empty frame.',
       },
     },
   },
@@ -120,17 +120,18 @@ export const LongName: Story = {
   },
 };
 
-/** A video part gets the same native controls, at its own aspect ratio. */
+/** A video part plays in our own player, not the browser's chrome. */
 export const Video: Story = {
   args: { part: fileParts.video },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const video = canvas.getByLabelText('forecast-loop.mp4') as HTMLVideoElement;
+    const video = canvasElement.querySelector('video') as HTMLVideoElement;
 
-    await expect(video.tagName).toBe('VIDEO');
-    await expect(video).toHaveAttribute('controls');
+    await expect(canvasElement.querySelector('[data-slot="video"]')).not.toBeNull();
+    await expect(video).toHaveAttribute('src', fileParts.video.url);
+    await expect(canvas.getByRole('button', { name: 'Play' })).toBeInTheDocument();
 
-    // The sample in `stories/assets/video-sample.mp4` is a real file, not a URL
+    // The sample in `stories/assets/forecast-loop.mp4` is a real file, not a URL
     // that answers 404.
     await waitFor(() =>
       expect(video.readyState).toBeGreaterThanOrEqual(HTMLMediaElement.HAVE_METADATA),

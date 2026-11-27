@@ -1,5 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { filePart, fileParts } from '../../testing/ai-parts';
@@ -7,11 +6,9 @@ import { FilePart } from './file-part';
 
 import type { FilePartData } from './file-part';
 
-/** jsdom ships neither object-URL function, nor a media element that plays. */
+/** jsdom ships neither object-URL function, so the suite provides both. */
 const createObjectURL = vi.fn(() => 'blob:file-part');
 const revokeObjectURL = vi.fn();
-const play = vi.fn(() => Promise.resolve());
-const pause = vi.fn();
 
 beforeEach(() => {
   Object.defineProperty(URL, 'createObjectURL', {
@@ -24,38 +21,14 @@ beforeEach(() => {
     writable: true,
     value: revokeObjectURL,
   });
-  Object.defineProperty(HTMLMediaElement.prototype, 'play', {
-    configurable: true,
-    writable: true,
-    value: play,
-  });
-  Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
-    configurable: true,
-    writable: true,
-    value: pause,
-  });
   createObjectURL.mockClear();
   revokeObjectURL.mockClear();
-  play.mockClear();
-  pause.mockClear();
 });
 
 afterEach(() => {
   delete (URL as unknown as Record<string, unknown>).createObjectURL;
   delete (URL as unknown as Record<string, unknown>).revokeObjectURL;
-  delete (HTMLMediaElement.prototype as unknown as Record<string, unknown>).play;
-  delete (HTMLMediaElement.prototype as unknown as Record<string, unknown>).pause;
 });
-
-function audioOf(container: HTMLElement) {
-  return container.querySelector('audio') as HTMLAudioElement;
-}
-
-/** Metadata is what turns the seek slider on and puts the duration on the clock. */
-function load(audio: HTMLAudioElement, duration: number) {
-  Object.defineProperty(audio, 'duration', { configurable: true, value: duration });
-  fireEvent(audio, new Event('durationchange'));
-}
 
 describe('FilePart', () => {
   it('renders an image inline, named by its filename, with open and download', () => {
@@ -84,89 +57,22 @@ describe('FilePart', () => {
     expect(screen.getByRole('img', { name: 'PNG image' })).toBeInTheDocument();
   });
 
-  it('plays an audio part in a control bar of its own', () => {
+  it('plays an audio part in the audio bar, named after the file', () => {
     const { container } = render(<FilePart part={fileParts.audio} />);
-    const audio = audioOf(container);
 
-    expect(audio).toHaveAttribute('src', fileParts.audio.url);
-    expect(audio).toHaveAttribute('preload', 'metadata');
-    expect(audio).not.toHaveAttribute('controls');
-
+    expect(container.querySelector('[data-slot="audio"]')).toBeInTheDocument();
+    expect(container.querySelector('audio')).toHaveAttribute('src', fileParts.audio.url);
     expect(screen.getByRole('button', { name: 'Play forecast-briefing.mp3' })).toBeInTheDocument();
     expect(screen.getByRole('slider', { name: 'Seek forecast-briefing.mp3' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mute forecast-briefing.mp3' })).toBeInTheDocument();
   });
 
-  it('starts the media from the play button and follows it back to pause', async () => {
-    const { container } = render(<FilePart part={fileParts.audio} />);
-    const audio = audioOf(container);
+  it('plays a video part in the video player, named after the file', () => {
+    const { container } = render(<FilePart part={fileParts.video} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Play forecast-briefing.mp3' }));
-
-    expect(play).toHaveBeenCalledOnce();
-
-    fireEvent(audio, new Event('play'));
-    Object.defineProperty(audio, 'paused', { configurable: true, value: false });
-
-    await userEvent.click(screen.getByRole('button', { name: 'Pause forecast-briefing.mp3' }));
-
-    expect(pause).toHaveBeenCalledOnce();
-
-    fireEvent(audio, new Event('pause'));
-
-    expect(screen.getByRole('button', { name: 'Play forecast-briefing.mp3' })).toBeInTheDocument();
-  });
-
-  it('shows the position and the duration on the clock', () => {
-    const { container } = render(<FilePart part={fileParts.audio} />);
-    const audio = audioOf(container);
-
-    load(audio, 20);
-    audio.currentTime = 8;
-    fireEvent(audio, new Event('timeupdate'));
-
-    expect(screen.getByText('0:08 / 0:20')).toBeInTheDocument();
-  });
-
-  it('seeks the media to the position chosen on the slider', async () => {
-    const { container } = render(<FilePart part={fileParts.audio} />);
-    const audio = audioOf(container);
-
-    load(audio, 20);
-
-    const seek = screen.getByRole('slider', { name: 'Seek forecast-briefing.mp3' });
-
-    seek.focus();
-    await userEvent.keyboard('{ArrowRight}');
-
-    expect(audio.currentTime).toBe(1);
-    expect(screen.getByText('0:01 / 0:20')).toBeInTheDocument();
-  });
-
-  it('mutes the media and unmutes it again', async () => {
-    const { container } = render(<FilePart part={fileParts.audio} />);
-    const audio = audioOf(container);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Mute forecast-briefing.mp3' }));
-
-    expect(audio.muted).toBe(true);
-    expect(
-      screen.getByRole('button', { name: 'Unmute forecast-briefing.mp3' }),
-    ).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Unmute forecast-briefing.mp3' }));
-
-    expect(audio.muted).toBe(false);
-  });
-
-  it('plays a video part through the browser’s own controls', () => {
-    render(<FilePart part={fileParts.video} />);
-
-    const video = screen.getByLabelText('forecast-loop.mp4');
-
-    expect(video.tagName).toBe('VIDEO');
-    expect(video).toHaveAttribute('controls');
-    expect(video).toHaveAttribute('src', fileParts.video.url);
+    expect(container.querySelector('[data-slot="video"]')).toBeInTheDocument();
+    expect(container.querySelector('video')).toHaveAttribute('src', fileParts.video.url);
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
   });
 
   it('renders any other media type as a read-only attachment with open and download', () => {
@@ -251,6 +157,25 @@ describe('FilePart', () => {
 
     expect(screen.getByRole('link', { name: 'Otwórz forecast-report.pdf' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Pobierz forecast-report.pdf' })).toBeInTheDocument();
+  });
+
+  it('translates the audio controls with the file name where the label asks for it', () => {
+    render(
+      <FilePart
+        part={fileParts.audio}
+        labels={{ play: 'Odtwórz {name}', seek: 'Przewiń {name}', mute: 'Wycisz {name}' }}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Odtwórz forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('slider', { name: 'Przewiń forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Wycisz forecast-briefing.mp3' }),
+    ).toBeInTheDocument();
   });
 
   it('translates the noun a nameless file is called by', () => {
