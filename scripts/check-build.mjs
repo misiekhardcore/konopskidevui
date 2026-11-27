@@ -14,7 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { discoverEntries, ESM_ONLY_MODULES } from './entries.mjs';
+import { discoverEntries, discoverTestOnlyModules, ESM_ONLY_MODULES } from './entries.mjs';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
@@ -103,6 +103,25 @@ function checkStyles() {
 }
 
 /**
+ * Test-only modules are not part of the package. Entry discovery already skips
+ * their directories; this proves it from the build's own module list and from
+ * `dist`, so a fixture module can never be published by accident.
+ */
+function checkTestOnlyModules(entries, testOnlyModules) {
+  for (const key of testOnlyModules) {
+    if (Object.hasOwn(entries, key)) {
+      errors.push(`test-only module is a build entry: src/${key}`);
+    }
+
+    for (const extension of ['.js', '.cjs', '.d.ts', '.d.cts']) {
+      if (fs.existsSync(path.join(dist, `${key}${extension}`))) {
+        errors.push(`test-only module emitted: dist/${key}${extension}`);
+      }
+    }
+  }
+}
+
+/**
  * Every `exports` target has to exist. Wildcards are sampled with a known entry
  * per export family, so a renamed or deleted module fails here instead of in a
  * consumer's install.
@@ -165,10 +184,12 @@ function checkNoStrayOutput(entries) {
 
 export function checkBuild() {
   const entries = discoverEntries();
+  const testOnlyModules = discoverTestOnlyModules();
 
   checkModuleParity(entries);
   checkDirectives(entries);
   checkStyles();
+  checkTestOnlyModules(entries, testOnlyModules);
   checkExports(entries);
   checkNoStrayOutput(entries);
 
@@ -179,7 +200,9 @@ export function checkBuild() {
     process.exit(1);
   }
 
-  console.log(`check-build: ${Object.keys(entries).length} modules verified`);
+  console.log(
+    `check-build: ${Object.keys(entries).length} modules verified, ${testOnlyModules.length} test-only modules excluded`,
+  );
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) checkBuild();

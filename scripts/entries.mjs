@@ -32,6 +32,14 @@ export const ESM_ONLY_MODULES = [
 
 const EXCLUDED = [/\.d\.ts$/, /\.test\.tsx?$/, /\.stories\.tsx?$/];
 
+/**
+ * Directories under `src` that hold test-only modules. They ship nothing: the
+ * fixtures and helpers here exist so suites and stories render from one typed
+ * source, and a module in one of these directories must never become a build
+ * entry or reach `dist` (see `check-build.mjs`).
+ */
+export const TEST_ONLY_DIRECTORIES = ['testing'];
+
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(directory, entry.name);
@@ -40,16 +48,35 @@ function walk(directory) {
   });
 }
 
+function sourceModules() {
+  return walk(SRC)
+    .filter((file) => /\.tsx?$/.test(file) && !EXCLUDED.some((rule) => rule.test(file)))
+    .map((file) => path.relative(SRC, file).split(path.sep).join('/'));
+}
+
+function isTestOnlyModule(relative) {
+  return TEST_ONLY_DIRECTORIES.some(
+    (directory) => relative === directory || relative.startsWith(`${directory}/`),
+  );
+}
+
 /** `{ 'components/ui/button': '/abs/src/components/ui/button.tsx', … }` */
 export function discoverEntries() {
-  const entries = walk(SRC)
-    .filter((file) => /\.tsx?$/.test(file) && !EXCLUDED.some((rule) => rule.test(file)))
-    .map((file) => path.relative(SRC, file).split(path.sep).join('/'))
+  const entries = sourceModules()
+    .filter((relative) => !isTestOnlyModule(relative))
     .sort();
 
   return Object.fromEntries(
     entries.map((relative) => [relative.replace(/\.tsx?$/, ''), path.join(SRC, relative)]),
   );
+}
+
+/** The modules the build deliberately leaves out, so the check can prove they stayed out. */
+export function discoverTestOnlyModules() {
+  return sourceModules()
+    .filter(isTestOnlyModule)
+    .map((relative) => relative.replace(/\.tsx?$/, ''))
+    .sort();
 }
 
 /** The same map with the ESM-only modules removed, for the CommonJS pass. */
