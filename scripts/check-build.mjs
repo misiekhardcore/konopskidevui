@@ -127,13 +127,19 @@ function checkTestOnlyModules(entries, testOnlyModules) {
  * consumer's install.
  */
 function checkExports(entries) {
-  const samples = { components: 'button', lib: 'utils', hooks: 'use-mobile' };
+  // Keyed by the whole subpath, because two families live under `components`:
+  // `./components/*` resolves into `components/ui`, while the AI family has its
+  // own entry. Keying on the first segment gave both families `button`.
+  const samples = {
+    './components/ai/*': 'tool-approval',
+    './components/*': 'button',
+    './lib/*': 'utils',
+    './hooks/*': 'use-mobile',
+  };
   const { exports } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
   for (const [subpath, target] of Object.entries(exports)) {
-    const wildcard = subpath.includes('*')
-      ? (samples[subpath.split('/')[1]] ?? path.basename(subpath))
-      : null;
+    const wildcard = subpath.includes('*') ? (samples[subpath] ?? path.basename(subpath)) : null;
 
     if (wildcard && !Object.keys(entries).some((key) => key.endsWith(`/${wildcard}`))) {
       errors.push(`exports "${subpath}": sample "${wildcard}" is not a build entry`);
