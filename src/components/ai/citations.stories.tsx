@@ -4,7 +4,7 @@ import { getCitations } from '../../lib/citations';
 import { sourceParts } from '../../testing/ai-parts';
 import { CitationMarker, Sources } from './citations';
 
-import type { CitationRender } from './citations';
+import type { CitationRender, DocumentHref } from './citations';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const [urlCitation, documentCitation] = getCitations([sourceParts.url, sourceParts.document]);
@@ -14,6 +14,9 @@ const siteLink: CitationRender = (citation) => (
     {`See: ${citation.title}`}
   </a>
 );
+
+const servedDocuments: DocumentHref = (citation) =>
+  citation.mediaType ? `/documents/${encodeURIComponent(citation.sourceId)}` : undefined;
 
 const meta = {
   title: 'AI/CitationMarker',
@@ -37,6 +40,11 @@ const meta = {
     render: {
       control: false,
       description: 'Replace the whole marker with your own rendering.',
+      table: { category: 'Rendering' },
+    },
+    documentHref: {
+      control: false,
+      description: 'Where the app serves a document, so its marker becomes a download.',
       table: { category: 'Rendering' },
     },
     className: { control: false, table: { category: 'Styling' } },
@@ -70,6 +78,20 @@ export const DocumentMarker: Story = {
     await userEvent.hover(canvas.getByRole('note', { name: /Weather data policy/ }));
 
     await expect(await screen.findByRole('tooltip')).toHaveTextContent('weather-data-policy.pdf');
+  },
+};
+
+/** An app that serves its documents turns the document's marker into a download. */
+export const DownloadMarker: Story = {
+  args: { citation: documentCitation, documentHref: servedDocuments },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const marker = canvas.getByRole('link', { name: 'Weather data policy, 2' });
+
+    await expect(marker).toHaveAttribute('href', '/documents/source_policy');
+    await expect(marker).toHaveAttribute('download', 'weather-data-policy.pdf');
+    // The note is replaced by the download, not rendered beside it.
+    await expect(canvas.queryByRole('note', { name: /Weather data policy/ })).toBeNull();
   },
 };
 
@@ -116,6 +138,25 @@ export const CustomMarkers: StoryObj<typeof sourcesMeta> = {
   render: (args) => <Sources {...args} />,
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByText('marker 1')).toBeInTheDocument();
+  },
+};
+
+/** The list takes the same resolver, so its document markers download too. */
+export const DocumentDownloads: StoryObj<typeof sourcesMeta> = {
+  args: { parts: [sourceParts.url, sourceParts.document], documentHref: servedDocuments },
+  render: (args) => <Sources {...args} />,
+  play: async ({ canvasElement }) => {
+    const items = within(within(canvasElement).getByRole('list', { name: 'Sources' })).getAllByRole(
+      'listitem',
+    );
+    const pageMarker = within(items[0]).getByRole('link', { name: 'Kraków forecast, 1' });
+    const documentMarker = within(items[1]).getByRole('link', {
+      name: 'Weather data policy, 2',
+    });
+
+    await expect(documentMarker).toHaveAttribute('download', 'weather-data-policy.pdf');
+    // The resolver answers for the page too, but a page is never a download.
+    await expect(pageMarker).not.toHaveAttribute('download');
   },
 };
 

@@ -54,6 +54,38 @@ describe('CitationMarker', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('weather-data-policy.pdf');
   });
 
+  it('downloads a document from the link the app resolves for it', () => {
+    render(
+      <CitationMarker
+        citation={documentCitation}
+        documentHref={(citation) => `/documents/${citation.sourceId}`}
+      />,
+    );
+
+    const marker = screen.getByRole('link', { name: 'Weather data policy, 2' });
+
+    expect(marker).toHaveAttribute('href', '/documents/source_policy');
+    expect(marker).toHaveAttribute('download', 'weather-data-policy.pdf');
+    // The download replaced the note; a document is one marker, not two.
+    expect(screen.queryByRole('note', { name: /Weather data policy/ })).toBeNull();
+  });
+
+  it('keeps a document a note when the app resolves no download for it', () => {
+    render(<CitationMarker citation={documentCitation} documentHref={() => undefined} />);
+
+    expect(screen.getByRole('note', { name: 'Weather data policy, 2' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Weather data policy/ })).toBeNull();
+  });
+
+  it('leaves a page citation to its page when the resolver answers for every source', () => {
+    render(<CitationMarker citation={urlCitation} documentHref={() => '/documents/elsewhere'} />);
+
+    const marker = screen.getByRole('link', { name: 'Kraków forecast, 1' });
+
+    expect(marker).toHaveAttribute('href', 'https://example.com/krakow-forecast');
+    expect(marker).not.toHaveAttribute('download');
+  });
+
   it('replaces its whole rendering with the given override', () => {
     render(
       <CitationMarker
@@ -110,6 +142,25 @@ describe('Sources', () => {
 
     expect(screen.getByText('marker 1')).toBeInTheDocument();
     expect(screen.queryByRole('note', { name: /Weather data policy/ })).toBeNull();
+  });
+
+  it('downloads the documents the resolver names, and only those', () => {
+    render(
+      <Sources
+        parts={[sourceParts.url, sourceParts.document]}
+        documentHref={(citation) =>
+          citation.filename ? `/documents/${citation.filename}` : undefined
+        }
+      />,
+    );
+
+    const items = within(screen.getByRole('list', { name: 'Sources' })).getAllByRole('listitem');
+    const documentMarker = within(items[1]).getByRole('link', { name: 'Weather data policy, 2' });
+    const pageMarker = within(items[0]).getByRole('link', { name: 'Kraków forecast, 1' });
+
+    expect(documentMarker).toHaveAttribute('href', '/documents/weather-data-policy.pdf');
+    expect(documentMarker).toHaveAttribute('download', 'weather-data-policy.pdf');
+    expect(pageMarker).not.toHaveAttribute('download');
   });
 
   it('translates the heading and names the list with it', () => {
