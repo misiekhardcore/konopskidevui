@@ -199,11 +199,11 @@ function Tool({
         </TraceCollapsibleTrigger>
 
         {/*
-          `w-0 min-w-full` keeps the body from sizing the row: the details fill
-          whatever width the row already has, so opening it cannot widen the row
-          (and shift the name left) inside a shrink-to-fit column.
+          The details keep their own intrinsic width so the arguments and output
+          stay readable. `min-w-0` lets them shrink to the container instead of
+          overflowing a narrow column.
         */}
-        <TraceCollapsibleContent className="flex w-0 min-w-full flex-col gap-3">
+        <TraceCollapsibleContent className="flex min-w-0 flex-col gap-3">
           {part.state === 'input-streaming' && partialInput ? (
             <ToolSection label={text.partialInput}>{partialInput}</ToolSection>
           ) : null}

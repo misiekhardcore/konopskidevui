@@ -10,6 +10,9 @@ const meta = {
   component: Tool,
   tags: ['autodocs'],
   parameters: {
+    // A transcript column, not a centred card: the row takes its width from the
+    // container, so it must not be measured against a shrink-wrapped root.
+    layout: 'padded',
     docs: {
       description: {
         component:
@@ -84,8 +87,8 @@ export const Running: Story = {
 /** A call whose input is complete: the row carries the name, the arguments are one click away. */
 export const Available: Story = {
   args: { part: toolParts['input-available'] },
-  // A tool row in a shrink-wrapped message bubble: opening it must not widen
-  // the bubble, or the tool name slides sideways as the details appear.
+  // The row inside a shrink-wrapped message bubble, which is where its own
+  // width is decided by its contents rather than by a column.
   render: (args) => (
     <div className="w-fit max-w-full">
       <Tool {...args} />
@@ -94,16 +97,19 @@ export const Available: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole('button', { name: /getWeather/ });
-    const row = canvasElement.querySelector('[data-slot="tool"]');
-    const width = row?.getBoundingClientRect().width;
+    const nameLeft = trigger.getBoundingClientRect().left;
 
     await userEvent.click(trigger);
 
+    const details = canvasElement.querySelector('[data-slot="trace-collapsible-content-inner"]');
+    const detailsWidth = details?.getBoundingClientRect().width ?? 0;
+
     await expect(canvas.getByText('Input')).toBeInTheDocument();
-    // Opening must not widen the row: in a shrink-wrapped bubble the details
-    // would grow it, and a centred column would then slide the name sideways.
-    await expect(row?.getBoundingClientRect().width).toBe(width);
-    await expect(trigger.getBoundingClientRect().width).toBeGreaterThan(0);
+    // The details need room of their own: a body held to the label's width
+    // hides the arguments behind a horizontal scrollbar.
+    await expect(detailsWidth).toBeGreaterThan(trigger.getBoundingClientRect().width);
+    // The bubble grows to the right, so the name stays where it was.
+    await expect(trigger.getBoundingClientRect().left).toBeCloseTo(nameLeft, 1);
   },
 };
 
@@ -153,4 +159,12 @@ export const ProviderExecuted: Story = {
 /** A tool the app did not type is still named, by its runtime-provided name. */
 export const DynamicTool: Story = {
   args: { part: dynamicToolParts['input-available'] },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole('button', { name: /lookup_order/ }));
+
+    // A dynamic tool's arguments are as readable as a typed tool's.
+    await expect(canvas.getByText(/"orderId"/)).toBeInTheDocument();
+  },
 };
