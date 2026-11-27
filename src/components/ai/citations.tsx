@@ -144,7 +144,9 @@ function CitationMarker({
   return (
     <span
       data-slot="citation-marker"
-      className={cn('inline-flex align-super', className)}
+      // Baseline, not super: the marker's digit reads on the same baseline as
+      // the prose around it, and its 1rem box stays inside the line box.
+      className={cn('inline-flex align-baseline', className)}
       {...props}
     >
       <TooltipProvider delayDuration={0}>

@@ -32,21 +32,22 @@ Some components are built on a heavy library. Those are **optional peers**: they
 with the package, and you add the one a component needs — the manual half of what `shadcn add` does
 for a copied component.
 
-| Component                                       | Install alongside                    |
-| ----------------------------------------------- | ------------------------------------ |
-| `chart`                                         | `pnpm add recharts`                  |
-| `carousel`                                      | `pnpm add embla-carousel-react`      |
-| `drawer`                                        | `pnpm add vaul`                      |
-| `calendar`                                      | `pnpm add react-day-picker`          |
-| `resizable`                                     | `pnpm add react-resizable-panels`    |
-| `command`                                       | `pnpm add cmdk`                      |
-| `sonner`                                        | `pnpm add sonner`                    |
-| `input-otp`                                     | `pnpm add input-otp`                 |
-| `combobox`                                      | `pnpm add @base-ui/react`            |
-| `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`             |
-| `video`                                         | `pnpm add @videojs/react` (ESM only) |
-| `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)          |
-| `components/ai/*`                               | `pnpm add ai@^6` (types only)        |
+| Component                                       | Install alongside                               |
+| ----------------------------------------------- | ----------------------------------------------- |
+| `chart`                                         | `pnpm add recharts`                             |
+| `carousel`                                      | `pnpm add embla-carousel-react`                 |
+| `drawer`                                        | `pnpm add vaul`                                 |
+| `calendar`                                      | `pnpm add react-day-picker`                     |
+| `resizable`                                     | `pnpm add react-resizable-panels`               |
+| `command`                                       | `pnpm add cmdk`                                 |
+| `sonner`                                        | `pnpm add sonner`                               |
+| `input-otp`                                     | `pnpm add input-otp`                            |
+| `combobox`                                      | `pnpm add @base-ui/react`                       |
+| `message-scroller`, `questionnaire`             | `pnpm add @shadcn/react`                        |
+| `video`                                         | `pnpm add @videojs/react` (ESM only)            |
+| `lib/highlighter`, `hooks/use-highlighted-code` | `pnpm add shiki` (ESM only)                     |
+| `components/ai/response`                        | `pnpm add react-markdown remark-gfm` (ESM only) |
+| `components/ai/*`                               | `pnpm add ai@^6` (types only)                   |
 
 Those twelve components, and the AI family, are **not** in the root barrel: a barrel that re-exported
 them would make every consumer resolve `recharts` on `import { Button } from '@konopskidev/ui'`, and
@@ -269,6 +270,29 @@ stays a note. A page citation is never turned into a download, whatever the reso
 `renderMarker` replaces a marker entirely, for an app's own router link or analytics wrapper; `labels`
 translates the heading; and the list renders nothing at all for an answer that cited nothing, so it can
 be mounted under every message.
+
+### AI answers
+
+`Response` renders a `text` part as GFM, keeps it mounted while chunks are appended, and resolves the
+same `[n]` markers as the citation list. Pass the message's parts so the prose can point at them; a
+marker whose source has not arrived yet stays literal and upgrades when it does.
+
+```tsx
+import { Response } from '@konopskidev/ui/components/ai/response';
+
+<Response
+  part={part}
+  parts={message.parts}
+  documentHref={(citation) => `/documents/${encodeURIComponent(citation.sourceId)}`}
+  renderMarker={(citation) => <MyRouterLink citation={citation} />}
+/>;
+```
+
+A provider with its own marker syntax passes `resolveCitation` instead of forking the component;
+`renderMarker` is the same override the citation list takes. Fenced code uses the code block chrome
+without syntax highlighting, so the install adds no highlighting engine. While the part streams, new
+blocks fade and rise, the box eases to its new height where the engine supports `interpolate-size`,
+and `prefers-reduced-motion` leaves the caret still.
 
 ## The style contract
 
