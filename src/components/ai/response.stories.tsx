@@ -1,9 +1,10 @@
+import * as React from 'react';
 import { expect, within } from 'storybook/test';
 
 import { sourceParts } from '../../testing/ai-parts';
 import { Response } from './response';
 
-import type { CitationResolver, ResponsePart } from './response';
+import type { CitationResolver, ResponsePart, ResponseProps } from './response';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const answer = `## The forecast
@@ -28,6 +29,67 @@ const forecast = await getForecast('Kraków');
 
 function part(text: string, state: ResponsePart['state'] = 'done'): ResponsePart {
   return { type: 'text', text, state };
+}
+
+/** How the story feeds the answer: small enough steps to read, quick enough to watch. */
+const CHUNK = 6;
+const TICK = 80;
+/** A finished answer holds, then the story replays itself: it is watched, not read. */
+const HOLD = 2000;
+
+/**
+ * Story-only: the text grows the way a provider sends it.
+ *
+ * The motion is CSS and lives in the component; without new chunks there is
+ * nothing for it to animate, because `@starting-style` only runs for a block
+ * that has just been inserted. This harness supplies the chunks so the fade, the
+ * height ease and the caret can be watched in a story instead of imagined.
+ */
+function useStreamedText(text: string): string {
+  const [length, setLength] = React.useState(() => Math.min(CHUNK, text.length));
+
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+
+    const advance = (from: number) => {
+      timer = setTimeout(() => {
+        if (cancelled) return;
+
+        const next = Math.min(from + CHUNK, text.length);
+
+        setLength(next);
+
+        if (next < text.length) {
+          advance(next);
+          return;
+        }
+
+        timer = setTimeout(() => {
+          if (cancelled) return;
+
+          setLength(Math.min(CHUNK, text.length));
+          advance(CHUNK);
+        }, HOLD);
+      }, TICK);
+    };
+
+    advance(Math.min(CHUNK, text.length));
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [text]);
+
+  return text.slice(0, length);
+}
+
+/** A story's part, with its text handed over chunk by chunk; the part's own state is kept. */
+function StreamedResponse({ part: streamedPart, ...props }: ResponseProps) {
+  const text = useStreamedText(streamedPart.text);
+
+  return <Response part={{ ...streamedPart, text }} {...props} />;
 }
 
 const meta = {
@@ -80,15 +142,13 @@ type Story = StoryObj<typeof meta>;
 /** Every GFM block an answer uses, rendered as one finished part. */
 export const Markdown: Story = {};
 
-/** A part in flight: the last block is the one the caret follows. */
+/**
+ * A part in flight: every block arrives in turn, so a block that is new fades in
+ * and the caret stays on the one the stream is writing.
+ */
 export const Streaming: Story = {
-  args: {
-    part: part(
-      'The forecast is clear. Bring a jacket for the morning, and sunglasses for the afternoon.',
-      'streaming',
-    ),
-    parts: [],
-  },
+  args: { part: part(answer, 'streaming') },
+  render: (args) => <StreamedResponse {...args} />,
   play: async ({ canvasElement }) => {
     const root = canvasElement.querySelector('[data-slot="response"]');
 
@@ -104,22 +164,22 @@ export const Streaming: Story = {
 };
 
 /**
- * A resolved marker and one whose source has not arrived: the first is a link,
- * the second stays the literal characters the model produced.
+ * Both markers in one paragraph, resolved to the two sources the message carries:
+ * a page is a link, and a document with no page of its own is a note.
  */
 export const Citations: Story = {
-  // The one composition Chromatic snapshots for this component: the failure mode
-  // of an unresolved marker is visual.
+  // The one composition Chromatic snapshots for this component: a marker's
+  // alignment and its weight against the prose are what a snapshot can judge.
   parameters: { chromatic: { disableSnapshot: false } },
   args: {
     part: part('The forecast is clear [1], and the policy agrees [2].'),
-    parts: [sourceParts.url],
+    parts: [sourceParts.url, sourceParts.document],
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
     await expect(canvas.getByRole('link', { name: 'Kraków forecast, 1' })).toBeInTheDocument();
-    await expect(canvasElement).toHaveTextContent('[2]');
+    await expect(canvas.getByRole('note', { name: 'Weather data policy, 2' })).toBeInTheDocument();
   },
 };
 
@@ -164,14 +224,22 @@ export const CustomMarker: Story = {
 export const UnfinishedFence: Story = {
   args: {
     part: part('Run the lookup:\n\n```ts\nconst forecast = await getForecast(', 'streaming'),
-    parts: [],
   },
+  render: (args) => <StreamedResponse {...args} />,
   play: async ({ canvasElement }) => {
-    const block = canvasElement.querySelector('[data-slot="code-block"]');
+    // The fence opens a few chunks in, so wait for the chrome rather than
+    // assuming the first chunk already contains it.
+    const copy = await within(canvasElement).findByRole(
+      'button',
+      { name: 'Copy' },
+      { timeout: 3000 },
+    );
 
-    await expect(block).not.toBeNull();
-    await expect(
-      within(block as HTMLElement).getByRole('button', { name: 'Copy' }),
-    ).toBeInTheDocument();
+    await expect(copy).toBeInTheDocument();
+    await expect(canvasElement.querySelector('[data-slot="code-block"]')).not.toBeNull();
+    await expect(canvasElement.querySelector('[data-slot="response"]')).toHaveAttribute(
+      'data-state',
+      'streaming',
+    );
   },
 };
