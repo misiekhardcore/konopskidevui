@@ -94,6 +94,38 @@ export const filePart = {
   url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
 } as const satisfies FileUIPart;
 
+/**
+ * One model-produced file per media family, so a suite or story never builds a
+ * part inline. `filePart` above stays the embedded image the message fixtures
+ * carry; these point at hosted files, which is what an app normally renders.
+ */
+export const fileParts = {
+  image: {
+    type: 'file',
+    mediaType: 'image/png',
+    filename: 'forecast-chart.png',
+    url: 'https://example.com/forecast-chart.png',
+  },
+  audio: {
+    type: 'file',
+    mediaType: 'audio/mpeg',
+    filename: 'forecast-briefing.mp3',
+    url: 'https://example.com/forecast-briefing.mp3',
+  },
+  video: {
+    type: 'file',
+    mediaType: 'video/mp4',
+    filename: 'forecast-loop.mp4',
+    url: 'https://example.com/forecast-loop.mp4',
+  },
+  document: {
+    type: 'file',
+    mediaType: 'application/pdf',
+    filename: 'forecast-report.pdf',
+    url: 'https://example.com/forecast-report.pdf',
+  },
+} as const satisfies Record<'image' | 'audio' | 'video' | 'document', FileUIPart>;
+
 export const dataPart = {
   type: 'data-weather',
   id: 'data_forecast',
