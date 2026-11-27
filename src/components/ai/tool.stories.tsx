@@ -84,6 +84,27 @@ export const Running: Story = {
 /** A call whose input is complete: the row carries the name, the arguments are one click away. */
 export const Available: Story = {
   args: { part: toolParts['input-available'] },
+  // A tool row in a shrink-wrapped message bubble: opening it must not widen
+  // the bubble, or the tool name slides sideways as the details appear.
+  render: (args) => (
+    <div className="w-fit max-w-full">
+      <Tool {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole('button', { name: /getWeather/ });
+    const row = canvasElement.querySelector('[data-slot="tool"]');
+    const width = row?.getBoundingClientRect().width;
+
+    await userEvent.click(trigger);
+
+    await expect(canvas.getByText('Input')).toBeInTheDocument();
+    // Opening must not widen the row: in a shrink-wrapped bubble the details
+    // would grow it, and a centred column would then slide the name sideways.
+    await expect(row?.getBoundingClientRect().width).toBe(width);
+    await expect(trigger.getBoundingClientRect().width).toBeGreaterThan(0);
+  },
 };
 
 /** A pending approval is the one row that opens itself and will not collapse. */

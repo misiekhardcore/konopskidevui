@@ -161,6 +161,12 @@ export const toolParts = {
   },
 } as const satisfies Record<ToolUIPart<AiFixtureTools>['state'], ToolUIPart<AiFixtureTools>>;
 
+/** A finished call that still carries the approval it ran under. */
+export const approvedToolPart = {
+  ...toolParts['output-available'],
+  approval: { id: approvalId, approved: true, reason: 'Approved by the on-call engineer.' },
+} as const satisfies ToolUIPart<AiFixtureTools>;
+
 /** The same lifecycle for a tool the app did not register, named at runtime. */
 export const dynamicToolParts = {
   'input-streaming': {

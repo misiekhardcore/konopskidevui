@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import { dynamicToolParts, toolParts } from '../../testing/ai-parts';
+import { approvedToolPart, dynamicToolParts, toolParts } from '../../testing/ai-parts';
 import { Tool } from './tool';
 
 import type { ToolPart } from './tool';
@@ -129,6 +129,18 @@ describe('Tool', () => {
     await userEvent.click(screen.getByRole('button', { name: /getWeather/ }));
 
     expect(screen.getByText(/Output/)).toBeInTheDocument();
+    expect(screen.getByText(/"temperatureC": 21/)).toBeInTheDocument();
+  });
+
+  it('keeps the approval when a completed call still carries one', async () => {
+    render(<Tool part={approvedToolPart} />);
+
+    expect(screen.queryByRole('button', { name: 'Approve' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: /getWeather/ }));
+
+    expect(screen.getByText(/was approved/)).toBeInTheDocument();
+    expect(screen.getByText('Approved by the on-call engineer.')).toBeInTheDocument();
     expect(screen.getByText(/"temperatureC": 21/)).toBeInTheDocument();
   });
 

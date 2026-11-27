@@ -102,6 +102,7 @@ function stateFactOf(part: ToolPart, text: ToolLabels): string | null {
       return text.awaitingApproval;
     case 'approval-responded':
       return part.approval?.approved ? text.approved : text.declined;
+    case 'input-available':
     case 'output-available':
       return null;
     case 'output-error':
@@ -197,7 +198,12 @@ function Tool({
           </TraceLine>
         </TraceCollapsibleTrigger>
 
-        <TraceCollapsibleContent className="flex flex-col gap-3">
+        {/*
+          `w-0 min-w-full` keeps the body from sizing the row: the details fill
+          whatever width the row already has, so opening it cannot widen the row
+          (and shift the name left) inside a shrink-to-fit column.
+        */}
+        <TraceCollapsibleContent className="flex w-0 min-w-full flex-col gap-3">
           {part.state === 'input-streaming' && partialInput ? (
             <ToolSection label={text.partialInput}>{partialInput}</ToolSection>
           ) : null}
