@@ -26,6 +26,8 @@ export const SRC = fileURLToPath(new URL('../src', import.meta.url));
  */
 export const ESM_ONLY_MODULES = [
   'components/ui/video',
+  // Reaches `@videojs/react` through the `Video` player it renders.
+  'components/ai/file-part',
   'lib/highlighter',
   'hooks/use-highlighted-code',
 ];
