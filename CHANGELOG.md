@@ -2,22 +2,40 @@
 
 All notable changes to this project are documented in this file.
 
-## [0.10.0] - 2026-11-28
+## [0.11.0] - 2026-11-28
+
+### Bug Fixes
+
+- **ai:** Message actions that honour the #29 contract (#44)
+
 
 ### Features
 
-- **ai:** Release the AI component family: a renderer for every AI SDK part type — tool calls and their approvals, reasoning, streamed responses with citations, sources, files, data parts, message actions, the composer, an error and a waiting indicator
-- **ai:** The family is deep-import only and type-coupled to `ai@^6`, which every module needs for its types; `response` also needs `react-markdown` and `remark-gfm`, and `file-part` needs `@videojs/react` (both ESM only)
+- **ai:** Render tool approval as the AI family's first subpath (#36)
+- **ai:** Render a tool part across its lifecycle as one disclosure row (#37)
+- **ai:** Render the reasoning part as a collapsing thought row (#38)
+- **ai:** Resolve source parts into a citation list and markers (#25) (#39)
+- **ai:** Render a file part by its media type (#40)
+- **ai:** Render a text part as streaming markdown with citations (#41)
+- **ai:** Render an app-defined data part as named JSON (#42)
+- Message actions component (#43)
+- **ai:** Prompt input composer with attachments, voice and auto-read (#30) (#45)
+- **ai:** Chat error as a destructive alert (#46)
+- **ai:** Typing indicator before the first token (#32) (#47)
+- **ai:** Release the AI component family as 0.10.0 (#49)
 
-### Documentation
 
-- **ai:** Document the family's install command, supported SDK major, import subpath and per-module peers, and link the decisions behind it
+### Testing
+
+- **ai:** Share typed part fixtures and keep them out of the build (#35)
+- **ai:** Composed assistant transcript (#48)
 
 ## [0.9.1] - 2026-11-25
 
 ### Chores
 
 - Bump deps (#19)
+- Release v0.9.1
 
 ## [0.9.0] - 2026-11-25
 
