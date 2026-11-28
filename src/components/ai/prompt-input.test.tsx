@@ -150,6 +150,24 @@ describe('PromptInput', () => {
     expect(preview).toHaveAttribute('src', 'blob:cover.png');
   });
 
+  it('opens the file picker from the attach control', async () => {
+    const open = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+    render(<Composer onSubmit={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Attach files' }));
+
+    expect(open).toHaveBeenCalledOnce();
+    open.mockRestore();
+  });
+
+  it('leaves the attachments alone when the picker is cancelled', () => {
+    const { container } = render(<Composer onSubmit={vi.fn()} />);
+
+    fireEvent.change(fileInput(container));
+
+    expect(screen.queryByRole('group', { name: 'Attachments' })).not.toBeInTheDocument();
+  });
+
   it('accepts a pasted file as an attachment', async () => {
     render(<Composer onSubmit={vi.fn()} />);
 
