@@ -43,7 +43,13 @@ const DOTS = [0, 1, 2] as const;
  * first. One line of the answer's own typography is reserved, so the first token
  * takes its place without moving the transcript.
  */
-function TypingIndicator({ status, hasContent = false, labels, ...props }: TypingIndicatorProps) {
+function TypingIndicator({
+  status,
+  hasContent = false,
+  labels,
+  className,
+  ...props
+}: TypingIndicatorProps) {
   const text = { ...DEFAULT_LABELS, ...labels };
   const pending = status === 'submitted' || status === 'streaming';
 
@@ -54,7 +60,7 @@ function TypingIndicator({ status, hasContent = false, labels, ...props }: Typin
       role="status"
       data-slot="typing-indicator"
       data-status={status}
-      className="min-h-lh"
+      className={cn('min-h-lh', className)}
       {...props}
     >
       <span className="sr-only">{text.waiting}</span>
@@ -64,13 +70,14 @@ function TypingIndicator({ status, hasContent = false, labels, ...props }: Typin
         className="flex h-full items-center gap-1"
       >
         {DOTS.map((dot) => (
+          // The animation rides a full-height wrapper, so the dot travels a
+          // visible distance instead of shifting inside its own few pixels.
           <span
-            className="h-full animate-bounce motion-reduce:animate-bounce"
-
+            key={dot}
+            className="h-full animate-bounce motion-reduce:animate-none"
             style={{ animationDelay: `${-0.3 + dot * 0.15}s` }}
           >
             <span
-              key={dot}
               data-slot="typing-indicator-dot"
               className="inline-block size-1 rounded-full bg-current"
             />

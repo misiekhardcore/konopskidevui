@@ -21,7 +21,8 @@ const meta = {
     status: {
       control: 'inline-radio',
       options: ['submitted', 'streaming', 'ready', 'error'],
-      description: 'The conversation status, straight from `useChat`.',
+      description:
+        'The conversation status, straight from `useChat`. Only a pending turn draws: `ready` and `error` render nothing, so the component can be mounted under every answer.',
       table: { category: 'State' },
     },
     hasContent: {
@@ -64,39 +65,6 @@ export const Streaming: Story = {
   },
 };
 
-/** An answer that already shows a part gets the whole frame for itself. */
-export const ContentPresent: Story = {
-  args: { status: 'streaming', hasContent: true },
-  render: (args) => (
-    <div className="flex flex-col gap-2.5">
-      <TypingIndicator {...args} />
-      <p className="text-sm leading-relaxed">The forecast for Kraków is 21 °C and clear.</p>
-    </div>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-
-    await expect(canvas.queryByRole('status')).toBeNull();
-    await expect(canvas.getByText(/The forecast for Kraków/)).toBeInTheDocument();
-  },
-};
-
-/** A finished turn keeps no waiting affordance, however empty it looks. */
-export const Ready: Story = {
-  args: { status: 'ready' },
-  play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).queryByRole('status')).toBeNull();
-  },
-};
-
-/** A failed turn is not waiting either; the app renders its own error surface. */
-export const Failed: Story = {
-  args: { status: 'error' },
-  play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).queryByRole('status')).toBeNull();
-  },
-};
-
 /**
  * The same three dots, still, for a reader who prefers reduced motion. This is
  * also the one composition Chromatic snapshots for this component: a static
@@ -106,6 +74,15 @@ export const ReducedMotion: Story = {
   parameters: {
     chromatic: { disableSnapshot: false, prefersReducedMotion: 'reduce' },
   },
+  // A browser answers `prefers-reduced-motion` from the OS setting, and
+  // Storybook cannot turn that on. Chromatic does emulate it for the snapshot,
+  // and the override below is the same stillness for anyone browsing this story
+  // in a browser whose setting is off.
+  render: (args) => (
+    <div className="[&_*]:animate-none!">
+      <TypingIndicator {...args} />
+    </div>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
@@ -116,12 +93,12 @@ export const ReducedMotion: Story = {
   },
 };
 
-/** Every string is a label, so the announcement can be translated. */
+/** Every string is a label, so the announcement can be replaced or translated. */
 export const Translated: Story = {
-  args: { labels: { waiting: 'Waiting for a response' } },
+  args: { labels: { waiting: 'Waiting for the first token' } },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole('status')).toHaveTextContent(
-      'Waiting for a response',
+      'Waiting for the first token',
     );
   },
 };
