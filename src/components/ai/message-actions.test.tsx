@@ -160,6 +160,37 @@ describe('MessageActions', () => {
     expect(screen.getByText('The answer')).toBeInTheDocument();
   });
 
+  it('shows a labelled tooltip for every icon-only action', async () => {
+    render(
+      <MessageActions
+        copyValue="The answer"
+        onCopy={() => {}}
+        onFeedbackChange={() => {}}
+        onRegenerate={() => {}}
+        onEdit={() => {}}
+      />,
+    );
+
+    const actions = [
+      ['Copy message', 'Copy to clipboard'],
+      ['Helpful', 'Helpful'],
+      ['Not helpful', 'Not helpful'],
+      ['Regenerate message', 'Regenerate message'],
+      ['Edit message', 'Edit message'],
+    ];
+
+    for (const [name, label] of actions) {
+      const button = screen.getByRole('button', { name });
+
+      await userEvent.hover(button);
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(label);
+
+      await userEvent.unhover(button);
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    }
+  });
+
   it('gives every action a name and a keyboard path', async () => {
     const onEdit = vi.fn();
 

@@ -128,31 +128,39 @@ function MessageActions({
           // Two separate buttons fed by one vote: both read their pressed state
           // from `feedback`, so they can never both be pressed and a new vote
           // replaces the previous one.
-          <Toggle
-            size="sm"
-            data-slot="message-feedback-up"
-            pressed={feedback === 'up'}
-            aria-label="Helpful"
-            title="Helpful"
-            className="size-6 min-w-6 px-0"
-            onPressedChange={(pressed) => onFeedbackChange(pressed ? 'up' : null)}
-          >
-            <ThumbsUpIcon className="h-3.5 w-3.5" />
-          </Toggle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle
+                size="sm"
+                data-slot="message-feedback-up"
+                pressed={feedback === 'up'}
+                aria-label="Helpful"
+                className="size-6 min-w-6 px-0"
+                onPressedChange={(pressed) => onFeedbackChange(pressed ? 'up' : null)}
+              >
+                <ThumbsUpIcon className="h-3.5 w-3.5" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Helpful</TooltipContent>
+          </Tooltip>
         ) : null}
 
         {onFeedbackChange ? (
-          <Toggle
-            size="sm"
-            data-slot="message-feedback-down"
-            pressed={feedback === 'down'}
-            aria-label="Not helpful"
-            title="Not helpful"
-            className="size-6 min-w-6 px-0"
-            onPressedChange={(pressed) => onFeedbackChange(pressed ? 'down' : null)}
-          >
-            <ThumbsDownIcon className="h-3.5 w-3.5" />
-          </Toggle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle
+                size="sm"
+                data-slot="message-feedback-down"
+                pressed={feedback === 'down'}
+                aria-label="Not helpful"
+                className="size-6 min-w-6 px-0"
+                onPressedChange={(pressed) => onFeedbackChange(pressed ? 'down' : null)}
+              >
+                <ThumbsDownIcon className="h-3.5 w-3.5" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Not helpful</TooltipContent>
+          </Tooltip>
         ) : null}
 
         {onRegenerate ? (
