@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -316,314 +316,53 @@ describe('PromptInput', () => {
   });
 });
 
-/** One `SpeechRecognition` result, as the browser hands it over. */
-type RecognitionEvent = {
-  resultIndex: number;
-  results: (ArrayLike<{ transcript: string }> & { isFinal: boolean })[];
-};
-
-/** The slice of `SpeechRecognition` the composer drives. */
-class FakeSpeechRecognition {
-  continuous = false;
-  interimResults = false;
-  lang = '';
-  onresult: ((event: RecognitionEvent) => void) | null = null;
-  onend: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  start = vi.fn();
-  stop = vi.fn();
-  abort = vi.fn();
-
-  constructor() {
-    recognitions.push(this);
-  }
-}
-
-let recognitions: FakeSpeechRecognition[] = [];
-
-function provideSpeechRecognition() {
-  recognitions = [];
-  Object.defineProperty(window, 'SpeechRecognition', {
-    configurable: true,
-    value: FakeSpeechRecognition,
-  });
-}
-
-function removeSpeechRecognition() {
-  Reflect.deleteProperty(window, 'SpeechRecognition');
-  Reflect.deleteProperty(window, 'webkitSpeechRecognition');
-}
-
-function dictate(recognition: FakeSpeechRecognition, transcript: string, isFinal = true) {
-  act(() => {
-    recognition.onresult?.({
-      resultIndex: 0,
-      results: [Object.assign([{ transcript }], { isFinal })],
-    });
-  });
-}
-
-function dictateResults(
-  recognition: FakeSpeechRecognition,
-  transcripts: string[],
-  resultIndex: number,
-) {
-  act(() => {
-    recognition.onresult?.({
-      resultIndex,
-      results: transcripts.map((transcript) => Object.assign([{ transcript }], { isFinal: true })),
-    });
-  });
-}
-
-describe('PromptInput voice input', () => {
-  afterEach(() => {
-    removeSpeechRecognition();
-  });
-
-  it('shows no microphone unless voice input is asked for', () => {
-    provideSpeechRecognition();
+describe('PromptInput voice toggle', () => {
+  it('shows no microphone unless the app asks for one', () => {
     render(<Composer onSubmit={vi.fn()} />);
 
     expect(screen.queryByRole('button', { name: /voice input/i })).not.toBeInTheDocument();
   });
 
-  it('hides the microphone where the browser has no speech recognition', () => {
-    removeSpeechRecognition();
+  it('shows the microphone without any browser speech API', () => {
     render(<Composer onSubmit={vi.fn()} voiceInput />);
 
-    expect(screen.queryByRole('button', { name: /voice input/i })).not.toBeInTheDocument();
-  });
-
-  it('dictates a final transcript into the draft and ignores interim ones', async () => {
-    provideSpeechRecognition();
-    const onValueChange = vi.fn();
-    render(<Composer onSubmit={vi.fn()} onValueChange={onValueChange} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-
-    expect(recognitions).toHaveLength(1);
-    const [recognition] = recognitions;
-    expect(recognition.start).toHaveBeenCalledOnce();
-    expect(recognition.continuous).toBe(true);
-    expect(recognition.interimResults).toBe(true);
-
-    dictate(recognition, 'Kraków', false);
-    expect(onValueChange).not.toHaveBeenCalled();
-
-    dictate(recognition, 'Kraków');
-    expect(onValueChange).toHaveBeenLastCalledWith('Kraków');
-
-    dictate(recognition, 'forecast');
-    expect(onValueChange).toHaveBeenLastCalledWith('Kraków forecast');
-  });
-
-  it('appends only the results a continuous session has not reported yet', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-    dictateResults(recognitions[0], ['Weather', 'tomorrow'], 1);
-
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('tomorrow');
-  });
-
-  it('accepts the webkit-prefixed recognition Safari ships', async () => {
-    recognitions = [];
-    Object.defineProperty(window, 'webkitSpeechRecognition', {
-      configurable: true,
-      value: FakeSpeechRecognition,
-    });
-    render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-
-    expect(recognitions).toHaveLength(1);
-  });
-
-  it('returns to idle when recognition reports an error', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-    act(() => recognitions[0].onerror?.());
-
+    // The composer carries no recognition of its own: the app records.
+    expect('SpeechRecognition' in window).toBe(false);
+    expect('webkitSpeechRecognition' in window).toBe(false);
     expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
   });
 
-  it('continues a draft that already has text in it', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} value="Weather" voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-    dictate(recognitions[0], 'tomorrow');
-
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('Weather tomorrow');
-  });
-
-  it('stops dictating when the microphone is pressed again', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-
-    const listening = screen.getByRole('button', { name: 'Stop voice input' });
-    expect(listening).toHaveAttribute('aria-pressed', 'true');
-
-    await userEvent.click(listening);
-
-    expect(recognitions[0].stop).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: 'Start voice input' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
-  });
-
-  it('goes back to idle when the browser ends the session on its own', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-    act(() => recognitions[0].onend?.());
-
-    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
-  });
-
-  it('aborts the microphone when the composer unmounts', async () => {
-    provideSpeechRecognition();
-    const { unmount } = render(<Composer onSubmit={vi.fn()} voiceInput />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
-    unmount();
-
-    expect(recognitions[0].abort).toHaveBeenCalledOnce();
-  });
-});
-
-describe('PromptInput auto-read toggle', () => {
-  it('shows no speaker unless the app takes the toggle', () => {
-    render(<Composer onSubmit={vi.fn()} />);
-
-    expect(
-      screen.queryByRole('button', { name: /reading responses aloud/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows no speaker for the state alone, because the app must act on it', () => {
-    render(<Composer onSubmit={vi.fn()} readAloud />);
-
-    expect(
-      screen.queryByRole('button', { name: /reading responses aloud/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('asks the app to start reading responses aloud', async () => {
-    const onReadAloudChange = vi.fn();
-    render(<Composer onSubmit={vi.fn()} onReadAloudChange={onReadAloudChange} />);
-
-    const speaker = screen.getByRole('button', { name: 'Read responses aloud' });
-    expect(speaker).toHaveAttribute('aria-pressed', 'false');
-
-    await userEvent.click(speaker);
-
-    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(true);
-  });
-
-  it('asks the app to stop when responses are already read aloud', async () => {
-    const onReadAloudChange = vi.fn();
-    render(<Composer onSubmit={vi.fn()} readAloud onReadAloudChange={onReadAloudChange} />);
-
-    const speaker = screen.getByRole('button', { name: 'Stop reading responses aloud' });
-    expect(speaker).toHaveAttribute('aria-pressed', 'true');
-
-    await userEvent.click(speaker);
-
-    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(false);
-  });
-
-  it("follows the app's answer instead of toggling itself", async () => {
-    const onReadAloudChange = vi.fn();
-
-    render(
-      <PromptInput
-        value=""
-        onValueChange={vi.fn()}
-        onSubmit={vi.fn()}
-        readAloud={false}
-        onReadAloudChange={onReadAloudChange}
-      />,
-    );
-
-    const speaker = screen.getByRole('button', { name: 'Read responses aloud' });
-    await userEvent.click(speaker);
-
-    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(true);
-    expect(speaker).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('names the speaker through labels', () => {
-    render(
-      <Composer
-        onSubmit={vi.fn()}
-        readAloud
-        onReadAloudChange={() => {}}
-        labels={{ read: 'Czytaj odpowiedzi', stopReading: 'Przestań czytać odpowiedzi' }}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Przestań czytać odpowiedzi' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-  });
-});
-
-describe('PromptInput controlled dictation', () => {
-  afterEach(() => {
-    removeSpeechRecognition();
-  });
-
-  /** The microphone's state lives in the app, the way a transcript panel would own it. */
-  function Dictation({
-    onChange,
-    initial = false,
-  }: {
-    onChange: (listening: boolean) => void;
-    initial?: boolean;
-  }) {
-    const [listening, setListening] = React.useState(initial);
-
-    return (
-      <Composer
-        onSubmit={vi.fn()}
-        voiceInput
-        listening={listening}
-        onListeningChange={(next) => {
-          setListening(next);
-          onChange(next);
-        }}
-      />
-    );
-  }
-
-  it('asks the app to start dictation, then starts once it agrees', async () => {
-    provideSpeechRecognition();
+  it('turns the microphone into a stop control once the app is listening', async () => {
     const onListeningChange = vi.fn();
-    render(<Dictation onChange={onListeningChange} />);
+    render(<Composer onSubmit={vi.fn()} voiceInput onListeningChange={onListeningChange} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    const microphone = screen.getByRole('button', { name: 'Start voice input' });
+    expect(microphone).toHaveAttribute('aria-pressed', 'false');
+
+    await userEvent.click(microphone);
 
     expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(true);
-    expect(recognitions).toHaveLength(1);
-    expect(recognitions[0].start).toHaveBeenCalledOnce();
     expect(screen.getByRole('button', { name: 'Stop voice input' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
   });
 
-  it('follows the app instead of starting on its own', async () => {
-    provideSpeechRecognition();
+  it('asks the app to stop when the microphone is pressed again', async () => {
+    const onListeningChange = vi.fn();
+    render(<Composer onSubmit={vi.fn()} voiceInput onListeningChange={onListeningChange} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Stop voice input' }));
+
+    expect(onListeningChange).toHaveBeenLastCalledWith(false);
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it("follows the app's answer instead of toggling itself", async () => {
     const onListeningChange = vi.fn();
     render(
       <Composer
@@ -638,76 +377,29 @@ describe('PromptInput controlled dictation', () => {
     await userEvent.click(microphone);
 
     expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(true);
-    expect(recognitions).toHaveLength(0);
     expect(microphone).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('opens a session when the app turns dictation on', () => {
-    provideSpeechRecognition();
+  it('shows a session the app started somewhere else', () => {
     render(<Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={() => {}} />);
 
-    expect(recognitions).toHaveLength(1);
-    expect(recognitions[0].start).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: 'Stop voice input' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Stop voice input' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
-  it('closes the session when the app turns dictation off', () => {
-    provideSpeechRecognition();
-    const onListeningChange = vi.fn();
-    const { rerender } = render(
-      <Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={onListeningChange} />,
-    );
-
-    rerender(
+  it('names the microphone through labels', () => {
+    render(
       <Composer
         onSubmit={vi.fn()}
         voiceInput
-        listening={false}
-        onListeningChange={onListeningChange}
+        listening
+        onListeningChange={() => {}}
+        labels={{ voice: 'Rozpocznij dyktowanie', stopVoice: 'Zatrzymaj dyktowanie' }}
       />,
     );
 
-    expect(recognitions[0].stop).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
-  });
-
-  it('reports a session the browser finished, once', () => {
-    provideSpeechRecognition();
-    const onListeningChange = vi.fn();
-    render(<Dictation onChange={onListeningChange} initial />);
-
-    act(() => recognitions[0].onend?.());
-
-    expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(false);
-    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
-  });
-
-  it('does not report the ending it caused itself', () => {
-    provideSpeechRecognition();
-    const onListeningChange = vi.fn();
-    const { rerender } = render(
-      <Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={onListeningChange} />,
-    );
-
-    rerender(
-      <Composer
-        onSubmit={vi.fn()}
-        voiceInput
-        listening={false}
-        onListeningChange={onListeningChange}
-      />,
-    );
-    act(() => recognitions[0].onend?.());
-
-    expect(onListeningChange).not.toHaveBeenCalled();
-  });
-
-  it('dictates into the draft while the app holds the session open', async () => {
-    provideSpeechRecognition();
-    render(<Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={() => {}} />);
-
-    dictate(recognitions[0], 'Kraków');
-
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('Kraków');
+    expect(screen.getByRole('button', { name: 'Zatrzymaj dyktowanie' })).toBeInTheDocument();
   });
 });

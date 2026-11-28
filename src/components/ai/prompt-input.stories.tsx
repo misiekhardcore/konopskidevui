@@ -37,14 +37,14 @@ const meta = {
     voiceInput: {
       control: 'boolean',
       description:
-        'Adds a microphone that dictates into the draft. Hidden where the browser has no speech recognition.',
+        'Adds a microphone. The composer never records: the app starts its own recorder from `onListeningChange` and appends the text through `onValueChange`.',
       table: { category: 'Speech', defaultValue: { summary: 'false' } },
     },
     listening: {
-      control: false,
+      control: 'boolean',
       description:
-        'Whether dictation is running. Leave it out to let the composer own the session; an app that passes it drives the microphone and hears every start and stop through `onListeningChange`.',
-      table: { category: 'Speech' },
+        'Whether the app is dictating. Controlled like the draft, so the button follows the recorder rather than guessing.',
+      table: { category: 'Speech', defaultValue: { summary: 'false' } },
     },
     onListeningChange: { control: false, table: { category: 'Handlers' } },
     readAloud: {
@@ -92,6 +92,10 @@ function ComposerPlayground({
   const [autoRead, setAutoRead] = React.useState(readAloud ?? false);
   const speaker =
     readAloud === undefined ? {} : { readAloud: autoRead, onReadAloudChange: setAutoRead };
+  // The composer renders the microphone but cannot record, so the harness owns
+  // the state a real app would drive its recorder from.
+  const [dictating, setDictating] = React.useState(false);
+  const microphone = voiceInput ? { listening: dictating, onListeningChange: setDictating } : {};
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-3">
@@ -107,6 +111,7 @@ function ComposerPlayground({
         maxHeight={maxHeight}
         labels={labels}
         voiceInput={voiceInput}
+        {...microphone}
         {...speaker}
       />
       {sent ? (
@@ -170,10 +175,10 @@ export const Streaming: Story = {
 };
 
 /**
- * Opt-in speech controls: a microphone that dictates into the draft (where the
- * browser supports recognition) and a speaker that toggles whether the app reads
- * its responses aloud. The speaker exists here because the story owns its state;
- * speaking the responses belongs to the app.
+ * Opt-in speech controls: a microphone that toggles the app's dictation and a
+ * speaker that toggles whether the app reads its responses aloud. Both exist
+ * here because the story owns their state; recording and speaking belong to the
+ * app, which is free to use any recognizer or voice it likes.
  */
 export const VoiceAndReadAloud: Story = {
   args: { voiceInput: true, readAloud: false },
@@ -190,9 +195,13 @@ export const VoiceAndReadAloud: Story = {
       canvas.getByRole('button', { name: 'Stop reading responses aloud' }),
     ).toHaveAttribute('aria-pressed', 'true');
 
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      await expect(canvas.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
-    }
+    // The microphone appears without any browser speech API: the app records.
+    await userEvent.click(canvas.getByRole('button', { name: 'Start voice input' }));
+
+    await expect(canvas.getByRole('button', { name: 'Stop voice input' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   },
 };
 
