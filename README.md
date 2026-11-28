@@ -234,6 +234,48 @@ directive, so a new component cannot silently regress the rule:
 pnpm test src/client-directive.test.ts
 ```
 
+### AI components
+
+The AI family renders the AI SDK's message parts: a tool call and its approval, reasoning, a streamed
+answer with citations, the source list, files, app-defined data, message actions, the composer, an
+error and a waiting indicator. A component takes the part itself — `<Tool part={part} />` — so it
+receives exactly what `useChat` hands over, and the published types follow the SDK's part shape
+rather than a wrapper this package maintains.
+
+```bash
+pnpm add @konopskidev/ui ai@^6
+```
+
+`ai` is required by every module in the family, and only its current major is supported: the approval
+states this family renders exist in the `^6` part union, not in `5.x`
+([ADR 0003](docs/adr/0003-one-sdk-major.md)). It is a **type-only** peer — the family imports
+`import type` and nothing else, so no SDK code is loaded at runtime — and like the components in the
+peer table above it is deep-import only, never part of the root barrel
+([ADRs 0001](docs/adr/0001-ai-component-family.md) and
+[0002](docs/adr/0002-type-only-sdk-coupling.md)).
+
+```tsx
+import { Response } from '@konopskidev/ui/components/ai/response';
+import { Tool } from '@konopskidev/ui/components/ai/tool';
+
+<Response part={part} parts={message.parts} />;
+<Tool part={part} onApprove={({ id }) => addToolApprovalResponse({ id, approved: true })} />;
+```
+
+| Module (under `components/ai/`) | Install alongside                               |
+| ------------------------------- | ----------------------------------------------- |
+| `response`                      | `pnpm add react-markdown remark-gfm` (ESM only) |
+| `file-part`                     | `pnpm add @videojs/react` (ESM only)            |
+
+Every other module — `chat-error`, `citations`, `data-part`, `message-actions`, `prompt-input`,
+`reasoning`, `tool`, `tool-approval`, `typing-indicator` — needs only `ai@^6`, for its types.
+
+The family is presentational: no `useChat`, no transport and no message state, so the app owns the
+conversation and this package owns how a part looks
+([ADR 0004](docs/adr/0004-presentational-only.md)). The decisions behind it — the separate import
+family, the type-only SDK coupling, the peer split and the release shape — live in
+[`docs/adr/`](docs/adr/README.md).
+
 ### AI citations
 
 An AI answer cites pages and documents, and the citation family renders the same sources twice: as the
@@ -481,9 +523,11 @@ declarations, and normalise relative specifiers so `moduleResolution: node16` co
 [`scripts/check-build.mjs`](scripts/check-build.mjs) then fails the build on any of the ways this
 package has broken before: a module with declarations but no JavaScript, a `'use client'` that is
 missing or duplicated, an `exports` target that does not exist, or a stylesheet that is not in `dist`.
-`attw` runs with `--profile node16`, so both the `import` and `require` branches are validated;
-`./styles.css` and the two ESM-only modules are excluded, and publint validates the stylesheet as a
-plain asset.
+`attw` runs with `--profile node16`, so both the `import` and `require` branches are validated. A
+wildcard subpath is reported as a wildcard and proves nothing, so every AI module is named as an
+entrypoint as well; that is the check which resolves the declarations referencing `ai` types.
+`./styles.css` and the ESM-only modules (`video`, `response`, `file-part`, `lib/highlighter`,
+`hooks/use-highlighted-code`) are excluded, and publint validates the stylesheet as a plain asset.
 
 ## Adding a component
 
@@ -495,6 +539,10 @@ pnpm format
 
 Then write `src/components/ui/<component>.stories.tsx` and `<component>.test.tsx`, export it from
 `src/components/ui/<component>.tsx` and regenerate the barrel with `pnpm barrel`.
+
+A module that renders an AI SDK part belongs to the AI family instead — `src/components/ai`, the
+`AI/*` Storybook kind and the `components/ai/*` import subpath, never the root barrel; everything
+else is a `components/ui` module and may join it ([ADR 0001](docs/adr/0001-ai-component-family.md)).
 
 Three rules are enforced by tests rather than convention:
 
