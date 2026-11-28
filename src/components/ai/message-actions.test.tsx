@@ -35,7 +35,7 @@ describe('MessageActions', () => {
     expect(screen.getByRole('button', { name: 'Copy message' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Regenerate message' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit message' })).toBeNull();
-    expect(screen.queryByRole('group', { name: 'Message feedback' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Helpful' })).toBeNull();
   });
 
   it('writes the message text when copy is pressed', async () => {
@@ -97,10 +97,10 @@ describe('MessageActions', () => {
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
 
-  it('is one feedback control whose pressed state reflects the current vote', () => {
+  it('offers two separate feedback buttons whose pressed state reflects the current vote', () => {
     render(<VoteRow initial="up" />);
 
-    expect(screen.getByRole('group', { name: 'Message feedback' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Helpful' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Not helpful' })).toHaveAttribute(
       'aria-pressed',
@@ -108,7 +108,7 @@ describe('MessageActions', () => {
     );
   });
 
-  it('replaces the vote instead of adding a second pressed control', async () => {
+  it('replaces the vote instead of pressing both feedback buttons', async () => {
     render(<VoteRow />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Helpful' }));

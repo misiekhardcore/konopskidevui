@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A per-message action row for AI chats: copy, feedback, regenerate and edit. Every action is optional and renders only when its handler is wired; with none provided nothing renders.',
+          'A per-message action row for AI chats: copy, two separate feedback buttons, regenerate and edit. Every action is optional and renders only when its handler is wired; with none provided nothing renders.',
       },
     },
   },
@@ -46,7 +46,7 @@ export const Default: Story = {
   },
 };
 
-/** The vote the app recorded is the control's pressed state. */
+/** The vote the app recorded is the pressed state of the matching button. */
 export const Voted: Story = {
   args: {
     copyValue: 'The capital of Poland is Kraków.',

@@ -26,10 +26,11 @@ const CONFIRMATION_MS = 2000;
  *
  * Copy receives the message text and writes it itself; the row then shows a
  * check and announces the confirmation through a live region once the write
- * resolves. Feedback is one control — a labelled pair of pressed toggles fed by
- * the single vote the app recorded — so switching votes replaces the previous
- * one instead of leaving both pressed. Regenerate and edit only emit: the row
- * never changes what the message displays.
+ * resolves. Feedback is two separate toggle buttons — helpful and not helpful —
+ * whose pressed states both read the single vote the app recorded, so recording
+ * the other vote replaces the previous one instead of leaving both pressed.
+ * Regenerate and edit only emit: the row never changes what the message
+ * displays.
  */
 export type MessageActionsProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** The message text; the copy action needs it to have something to write. */
@@ -124,36 +125,34 @@ function MessageActions({
         ) : null}
 
         {onFeedbackChange ? (
-          // One control, fed by one vote: both toggles read their pressed state
-          // from `feedback`, so the group can never hold two votes at once and
-          // a new vote replaces the previous one.
-          <div
-            data-slot="message-feedback"
-            role="group"
-            aria-label="Message feedback"
-            className="flex items-center gap-0.5"
+          // Two separate buttons fed by one vote: both read their pressed state
+          // from `feedback`, so they can never both be pressed and a new vote
+          // replaces the previous one.
+          <Toggle
+            size="sm"
+            data-slot="message-feedback-up"
+            pressed={feedback === 'up'}
+            aria-label="Helpful"
+            title="Helpful"
+            className="size-6 min-w-6 px-0"
+            onPressedChange={(pressed) => onFeedbackChange(pressed ? 'up' : null)}
           >
-            <Toggle
-              size="sm"
-              pressed={feedback === 'up'}
-              aria-label="Helpful"
-              title="Helpful"
-              className="size-6 min-w-6 px-0"
-              onPressedChange={(pressed) => onFeedbackChange(pressed ? 'up' : null)}
-            >
-              <ThumbsUpIcon className="h-3.5 w-3.5" />
-            </Toggle>
-            <Toggle
-              size="sm"
-              pressed={feedback === 'down'}
-              aria-label="Not helpful"
-              title="Not helpful"
-              className="size-6 min-w-6 px-0"
-              onPressedChange={(pressed) => onFeedbackChange(pressed ? 'down' : null)}
-            >
-              <ThumbsDownIcon className="h-3.5 w-3.5" />
-            </Toggle>
-          </div>
+            <ThumbsUpIcon className="h-3.5 w-3.5" />
+          </Toggle>
+        ) : null}
+
+        {onFeedbackChange ? (
+          <Toggle
+            size="sm"
+            data-slot="message-feedback-down"
+            pressed={feedback === 'down'}
+            aria-label="Not helpful"
+            title="Not helpful"
+            className="size-6 min-w-6 px-0"
+            onPressedChange={(pressed) => onFeedbackChange(pressed ? 'down' : null)}
+          >
+            <ThumbsDownIcon className="h-3.5 w-3.5" />
+          </Toggle>
         ) : null}
 
         {onRegenerate ? (
