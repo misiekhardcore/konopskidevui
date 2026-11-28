@@ -1,7 +1,15 @@
 'use client';
 
 import { cn } from 'cn';
-import { CheckIcon, CopyIcon, Pencil, RefreshCw, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  CopyIcon,
+  Pencil,
+  RefreshCw,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  Volume2Icon,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '../ui/button';
@@ -29,8 +37,8 @@ const CONFIRMATION_MS = 2000;
  * resolves. Feedback is two separate toggle buttons — helpful and not helpful —
  * whose pressed states both read the single vote the app recorded, so recording
  * the other vote replaces the previous one instead of leaving both pressed.
- * Regenerate and edit only emit: the row never changes what the message
- * displays.
+ * Read aloud, regenerate and edit only emit: the row never changes what the
+ * message displays, and the app decides how the message is spoken.
  */
 export type MessageActionsProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** The message text; the copy action needs it to have something to write. */
@@ -41,6 +49,8 @@ export type MessageActionsProps = Omit<ComponentProps<'div'>, 'children'> & {
   feedback?: MessageFeedbackVote | null;
   /** Reports the vote the reader pressed. Without it, no feedback is rendered. */
   onFeedbackChange?: (vote: MessageFeedbackVote | null) => void;
+  /** Reads the message aloud. The speaker action is absent without it. */
+  onReadAloud?: () => void | Promise<void>;
   onRegenerate?: () => void | Promise<void>;
   onEdit?: () => void | Promise<void>;
 };
@@ -50,6 +60,7 @@ function MessageActions({
   onCopy,
   feedback,
   onFeedbackChange,
+  onReadAloud,
   onRegenerate,
   onEdit,
   className,
@@ -69,7 +80,7 @@ function MessageActions({
 
   // Copy without the text it would write is not an action the app wired up, so
   // it does not count towards rendering the row.
-  if (!copies && !onFeedbackChange && !onRegenerate && !onEdit) return null;
+  if (!copies && !onFeedbackChange && !onReadAloud && !onRegenerate && !onEdit) return null;
 
   async function handleCopy() {
     if (!onCopy || copyValue === undefined) return;
@@ -160,6 +171,24 @@ function MessageActions({
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>Not helpful</TooltipContent>
+          </Tooltip>
+        ) : null}
+
+        {onReadAloud ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                data-slot="message-read-aloud"
+                aria-label="Read aloud"
+                onClick={() => void onReadAloud()}
+              >
+                <Volume2Icon className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Read aloud</TooltipContent>
           </Tooltip>
         ) : null}
 

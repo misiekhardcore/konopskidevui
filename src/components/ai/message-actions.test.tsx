@@ -35,6 +35,7 @@ describe('MessageActions', () => {
     expect(screen.getByRole('button', { name: 'Copy message' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Regenerate message' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit message' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Read aloud' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Helpful' })).toBeNull();
   });
 
@@ -141,6 +142,19 @@ describe('MessageActions', () => {
     expect(onFeedbackChange).toHaveBeenCalledWith('down');
   });
 
+  it('reads the message aloud only when the speaker action is wired', async () => {
+    const onReadAloud = vi.fn();
+
+    render(<MessageActions onReadAloud={onReadAloud} />);
+
+    const speak = screen.getByRole('button', { name: 'Read aloud' });
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+
+    await userEvent.click(speak);
+
+    expect(onReadAloud).toHaveBeenCalledTimes(1);
+  });
+
   it('emits regenerate and edit without changing what the message shows', async () => {
     const onRegenerate = vi.fn();
     const onEdit = vi.fn();
@@ -166,6 +180,7 @@ describe('MessageActions', () => {
         copyValue="The answer"
         onCopy={() => {}}
         onFeedbackChange={() => {}}
+        onReadAloud={() => {}}
         onRegenerate={() => {}}
         onEdit={() => {}}
       />,
@@ -175,6 +190,7 @@ describe('MessageActions', () => {
       ['Copy message', 'Copy to clipboard'],
       ['Helpful', 'Helpful'],
       ['Not helpful', 'Not helpful'],
+      ['Read aloud', 'Read aloud'],
       ['Regenerate message', 'Regenerate message'],
       ['Edit message', 'Edit message'],
     ];

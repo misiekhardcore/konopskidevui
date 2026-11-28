@@ -23,6 +23,7 @@ const meta = {
     },
     onCopy: { control: false, table: { category: 'Handlers' } },
     onFeedbackChange: { control: false, table: { category: 'Handlers' } },
+    onReadAloud: { control: false, table: { category: 'Handlers' } },
     onRegenerate: { control: false, table: { category: 'Handlers' } },
     onEdit: { control: false, table: { category: 'Handlers' } },
     className: { control: false, table: { category: 'Styling' } },
@@ -41,6 +42,7 @@ export const Default: Story = {
     onCopy: () => {},
     feedback: null,
     onFeedbackChange: () => {},
+    onReadAloud: () => {},
     onRegenerate: () => {},
     onEdit: () => {},
   },
@@ -61,6 +63,15 @@ export const CopyOnly: Story = {
   args: {
     copyValue: 'The capital of Poland is Kraków.',
     onCopy: () => {},
+  },
+};
+
+/** Copy and read aloud, for an answer the reader may want to listen to. */
+export const ReadAloud: Story = {
+  args: {
+    copyValue: 'The capital of Poland is Kraków.',
+    onCopy: () => {},
+    onReadAloud: () => {},
   },
 };
 
