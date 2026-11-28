@@ -112,14 +112,14 @@ describe('ChatError', () => {
     render(
       <ChatError
         error=""
-        labels={{ fallback: 'Połączenie zerwane', retry: 'Ponów' }}
+        labels={{ fallback: 'Conversation dropped', retry: 'Reconnect' }}
         onRetry={onRetry}
       />,
     );
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Połączenie zerwane');
+    expect(screen.getByRole('alert')).toHaveTextContent('Conversation dropped');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Ponów' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Reconnect' }));
 
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

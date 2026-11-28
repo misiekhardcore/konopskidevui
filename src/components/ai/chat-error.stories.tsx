@@ -40,10 +40,10 @@ export const Default: Story = {
   },
 };
 
-/** A provider's own wording, which the app has not translated. */
+/** A provider's own wording, passed through untouched. */
 export const ProviderMessage: Story = {
   args: {
-    error: 'Der Anbieter hat die Anfrage abgelehnt: Kontingent erschöpft.',
+    error: 'Request rejected: quota exhausted for this billing period (429).',
   },
 };
 
