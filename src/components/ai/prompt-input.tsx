@@ -1,7 +1,17 @@
 'use client';
 
 import { cn } from 'cn';
-import { FileIcon, PaperclipIcon, SendIcon, SquareIcon, XIcon } from 'lucide-react';
+import {
+  FileIcon,
+  MicIcon,
+  MicOffIcon,
+  PaperclipIcon,
+  SendIcon,
+  SquareIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  XIcon,
+} from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -34,6 +44,14 @@ export type PromptInputLabels = {
   attachments: string;
   /** An attachment's remove action; `{name}` is where the file's name goes. */
   remove: string;
+  /** The microphone's accessible name while dictation is idle. */
+  voice: string;
+  /** The microphone's accessible name while dictation is listening. */
+  stopVoice: string;
+  /** The speaker's accessible name while the draft is silent. */
+  read: string;
+  /** The speaker's accessible name while the draft is being read. */
+  stopReading: string;
 };
 
 const DEFAULT_LABELS: PromptInputLabels = {
@@ -43,6 +61,10 @@ const DEFAULT_LABELS: PromptInputLabels = {
   attach: 'Attach files',
   attachments: 'Attachments',
   remove: 'Remove {name}',
+  voice: 'Start voice input',
+  stopVoice: 'Stop voice input',
+  read: 'Read aloud',
+  stopReading: 'Stop reading aloud',
 };
 
 /** What the app receives on submit: plain text and the browser's own files. */
@@ -86,6 +108,71 @@ function actionLabelOf(template: string, name: string): string {
   return template.replace('{name}', name);
 }
 
+/** One result a recognition event carries; only its first alternative is read. */
+type SpeechResult = ArrayLike<{ transcript: string }> & { isFinal: boolean };
+
+/** The slice of the browser's `SpeechRecognition` the composer drives. */
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: { resultIndex: number; results: ArrayLike<SpeechResult> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+/** The constructor the browser exposes, if it has one at all. */
+function speechRecognitionOf(): SpeechRecognitionConstructor | null {
+  if (typeof window === 'undefined') return null;
+
+  const scope = window as Window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+
+  return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
+}
+
+/** The final text in a result event, ignoring the interim guesses around it. */
+function finalTranscriptOf(event: {
+  resultIndex: number;
+  results: ArrayLike<SpeechResult>;
+}): string {
+  let transcript = '';
+
+  for (let index = event.resultIndex; index < event.results.length; index += 1) {
+    const result = event.results[index];
+
+    if (result?.isFinal) transcript += result[0]?.transcript ?? '';
+  }
+
+  return transcript.trim();
+}
+
+/** The slice of `speechSynthesis` the composer drives. */
+type Speaker = Pick<SpeechSynthesis, 'speak' | 'cancel'>;
+
+/** The browser's speech synthesis, if it has a usable one. */
+function speechSynthesisOf(): Speaker | null {
+  if (typeof window === 'undefined') return null;
+
+  const speaker = (window as Window & { speechSynthesis?: Speaker }).speechSynthesis;
+
+  return typeof speaker?.speak === 'function' && typeof speaker.cancel === 'function'
+    ? speaker
+    : null;
+}
+
+/** True only where both halves of speaking — the queue and its utterance — exist. */
+function canReadAloud(): boolean {
+  return speechSynthesisOf() !== null && typeof SpeechSynthesisUtterance === 'function';
+}
+
 export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | 'children'> & {
   /** The draft, controlled by the app. */
   value: string;
@@ -99,6 +186,10 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
   status?: PromptInputStatus;
   /** The height the textarea grows to before it scrolls. */
   maxHeight?: number;
+  /** Show a microphone that dictates into the draft. Hidden where the browser has no speech recognition. */
+  voiceInput?: boolean;
+  /** Show a speaker that reads the draft aloud. Hidden where the browser has no speech synthesis. */
+  readAloud?: boolean;
   /** Override the strings shown, one at a time. */
   labels?: Partial<PromptInputLabels>;
 };
@@ -108,7 +199,9 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
  * Shift+Enter inserts a newline, and the send control becomes stop while the
  * answer streams. Files chosen from the picker or pasted into the textarea are
  * previewed as attachments and handed back as browser files, so the app — not
- * this component — decides how they become SDK file parts. The textarea grows
+ * this component — decides how they become SDK file parts. Opt-in speech
+ * controls add a microphone that dictates into the draft and a speaker that
+ * reads it back, both only where the browser can offer them. The textarea grows
  * with its content up to a limit and then scrolls.
  */
 function PromptInput({
@@ -118,6 +211,8 @@ function PromptInput({
   onStop,
   status = 'ready',
   maxHeight = DEFAULT_MAX_HEIGHT,
+  voiceInput = false,
+  readAloud = false,
   labels,
   className,
   ...props
@@ -127,10 +222,30 @@ function PromptInput({
   const pickerRef = React.useRef<HTMLInputElement>(null);
   const nextId = React.useRef(0);
   const createdUrls = React.useRef(new Set<string>());
+  const recognition = React.useRef<SpeechRecognitionLike | null>(null);
+  const draft = React.useRef(value);
   const [attachments, setAttachments] = React.useState<PromptAttachment[]>([]);
+  const [canDictate, setCanDictate] = React.useState(false);
+  const [canRead, setCanRead] = React.useState(false);
+  const [listening, setListening] = React.useState(false);
+  const [reading, setReading] = React.useState(false);
 
   const streaming = status === 'streaming';
   const canSubmit = !streaming && value.trim().length > 0;
+
+  // A recognition result arrives outside React's render, so it reads the draft
+  // from a ref that this effect keeps one commit behind the app's state.
+  React.useEffect(() => {
+    draft.current = value;
+  }, [value]);
+
+  // Support is detected after mount so the server render and the first client
+  // render agree; a control appears once the browser's answer is known.
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanDictate(voiceInput && speechRecognitionOf() !== null);
+    setCanRead(readAloud && canReadAloud());
+  }, [readAloud, voiceInput]);
 
   // Every object URL the composer ever created is revoked when it unmounts,
   // including one whose attachment is still on screen at that moment.
@@ -178,6 +293,80 @@ function PromptInput({
 
     setAttachments([]);
   }
+
+  function startDictation() {
+    const Recognition = speechRecognitionOf();
+
+    if (!Recognition) return;
+
+    const instance = new Recognition();
+
+    instance.continuous = true;
+    instance.interimResults = true;
+    instance.lang = document.documentElement.lang || navigator.language || 'en-US';
+    instance.onresult = (event) => {
+      const transcript = finalTranscriptOf(event);
+
+      if (!transcript) return;
+
+      // A dictation continues the draft rather than replacing it, and keeps the
+      // word it lands next to apart from it.
+      const previous = draft.current;
+      const separator = previous === '' || /\s$/.test(previous) ? '' : ' ';
+
+      onValueChange(`${previous}${separator}${transcript}`);
+    };
+    instance.onend = () => {
+      recognition.current = null;
+      setListening(false);
+    };
+    instance.onerror = () => {
+      recognition.current = null;
+      setListening(false);
+    };
+
+    recognition.current = instance;
+    instance.start();
+    setListening(true);
+  }
+
+  function stopDictation() {
+    const instance = recognition.current;
+
+    recognition.current = null;
+    instance?.stop();
+    setListening(false);
+  }
+
+  function readDraft() {
+    const speaker = speechSynthesisOf();
+    const aloud = value.trim();
+
+    if (!speaker || !aloud) return;
+
+    const utterance = new SpeechSynthesisUtterance(aloud);
+
+    utterance.onend = () => setReading(false);
+    utterance.onerror = () => setReading(false);
+
+    speaker.speak(utterance);
+    setReading(true);
+  }
+
+  function stopReading() {
+    speechSynthesisOf()?.cancel();
+    setReading(false);
+  }
+
+  // The microphone and the voice are the browser's, so the composer releases
+  // them on the way out instead of leaving a session running after it is gone.
+  React.useEffect(() => {
+    return () => {
+      recognition.current?.abort();
+      recognition.current = null;
+      speechSynthesisOf()?.cancel();
+    };
+  }, []);
 
   function submit() {
     if (!canSubmit) return;
@@ -258,29 +447,58 @@ function PromptInput({
       />
 
       <div className="flex items-center justify-between gap-2">
-        <input
-          ref={pickerRef}
-          type="file"
-          multiple
-          tabIndex={-1}
-          aria-label={text.attach}
-          className="sr-only"
-          onChange={(event) => {
-            addFiles([...(event.target.files ?? [])]);
-            // The same file can be picked again after it was removed.
-            event.target.value = '';
-          }}
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          data-slot="prompt-input-attach"
-          aria-label={text.attach}
-          onClick={() => pickerRef.current?.click()}
-        >
-          <PaperclipIcon aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={pickerRef}
+            type="file"
+            multiple
+            tabIndex={-1}
+            aria-label={text.attach}
+            className="sr-only"
+            onChange={(event) => {
+              addFiles([...(event.target.files ?? [])]);
+              // The same file can be picked again after it was removed.
+              event.target.value = '';
+            }}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            data-slot="prompt-input-attach"
+            aria-label={text.attach}
+            onClick={() => pickerRef.current?.click()}
+          >
+            <PaperclipIcon aria-hidden="true" />
+          </Button>
+          {canDictate ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              data-slot="prompt-input-voice"
+              aria-label={listening ? text.stopVoice : text.voice}
+              aria-pressed={listening}
+              onClick={() => (listening ? stopDictation() : startDictation())}
+            >
+              {listening ? <MicOffIcon aria-hidden="true" /> : <MicIcon aria-hidden="true" />}
+            </Button>
+          ) : null}
+          {canRead ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              data-slot="prompt-input-read"
+              aria-label={reading ? text.stopReading : text.read}
+              aria-pressed={reading}
+              disabled={!reading && value.trim().length === 0}
+              onClick={() => (reading ? stopReading() : readDraft())}
+            >
+              {reading ? <VolumeXIcon aria-hidden="true" /> : <Volume2Icon aria-hidden="true" />}
+            </Button>
+          ) : null}
+        </div>
 
         {streaming ? (
           <Button

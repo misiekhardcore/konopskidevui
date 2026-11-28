@@ -34,6 +34,18 @@ const meta = {
       description: 'The height the textarea grows to before it scrolls, in pixels.',
       table: { category: 'Layout', defaultValue: { summary: '200' } },
     },
+    voiceInput: {
+      control: 'boolean',
+      description:
+        'Adds a microphone that dictates into the draft. Hidden where the browser has no speech recognition.',
+      table: { category: 'Speech', defaultValue: { summary: 'false' } },
+    },
+    readAloud: {
+      control: 'boolean',
+      description:
+        'Adds a speaker that reads the draft aloud. Hidden where the browser has no speech synthesis.',
+      table: { category: 'Speech', defaultValue: { summary: 'false' } },
+    },
     labels: { control: 'object', table: { category: 'Content' } },
     className: { control: false, table: { category: 'Styling' } },
   },
@@ -43,6 +55,8 @@ const meta = {
     onSubmit: () => {},
     status: 'ready',
     maxHeight: 200,
+    voiceInput: false,
+    readAloud: false,
   },
 } satisfies Meta<typeof PromptInput>;
 
@@ -58,7 +72,12 @@ function ComposerPlayground({
   maxHeight,
   labels,
   onStop,
-}: Pick<PromptInputProps, 'status' | 'maxHeight' | 'labels' | 'onStop'>) {
+  voiceInput,
+  readAloud,
+}: Pick<
+  PromptInputProps,
+  'status' | 'maxHeight' | 'labels' | 'onStop' | 'voiceInput' | 'readAloud'
+>) {
   const [value, setValue] = React.useState('');
   const [sent, setSent] = React.useState('');
 
@@ -75,6 +94,8 @@ function ComposerPlayground({
         status={status}
         maxHeight={maxHeight}
         labels={labels}
+        voiceInput={voiceInput}
+        readAloud={readAloud}
       />
       {sent ? (
         <p data-slot="sent-prompt" className="text-sm text-muted-foreground">
@@ -136,6 +157,25 @@ export const Streaming: Story = {
   },
 };
 
+/**
+ * Opt-in speech controls: a microphone that dictates into the draft and a
+ * speaker that reads it back. A browser without the matching API renders
+ * neither, which is why they are optional rather than part of the row.
+ */
+export const VoiceAndReadAloud: Story = {
+  args: { voiceInput: true, readAloud: true },
+  render: (args) => <ComposerPlayground {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(canvas.getByRole('button', { name: 'Read aloud' })).toBeInTheDocument();
+
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      await expect(canvas.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
+    }
+  },
+};
+
 /** Files chosen from the picker preview through `Attachment` and can be removed. */
 export const Attachments: Story = {
   render: (args) => <ComposerPlayground {...args} />,
@@ -190,6 +230,10 @@ export const CustomLabels: Story = {
       attach: 'Dołącz pliki',
       attachments: 'Załączniki',
       remove: 'Usuń {name}',
+      voice: 'Rozpocznij dyktowanie',
+      stopVoice: 'Zatrzymaj dyktowanie',
+      read: 'Czytaj na głos',
+      stopReading: 'Przestań czytać',
     },
   },
   render: (args) => <ComposerPlayground {...args} />,

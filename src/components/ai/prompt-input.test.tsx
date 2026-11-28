@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -313,5 +313,307 @@ describe('PromptInput', () => {
     });
 
     expect(screen.queryByRole('group', { name: 'Attachments' })).not.toBeInTheDocument();
+  });
+});
+
+/** One `SpeechRecognition` result, as the browser hands it over. */
+type RecognitionEvent = {
+  resultIndex: number;
+  results: (ArrayLike<{ transcript: string }> & { isFinal: boolean })[];
+};
+
+/** The slice of `SpeechRecognition` the composer drives. */
+class FakeSpeechRecognition {
+  continuous = false;
+  interimResults = false;
+  lang = '';
+  onresult: ((event: RecognitionEvent) => void) | null = null;
+  onend: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  start = vi.fn();
+  stop = vi.fn();
+  abort = vi.fn();
+
+  constructor() {
+    recognitions.push(this);
+  }
+}
+
+let recognitions: FakeSpeechRecognition[] = [];
+
+function provideSpeechRecognition() {
+  recognitions = [];
+  Object.defineProperty(window, 'SpeechRecognition', {
+    configurable: true,
+    value: FakeSpeechRecognition,
+  });
+}
+
+function removeSpeechRecognition() {
+  Reflect.deleteProperty(window, 'SpeechRecognition');
+  Reflect.deleteProperty(window, 'webkitSpeechRecognition');
+}
+
+function dictate(recognition: FakeSpeechRecognition, transcript: string, isFinal = true) {
+  act(() => {
+    recognition.onresult?.({
+      resultIndex: 0,
+      results: [Object.assign([{ transcript }], { isFinal })],
+    });
+  });
+}
+
+function dictateResults(
+  recognition: FakeSpeechRecognition,
+  transcripts: string[],
+  resultIndex: number,
+) {
+  act(() => {
+    recognition.onresult?.({
+      resultIndex,
+      results: transcripts.map((transcript) => Object.assign([{ transcript }], { isFinal: true })),
+    });
+  });
+}
+
+describe('PromptInput voice input', () => {
+  afterEach(() => {
+    removeSpeechRecognition();
+  });
+
+  it('shows no microphone unless voice input is asked for', () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: /voice input/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the microphone where the browser has no speech recognition', () => {
+    removeSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    expect(screen.queryByRole('button', { name: /voice input/i })).not.toBeInTheDocument();
+  });
+
+  it('dictates a final transcript into the draft and ignores interim ones', async () => {
+    provideSpeechRecognition();
+    const onValueChange = vi.fn();
+    render(<Composer onSubmit={vi.fn()} onValueChange={onValueChange} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+
+    expect(recognitions).toHaveLength(1);
+    const [recognition] = recognitions;
+    expect(recognition.start).toHaveBeenCalledOnce();
+    expect(recognition.continuous).toBe(true);
+    expect(recognition.interimResults).toBe(true);
+
+    dictate(recognition, 'Kraków', false);
+    expect(onValueChange).not.toHaveBeenCalled();
+
+    dictate(recognition, 'Kraków');
+    expect(onValueChange).toHaveBeenLastCalledWith('Kraków');
+
+    dictate(recognition, 'forecast');
+    expect(onValueChange).toHaveBeenLastCalledWith('Kraków forecast');
+  });
+
+  it('appends only the results a continuous session has not reported yet', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    dictateResults(recognitions[0], ['Weather', 'tomorrow'], 1);
+
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('tomorrow');
+  });
+
+  it('accepts the webkit-prefixed recognition Safari ships', async () => {
+    recognitions = [];
+    Object.defineProperty(window, 'webkitSpeechRecognition', {
+      configurable: true,
+      value: FakeSpeechRecognition,
+    });
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+
+    expect(recognitions).toHaveLength(1);
+  });
+
+  it('returns to idle when recognition reports an error', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    act(() => recognitions[0].onerror?.());
+
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
+  });
+
+  it('continues a draft that already has text in it', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} value="Weather" voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    dictate(recognitions[0], 'tomorrow');
+
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('Weather tomorrow');
+  });
+
+  it('stops dictating when the microphone is pressed again', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+
+    const listening = screen.getByRole('button', { name: 'Stop voice input' });
+    expect(listening).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(listening);
+
+    expect(recognitions[0].stop).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('goes back to idle when the browser ends the session on its own', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    act(() => recognitions[0].onend?.());
+
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
+  });
+
+  it('aborts the microphone when the composer unmounts', async () => {
+    provideSpeechRecognition();
+    const { unmount } = render(<Composer onSubmit={vi.fn()} voiceInput />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+    unmount();
+
+    expect(recognitions[0].abort).toHaveBeenCalledOnce();
+  });
+});
+
+/** The slice of `SpeechSynthesisUtterance` the composer reads back. */
+class FakeUtterance {
+  text: string;
+  onend: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+
+  constructor(text: string) {
+    this.text = text;
+  }
+}
+
+let spoken: FakeUtterance[] = [];
+let speak: ReturnType<typeof vi.fn>;
+let cancel: ReturnType<typeof vi.fn>;
+
+function provideSpeechSynthesis() {
+  spoken = [];
+  speak = vi.fn((utterance: FakeUtterance) => {
+    spoken.push(utterance);
+  });
+  cancel = vi.fn();
+
+  Object.defineProperty(window, 'speechSynthesis', {
+    configurable: true,
+    value: { speak, cancel },
+  });
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+    configurable: true,
+    value: FakeUtterance,
+  });
+}
+
+function removeSpeechSynthesis() {
+  Reflect.deleteProperty(window, 'speechSynthesis');
+  Reflect.deleteProperty(window, 'SpeechSynthesisUtterance');
+}
+
+describe('PromptInput read aloud', () => {
+  afterEach(() => {
+    removeSpeechSynthesis();
+  });
+
+  it('shows no speaker unless reading aloud is asked for', () => {
+    provideSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: /read aloud/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the speaker where the browser has no speech synthesis', () => {
+    removeSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} readAloud />);
+
+    expect(screen.queryByRole('button', { name: /read aloud/i })).not.toBeInTheDocument();
+  });
+
+  it('reads the trimmed draft aloud', async () => {
+    provideSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} value="  Forecast please  " readAloud />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
+
+    expect(speak).toHaveBeenCalledOnce();
+    expect(spoken[0].text).toBe('Forecast please');
+
+    const reading = screen.getByRole('button', { name: 'Stop reading aloud' });
+    expect(reading).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('stops reading when the speaker is pressed again', async () => {
+    provideSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Stop reading aloud' }));
+
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Read aloud' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('does not read an empty draft', async () => {
+    provideSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} value="   " readAloud />);
+
+    const read = screen.getByRole('button', { name: 'Read aloud' });
+    expect(read).toBeDisabled();
+
+    await userEvent.click(read);
+    expect(speak).not.toHaveBeenCalled();
+  });
+
+  it('goes back to idle when the browser finishes reading', async () => {
+    provideSpeechSynthesis();
+    render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
+    act(() => spoken[0].onend?.());
+
+    expect(screen.getByRole('button', { name: 'Read aloud' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('stops reading when the composer unmounts', async () => {
+    provideSpeechSynthesis();
+    const { unmount } = render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
+    unmount();
+
+    expect(cancel).toHaveBeenCalled();
   });
 });
