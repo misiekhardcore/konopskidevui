@@ -169,6 +169,18 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
   maxHeight?: number;
   /** Show a microphone that dictates into the draft. Hidden where the browser has no speech recognition. */
   voiceInput?: boolean;
+  /**
+   * Whether dictation is running. Leave it out to let the composer run the
+   * session itself; pass it to drive the microphone from the app, which then
+   * learns every start and stop through `onListeningChange`.
+   */
+  listening?: boolean;
+  /**
+   * Called with the next dictation state, whether the microphone was pressed or
+   * the browser ended the session on its own. A controlled app sets `listening`
+   * from it; leaving it out simply means the app does not watch the microphone.
+   */
+  onListeningChange?: (listening: boolean) => void;
   /** Whether responses are read aloud automatically. Controlled by the app, like the draft. */
   readAloud?: boolean;
   /**
@@ -187,9 +199,10 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
  * answer streams. Files chosen from the picker or pasted into the textarea are
  * previewed as attachments and handed back as browser files, so the app — not
  * this component — decides how they become SDK file parts. Opt-in speech
- * controls add a microphone that dictates into the draft, and a speaker that
- * toggles whether the app reads its responses aloud. The textarea grows with
- * its content up to a limit and then scrolls.
+ * controls add a microphone that dictates into the draft, whose session the app
+ * can also drive through `listening`, and a speaker that toggles whether the app
+ * reads its responses aloud. The textarea grows with its content up to a limit
+ * and then scrolls.
  */
 function PromptInput({
   value,
@@ -199,6 +212,8 @@ function PromptInput({
   status = 'ready',
   maxHeight = DEFAULT_MAX_HEIGHT,
   voiceInput = false,
+  listening: listeningProp,
+  onListeningChange,
   readAloud = false,
   onReadAloudChange,
   labels,
@@ -214,8 +229,11 @@ function PromptInput({
   const draft = React.useRef(value);
   const [attachments, setAttachments] = React.useState<PromptAttachment[]>([]);
   const [canDictate, setCanDictate] = React.useState(false);
-  const [listening, setListening] = React.useState(false);
+  const [selfListening, setSelfListening] = React.useState(false);
 
+  // Dictation is controlled when the app passes `listening` and self-managed
+  // otherwise, so both the plain composer and a driven one work.
+  const listening = listeningProp ?? selfListening;
   const streaming = status === 'streaming';
   const canSubmit = !streaming && value.trim().length > 0;
 
@@ -279,7 +297,38 @@ function PromptInput({
     setAttachments([]);
   }
 
-  function startDictation() {
+  // The app owns dictation when it passes `listening`; either way it hears every
+  // request, including the ones the browser makes by ending the session.
+  function requestListening(next: boolean) {
+    if (listeningProp === undefined) setSelfListening(next);
+
+    onListeningChange?.(next);
+  }
+
+  // A recognition session outlives the render that opened it, so its callbacks
+  // read the latest props through this ref instead of a stale closure.
+  const latest = React.useRef({ onValueChange, requestListening });
+
+  React.useEffect(() => {
+    latest.current = { onValueChange, requestListening };
+  });
+
+  // The session follows the state on screen: pressing the microphone asks for
+  // dictation (or for its end), and this keeps exactly one session matching it,
+  // so an app that turns `listening` on or off itself is obeyed too.
+  React.useEffect(() => {
+    if (!canDictate) return;
+
+    if (!listening) {
+      const instance = recognition.current;
+
+      recognition.current = null;
+      instance?.stop();
+      return;
+    }
+
+    if (recognition.current) return;
+
     const Recognition = speechRecognitionOf();
 
     if (!Recognition) return;
@@ -299,30 +348,34 @@ function PromptInput({
       const previous = draft.current;
       const separator = previous === '' || /\s$/.test(previous) ? '' : ' ';
 
-      onValueChange(`${previous}${separator}${transcript}`);
+      latest.current.onValueChange(`${previous}${separator}${transcript}`);
     };
+    // A session that ends must still be the current one: the effect clears the
+    // ref before stopping, so the ending it causes is not reported twice.
     instance.onend = () => {
+      if (recognition.current !== instance) return;
+
       recognition.current = null;
-      setListening(false);
+      latest.current.requestListening(false);
     };
     instance.onerror = () => {
+      if (recognition.current !== instance) return;
+
       recognition.current = null;
-      setListening(false);
+      latest.current.requestListening(false);
     };
 
     recognition.current = instance;
-    instance.start();
-    setListening(true);
-  }
 
-  function stopDictation() {
-    const instance = recognition.current;
-
-    recognition.current = null;
-    instance?.stop();
-    setListening(false);
-  }
-
+    try {
+      instance.start();
+    } catch {
+      // A blocked or busy microphone throws in some browsers; the composer still
+      // tells the app and returns to idle rather than claiming to listen.
+      recognition.current = null;
+      latest.current.requestListening(false);
+    }
+  });
   // The microphone is the browser's, so the composer releases it on the way out
   // instead of leaving a session listening after it is gone.
   React.useEffect(() => {
@@ -443,7 +496,7 @@ function PromptInput({
               data-slot="prompt-input-voice"
               aria-label={listening ? text.stopVoice : text.voice}
               aria-pressed={listening}
-              onClick={() => (listening ? stopDictation() : startDictation())}
+              onClick={() => requestListening(!listening)}
             >
               {listening ? <MicOffIcon aria-hidden="true" /> : <MicIcon aria-hidden="true" />}
             </Button>

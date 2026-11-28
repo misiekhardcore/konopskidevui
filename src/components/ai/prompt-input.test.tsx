@@ -577,3 +577,137 @@ describe('PromptInput auto-read toggle', () => {
     );
   });
 });
+
+describe('PromptInput controlled dictation', () => {
+  afterEach(() => {
+    removeSpeechRecognition();
+  });
+
+  /** The microphone's state lives in the app, the way a transcript panel would own it. */
+  function Dictation({
+    onChange,
+    initial = false,
+  }: {
+    onChange: (listening: boolean) => void;
+    initial?: boolean;
+  }) {
+    const [listening, setListening] = React.useState(initial);
+
+    return (
+      <Composer
+        onSubmit={vi.fn()}
+        voiceInput
+        listening={listening}
+        onListeningChange={(next) => {
+          setListening(next);
+          onChange(next);
+        }}
+      />
+    );
+  }
+
+  it('asks the app to start dictation, then starts once it agrees', async () => {
+    provideSpeechRecognition();
+    const onListeningChange = vi.fn();
+    render(<Dictation onChange={onListeningChange} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Start voice input' }));
+
+    expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(true);
+    expect(recognitions).toHaveLength(1);
+    expect(recognitions[0].start).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Stop voice input' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('follows the app instead of starting on its own', async () => {
+    provideSpeechRecognition();
+    const onListeningChange = vi.fn();
+    render(
+      <Composer
+        onSubmit={vi.fn()}
+        voiceInput
+        listening={false}
+        onListeningChange={onListeningChange}
+      />,
+    );
+
+    const microphone = screen.getByRole('button', { name: 'Start voice input' });
+    await userEvent.click(microphone);
+
+    expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(true);
+    expect(recognitions).toHaveLength(0);
+    expect(microphone).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('opens a session when the app turns dictation on', () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={() => {}} />);
+
+    expect(recognitions).toHaveLength(1);
+    expect(recognitions[0].start).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Stop voice input' })).toBeInTheDocument();
+  });
+
+  it('closes the session when the app turns dictation off', () => {
+    provideSpeechRecognition();
+    const onListeningChange = vi.fn();
+    const { rerender } = render(
+      <Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={onListeningChange} />,
+    );
+
+    rerender(
+      <Composer
+        onSubmit={vi.fn()}
+        voiceInput
+        listening={false}
+        onListeningChange={onListeningChange}
+      />,
+    );
+
+    expect(recognitions[0].stop).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
+  });
+
+  it('reports a session the browser finished, once', () => {
+    provideSpeechRecognition();
+    const onListeningChange = vi.fn();
+    render(<Dictation onChange={onListeningChange} initial />);
+
+    act(() => recognitions[0].onend?.());
+
+    expect(onListeningChange).toHaveBeenCalledExactlyOnceWith(false);
+    expect(screen.getByRole('button', { name: 'Start voice input' })).toBeInTheDocument();
+  });
+
+  it('does not report the ending it caused itself', () => {
+    provideSpeechRecognition();
+    const onListeningChange = vi.fn();
+    const { rerender } = render(
+      <Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={onListeningChange} />,
+    );
+
+    rerender(
+      <Composer
+        onSubmit={vi.fn()}
+        voiceInput
+        listening={false}
+        onListeningChange={onListeningChange}
+      />,
+    );
+    act(() => recognitions[0].onend?.());
+
+    expect(onListeningChange).not.toHaveBeenCalled();
+  });
+
+  it('dictates into the draft while the app holds the session open', async () => {
+    provideSpeechRecognition();
+    render(<Composer onSubmit={vi.fn()} voiceInput listening onListeningChange={() => {}} />);
+
+    dictate(recognitions[0], 'Kraków');
+
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('Kraków');
+  });
+});

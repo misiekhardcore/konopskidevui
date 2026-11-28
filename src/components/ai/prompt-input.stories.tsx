@@ -40,6 +40,13 @@ const meta = {
         'Adds a microphone that dictates into the draft. Hidden where the browser has no speech recognition.',
       table: { category: 'Speech', defaultValue: { summary: 'false' } },
     },
+    listening: {
+      control: false,
+      description:
+        'Whether dictation is running. Leave it out to let the composer own the session; an app that passes it drives the microphone and hears every start and stop through `onListeningChange`.',
+      table: { category: 'Speech' },
+    },
+    onListeningChange: { control: false, table: { category: 'Handlers' } },
     readAloud: {
       control: 'boolean',
       description:
