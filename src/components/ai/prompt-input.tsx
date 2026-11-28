@@ -108,12 +108,16 @@ function actionLabelOf(template: string, name: string): string {
   return template.replace('{name}', name);
 }
 
-export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | 'children'> & {
+export type PromptInputProps = Omit<React.ComponentProps<'div'>, 'onSubmit' | 'children'> & {
   /** The draft, controlled by the app. */
   value: string;
   /** Called with the whole next draft on every edit. */
   onValueChange: (value: string) => void;
-  /** Called on Enter or the send control, with the trimmed text and the files. */
+  /**
+   * Called on Enter or the send control, with the trimmed text and the files.
+   * The composer submits no form of its own, so the app is free to hand this
+   * straight to a server action, or to wrap the composer in its own form.
+   */
   onSubmit: (submission: PromptInputSubmission) => void;
   /** Called by the stop control, which replaces send while streaming. */
   onStop?: () => void;
@@ -155,8 +159,10 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
  * this component — decides how they become SDK file parts. Opt-in speech
  * controls add a microphone that toggles the app's own dictation through
  * `listening`, and a speaker that toggles whether the app reads its responses
- * aloud; the composer records and speaks nothing itself. The textarea grows with
- * its content up to a limit and then scrolls.
+ * aloud; the composer records and speaks nothing itself. It renders a plain
+ * container rather than a `<form>`, so it can sit inside the app's own form and
+ * submit through `onSubmit`, never through a native form submission. The
+ * textarea grows with its content up to a limit and then scrolls.
  */
 function PromptInput({
   value,
@@ -269,14 +275,10 @@ function PromptInput({
   }
 
   return (
-    <form
+    <div
       data-slot="prompt-input"
       data-status={status}
       className={cn('flex w-full min-w-0 flex-col gap-2', className)}
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
       {...props}
     >
       {attachments.length > 0 ? (
@@ -386,17 +388,18 @@ function PromptInput({
           </Button>
         ) : (
           <Button
-            type="submit"
+            type="button"
             size="icon"
             data-slot="prompt-input-send"
             aria-label={text.send}
+            onClick={submit}
             disabled={!canSubmit}
           >
             <SendIcon aria-hidden="true" />
           </Button>
         )}
       </div>
-    </form>
+    </div>
   );
 }
 

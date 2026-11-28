@@ -403,3 +403,33 @@ describe('PromptInput voice toggle', () => {
     expect(screen.getByRole('button', { name: 'Zatrzymaj dyktowanie' })).toBeInTheDocument();
   });
 });
+
+describe('PromptInput composition', () => {
+  it('renders no form of its own, so the app can put it inside one', () => {
+    const { container } = render(
+      <form aria-label="Chat" onSubmit={(event) => event.preventDefault()}>
+        <Composer onSubmit={vi.fn()} />
+      </form>,
+    );
+
+    expect(container.querySelectorAll('form')).toHaveLength(1);
+    expect(screen.getByRole('textbox', { name: 'Message' }).closest('form')).toBe(
+      screen.getByRole('form', { name: 'Chat' }),
+    );
+  });
+
+  it('leaves submission to the app, so the app can call a server action', async () => {
+    const onSubmit = vi.fn();
+    const submitEnclosingForm = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(
+      <form aria-label="Chat" onSubmit={submitEnclosingForm}>
+        <Composer onSubmit={onSubmit} value="Hello" />
+      </form>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Send message' }));
+
+    expect(onSubmit).toHaveBeenCalledExactlyOnceWith({ text: 'Hello', files: [] });
+    expect(submitEnclosingForm).not.toHaveBeenCalled();
+  });
+});
