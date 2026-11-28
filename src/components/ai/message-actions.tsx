@@ -106,7 +106,7 @@ function MessageActions({
         className={cn('flex max-w-full min-w-0 flex-wrap items-center gap-2', className)}
         {...props}
       >
-        {copies ? (
+        {copies && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -127,15 +127,15 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Copy to clipboard</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {copies ? (
+        {copies && (
           <span data-slot="message-copy-status" role="status" className="sr-only">
             {copied ? 'Copied to clipboard' : ''}
           </span>
-        ) : null}
+        )}
 
-        {onFeedbackChange ? (
+        {onFeedbackChange && (
           // Two separate buttons fed by one vote: both read their pressed state
           // from `feedback`, so they can never both be pressed and a new vote
           // replaces the previous one.
@@ -154,9 +154,9 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Helpful</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {onFeedbackChange ? (
+        {onFeedbackChange && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle
@@ -172,9 +172,9 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Not helpful</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {onReadAloud ? (
+        {onReadAloud && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -190,9 +190,9 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Read aloud</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {onRegenerate ? (
+        {onRegenerate && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -208,9 +208,9 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Regenerate message</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
 
-        {onEdit ? (
+        {onEdit && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -226,7 +226,7 @@ function MessageActions({
             </TooltipTrigger>
             <TooltipContent>Edit message</TooltipContent>
           </Tooltip>
-        ) : null}
+        )}
       </div>
     </TooltipProvider>
   );
