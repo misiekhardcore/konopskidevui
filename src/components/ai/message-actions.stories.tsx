@@ -10,14 +10,19 @@ const meta = {
     docs: {
       description: {
         component:
-          'A per-message action row for AI chats: copy, feedback, regenerate and edit. Handlers are optional; with none provided nothing renders.',
+          'A per-message action row for AI chats: copy, feedback, regenerate and edit. Every action is optional and renders only when its handler is wired; with none provided nothing renders.',
       },
     },
   },
   argTypes: {
+    copyValue: { control: 'text', table: { category: 'Props' } },
+    feedback: {
+      control: 'inline-radio',
+      options: ['up', 'down', null],
+      table: { category: 'Props' },
+    },
     onCopy: { control: false, table: { category: 'Handlers' } },
-    onFeedbackUp: { control: false, table: { category: 'Handlers' } },
-    onFeedbackDown: { control: false, table: { category: 'Handlers' } },
+    onFeedbackChange: { control: false, table: { category: 'Handlers' } },
     onRegenerate: { control: false, table: { category: 'Handlers' } },
     onEdit: { control: false, table: { category: 'Handlers' } },
     className: { control: false, table: { category: 'Styling' } },
@@ -32,25 +37,37 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   parameters: { chromatic: { disableSnapshot: false } },
   args: {
+    copyValue: 'The capital of Poland is Kraków.',
     onCopy: () => {},
-    onFeedbackUp: () => {},
-    onFeedbackDown: () => {},
+    feedback: null,
+    onFeedbackChange: () => {},
     onRegenerate: () => {},
     onEdit: () => {},
+  },
+};
+
+/** The vote the app recorded is the control's pressed state. */
+export const Voted: Story = {
+  args: {
+    copyValue: 'The capital of Poland is Kraków.',
+    onCopy: () => {},
+    feedback: 'up',
+    onFeedbackChange: () => {},
   },
 };
 
 /** Only the copy control, when the app wants nothing else on this message. */
 export const CopyOnly: Story = {
   args: {
+    copyValue: 'The capital of Poland is Kraków.',
     onCopy: () => {},
   },
 };
 
-/** Copy and feedback, the two controls a reader-facing answer usually needs. */
-export const CopyAndFeedback: Story = {
+/** Regenerate and edit, for a message the reader can act on but not rate. */
+export const RegenerateAndEdit: Story = {
   args: {
-    onCopy: () => {},
-    onFeedbackUp: () => {},
+    onRegenerate: () => {},
+    onEdit: () => {},
   },
 };
