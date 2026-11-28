@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.10.0] - 2026-11-28
+
+### Features
+
+- **ai:** Release the AI component family: a renderer for every AI SDK part type — tool calls and their approvals, reasoning, streamed responses with citations, sources, files, data parts, message actions, the composer, an error and a waiting indicator
+- **ai:** The family is deep-import only and type-coupled to `ai@^6`, which every module needs for its types; `response` also needs `react-markdown` and `remark-gfm`, and `file-part` needs `@videojs/react` (both ESM only)
+
+### Documentation
+
+- **ai:** Document the family's install command, supported SDK major, import subpath and per-module peers, and link the decisions behind it
+
 ## [0.9.1] - 2026-11-25
 
 ### Chores
