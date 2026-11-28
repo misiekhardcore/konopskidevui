@@ -58,7 +58,13 @@ export const textParts = {
     text: 'The forecast for Kraków is 21 °C and clear.',
     state: 'done',
   },
-} as const satisfies Record<'streaming' | 'done', TextUIPart>;
+  /** A finished answer that cites both source kinds, for a message-level suite. */
+  cited: {
+    type: 'text',
+    text: 'The forecast for Kraków is 21 °C and clear [1], and the data policy says how it was gathered [2].',
+    state: 'done',
+  },
+} as const satisfies Record<'streaming' | 'done' | 'cited', TextUIPart>;
 
 export const reasoningParts = {
   streaming: {

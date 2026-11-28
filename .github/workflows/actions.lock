@@ -3,6 +3,10 @@
 # Docs: https://gh.io/actions-lockfile
 version: 'v0.0.3'
 workflows:
+    '.github/workflows/chromatic.yml':
+        - 'actions/checkout@v7.0.1'
+        - 'chromaui/action@latest'
+        - 'pnpm/setup@v3.1.1'
     '.github/workflows/ci.yml':
         - 'actions/checkout@v4.4.0'
         - 'pnpm/setup@v3.1.1'
@@ -21,6 +25,16 @@ dependencies:
         commit: 'sha1-11d5960a326750d5838078e36cf38b85af677262'
         owner_id: 44036562
         repo_id: 197814629
+    'actions/checkout@v7.0.1':
+        ref: 'v7.0.1'
+        commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
+        owner_id: 44036562
+        repo_id: 197814629
+    'chromaui/action@latest':
+        ref: 'latest'
+        commit: 'sha1-0a7067e5ffc663a631b14db505d8a94b26e1bf2f'
+        owner_id: 24584319
+        repo_id: 213995974
     'chromaui/action@v18.14.5':
         ref: 'v18.14.5'
         commit: 'sha1-6efa19d4a40404313897de5a6d516e0333a2a787'
