@@ -500,120 +500,80 @@ describe('PromptInput voice input', () => {
   });
 });
 
-/** The slice of `SpeechSynthesisUtterance` the composer reads back. */
-class FakeUtterance {
-  text: string;
-  onend: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-
-  constructor(text: string) {
-    this.text = text;
-  }
-}
-
-let spoken: FakeUtterance[] = [];
-let speak: ReturnType<typeof vi.fn>;
-let cancel: ReturnType<typeof vi.fn>;
-
-function provideSpeechSynthesis() {
-  spoken = [];
-  speak = vi.fn((utterance: FakeUtterance) => {
-    spoken.push(utterance);
-  });
-  cancel = vi.fn();
-
-  Object.defineProperty(window, 'speechSynthesis', {
-    configurable: true,
-    value: { speak, cancel },
-  });
-  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
-    configurable: true,
-    value: FakeUtterance,
-  });
-}
-
-function removeSpeechSynthesis() {
-  Reflect.deleteProperty(window, 'speechSynthesis');
-  Reflect.deleteProperty(window, 'SpeechSynthesisUtterance');
-}
-
-describe('PromptInput read aloud', () => {
-  afterEach(() => {
-    removeSpeechSynthesis();
-  });
-
-  it('shows no speaker unless reading aloud is asked for', () => {
-    provideSpeechSynthesis();
+describe('PromptInput auto-read toggle', () => {
+  it('shows no speaker unless the app takes the toggle', () => {
     render(<Composer onSubmit={vi.fn()} />);
 
-    expect(screen.queryByRole('button', { name: /read aloud/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /reading responses aloud/i }),
+    ).not.toBeInTheDocument();
   });
 
-  it('hides the speaker where the browser has no speech synthesis', () => {
-    removeSpeechSynthesis();
+  it('shows no speaker for the state alone, because the app must act on it', () => {
     render(<Composer onSubmit={vi.fn()} readAloud />);
 
-    expect(screen.queryByRole('button', { name: /read aloud/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /reading responses aloud/i }),
+    ).not.toBeInTheDocument();
   });
 
-  it('reads the trimmed draft aloud', async () => {
-    provideSpeechSynthesis();
-    render(<Composer onSubmit={vi.fn()} value="  Forecast please  " readAloud />);
+  it('asks the app to start reading responses aloud', async () => {
+    const onReadAloudChange = vi.fn();
+    render(<Composer onSubmit={vi.fn()} onReadAloudChange={onReadAloudChange} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
+    const speaker = screen.getByRole('button', { name: 'Read responses aloud' });
+    expect(speaker).toHaveAttribute('aria-pressed', 'false');
 
-    expect(speak).toHaveBeenCalledOnce();
-    expect(spoken[0].text).toBe('Forecast please');
+    await userEvent.click(speaker);
 
-    const reading = screen.getByRole('button', { name: 'Stop reading aloud' });
-    expect(reading).toHaveAttribute('aria-pressed', 'true');
+    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(true);
   });
 
-  it('stops reading when the speaker is pressed again', async () => {
-    provideSpeechSynthesis();
-    render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
+  it('asks the app to stop when responses are already read aloud', async () => {
+    const onReadAloudChange = vi.fn();
+    render(<Composer onSubmit={vi.fn()} readAloud onReadAloudChange={onReadAloudChange} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Stop reading aloud' }));
+    const speaker = screen.getByRole('button', { name: 'Stop reading responses aloud' });
+    expect(speaker).toHaveAttribute('aria-pressed', 'true');
 
-    expect(cancel).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: 'Read aloud' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
+    await userEvent.click(speaker);
+
+    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it("follows the app's answer instead of toggling itself", async () => {
+    const onReadAloudChange = vi.fn();
+
+    render(
+      <PromptInput
+        value=""
+        onValueChange={vi.fn()}
+        onSubmit={vi.fn()}
+        readAloud={false}
+        onReadAloudChange={onReadAloudChange}
+      />,
     );
+
+    const speaker = screen.getByRole('button', { name: 'Read responses aloud' });
+    await userEvent.click(speaker);
+
+    expect(onReadAloudChange).toHaveBeenCalledExactlyOnceWith(true);
+    expect(speaker).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('does not read an empty draft', async () => {
-    provideSpeechSynthesis();
-    render(<Composer onSubmit={vi.fn()} value="   " readAloud />);
-
-    const read = screen.getByRole('button', { name: 'Read aloud' });
-    expect(read).toBeDisabled();
-
-    await userEvent.click(read);
-    expect(speak).not.toHaveBeenCalled();
-  });
-
-  it('goes back to idle when the browser finishes reading', async () => {
-    provideSpeechSynthesis();
-    render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
-    act(() => spoken[0].onend?.());
-
-    expect(screen.getByRole('button', { name: 'Read aloud' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
+  it('names the speaker through labels', () => {
+    render(
+      <Composer
+        onSubmit={vi.fn()}
+        readAloud
+        onReadAloudChange={() => {}}
+        labels={{ read: 'Czytaj odpowiedzi', stopReading: 'Przestań czytać odpowiedzi' }}
+      />,
     );
-  });
 
-  it('stops reading when the composer unmounts', async () => {
-    provideSpeechSynthesis();
-    const { unmount } = render(<Composer onSubmit={vi.fn()} value="Forecast please" readAloud />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
-    unmount();
-
-    expect(cancel).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Przestań czytać odpowiedzi' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

@@ -48,9 +48,9 @@ export type PromptInputLabels = {
   voice: string;
   /** The microphone's accessible name while dictation is listening. */
   stopVoice: string;
-  /** The speaker's accessible name while the draft is silent. */
+  /** The speaker's accessible name while responses are not read automatically. */
   read: string;
-  /** The speaker's accessible name while the draft is being read. */
+  /** The speaker's accessible name while responses are read automatically. */
   stopReading: string;
 };
 
@@ -63,8 +63,8 @@ const DEFAULT_LABELS: PromptInputLabels = {
   remove: 'Remove {name}',
   voice: 'Start voice input',
   stopVoice: 'Stop voice input',
-  read: 'Read aloud',
-  stopReading: 'Stop reading aloud',
+  read: 'Read responses aloud',
+  stopReading: 'Stop reading responses aloud',
 };
 
 /** What the app receives on submit: plain text and the browser's own files. */
@@ -154,25 +154,6 @@ function finalTranscriptOf(event: {
   return transcript.trim();
 }
 
-/** The slice of `speechSynthesis` the composer drives. */
-type Speaker = Pick<SpeechSynthesis, 'speak' | 'cancel'>;
-
-/** The browser's speech synthesis, if it has a usable one. */
-function speechSynthesisOf(): Speaker | null {
-  if (typeof window === 'undefined') return null;
-
-  const speaker = (window as Window & { speechSynthesis?: Speaker }).speechSynthesis;
-
-  return typeof speaker?.speak === 'function' && typeof speaker.cancel === 'function'
-    ? speaker
-    : null;
-}
-
-/** True only where both halves of speaking — the queue and its utterance — exist. */
-function canReadAloud(): boolean {
-  return speechSynthesisOf() !== null && typeof SpeechSynthesisUtterance === 'function';
-}
-
 export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | 'children'> & {
   /** The draft, controlled by the app. */
   value: string;
@@ -188,8 +169,14 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
   maxHeight?: number;
   /** Show a microphone that dictates into the draft. Hidden where the browser has no speech recognition. */
   voiceInput?: boolean;
-  /** Show a speaker that reads the draft aloud. Hidden where the browser has no speech synthesis. */
+  /** Whether responses are read aloud automatically. Controlled by the app, like the draft. */
   readAloud?: boolean;
+  /**
+   * Called with the next auto-read setting when the speaker is pressed. Providing
+   * it renders the speaker; speaking the responses is the app's job, because only
+   * the app has them.
+   */
+  onReadAloudChange?: (readAloud: boolean) => void;
   /** Override the strings shown, one at a time. */
   labels?: Partial<PromptInputLabels>;
 };
@@ -200,9 +187,9 @@ export type PromptInputProps = Omit<React.ComponentProps<'form'>, 'onSubmit' | '
  * answer streams. Files chosen from the picker or pasted into the textarea are
  * previewed as attachments and handed back as browser files, so the app — not
  * this component — decides how they become SDK file parts. Opt-in speech
- * controls add a microphone that dictates into the draft and a speaker that
- * reads it back, both only where the browser can offer them. The textarea grows
- * with its content up to a limit and then scrolls.
+ * controls add a microphone that dictates into the draft, and a speaker that
+ * toggles whether the app reads its responses aloud. The textarea grows with
+ * its content up to a limit and then scrolls.
  */
 function PromptInput({
   value,
@@ -213,6 +200,7 @@ function PromptInput({
   maxHeight = DEFAULT_MAX_HEIGHT,
   voiceInput = false,
   readAloud = false,
+  onReadAloudChange,
   labels,
   className,
   ...props
@@ -226,9 +214,7 @@ function PromptInput({
   const draft = React.useRef(value);
   const [attachments, setAttachments] = React.useState<PromptAttachment[]>([]);
   const [canDictate, setCanDictate] = React.useState(false);
-  const [canRead, setCanRead] = React.useState(false);
   const [listening, setListening] = React.useState(false);
-  const [reading, setReading] = React.useState(false);
 
   const streaming = status === 'streaming';
   const canSubmit = !streaming && value.trim().length > 0;
@@ -240,12 +226,11 @@ function PromptInput({
   }, [value]);
 
   // Support is detected after mount so the server render and the first client
-  // render agree; a control appears once the browser's answer is known.
+  // render agree; the microphone appears once the browser's answer is known.
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCanDictate(voiceInput && speechRecognitionOf() !== null);
-    setCanRead(readAloud && canReadAloud());
-  }, [readAloud, voiceInput]);
+  }, [voiceInput]);
 
   // Every object URL the composer ever created is revoked when it unmounts,
   // including one whose attachment is still on screen at that moment.
@@ -338,33 +323,12 @@ function PromptInput({
     setListening(false);
   }
 
-  function readDraft() {
-    const speaker = speechSynthesisOf();
-    const aloud = value.trim();
-
-    if (!speaker || !aloud) return;
-
-    const utterance = new SpeechSynthesisUtterance(aloud);
-
-    utterance.onend = () => setReading(false);
-    utterance.onerror = () => setReading(false);
-
-    speaker.speak(utterance);
-    setReading(true);
-  }
-
-  function stopReading() {
-    speechSynthesisOf()?.cancel();
-    setReading(false);
-  }
-
-  // The microphone and the voice are the browser's, so the composer releases
-  // them on the way out instead of leaving a session running after it is gone.
+  // The microphone is the browser's, so the composer releases it on the way out
+  // instead of leaving a session listening after it is gone.
   React.useEffect(() => {
     return () => {
       recognition.current?.abort();
       recognition.current = null;
-      speechSynthesisOf()?.cancel();
     };
   }, []);
 
@@ -484,18 +448,17 @@ function PromptInput({
               {listening ? <MicOffIcon aria-hidden="true" /> : <MicIcon aria-hidden="true" />}
             </Button>
           ) : null}
-          {canRead ? (
+          {onReadAloudChange ? (
             <Button
               type="button"
               variant="ghost"
               size="icon"
               data-slot="prompt-input-read"
-              aria-label={reading ? text.stopReading : text.read}
-              aria-pressed={reading}
-              disabled={!reading && value.trim().length === 0}
-              onClick={() => (reading ? stopReading() : readDraft())}
+              aria-label={readAloud ? text.stopReading : text.read}
+              aria-pressed={readAloud}
+              onClick={() => onReadAloudChange(!readAloud)}
             >
-              {reading ? <VolumeXIcon aria-hidden="true" /> : <Volume2Icon aria-hidden="true" />}
+              {readAloud ? <VolumeXIcon aria-hidden="true" /> : <Volume2Icon aria-hidden="true" />}
             </Button>
           ) : null}
         </div>
