@@ -55,7 +55,7 @@ export type MessageActionsProps = Omit<ComponentProps<'div'>, 'children'> & {
   onEdit?: () => void | Promise<void>;
 };
 
-function MessageActions({
+export function MessageActions({
   copyValue,
   onCopy,
   feedback,
@@ -231,5 +231,3 @@ function MessageActions({
     </TooltipProvider>
   );
 }
-
-export { MessageActions };
